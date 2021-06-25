@@ -3,7 +3,7 @@
  * Emily Sheetz, NSTGRO VTE 2021
  * 
  * This quadratic programming (QP) formulation for solving inverse kinematics (IK) problems
- * is based on Stephane Caron's IK tutorial and implementation. and Steven Jorgensen's implementation.
+ * is based on Stephane Caron's IK tutorial and implementation.
  * 		Caron's IK tutorial: https://scaron.info/robotics/inverse-kinematics.html
  * 		Caron's pymanoid IK implementation: https://github.com/stephane-caron/pymanoid/blob/master/pymanoid/ik.py
  * 		Caron's pymanoid library: https://github.com/stephane-caron/pymanoid
