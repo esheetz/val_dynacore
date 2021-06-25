@@ -34,7 +34,7 @@
 #include <iostream>
 #include <sstream>
 #include <string>
-#include "QuadProg++.hh"
+#include <Quadprogpp/QuadProg++.hh>
 
 int main (int argc, char *const argv[]) {
   quadprogpp::QPMatrix<double> G, CE, CI;

@@ -3,7 +3,6 @@
 #include <Valkyrie/Valkyrie_Definition.h>
 #include <Valkyrie/Valkyrie_Model.hpp>
 #include <Utils/utilities.hpp>
-#include <QuadProg++.hh>
 #include <Tasks/task_6dpose.h>
 #include <IKModule/ik.h>
 

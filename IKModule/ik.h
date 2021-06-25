@@ -34,7 +34,7 @@
 #include <limits>
 #include <RobotSystem.hpp>
 #include <Utils/utilities.hpp>
-#include <QuadProg++.hh>
+#include <Quadprogpp/QuadProg++.hh>
 #include <Tasks/task.h>
 
 // namespace InverseKinematics {

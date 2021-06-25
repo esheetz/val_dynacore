@@ -27,7 +27,7 @@ include_directories ("${PROJECT_SOURCE_DIR}/")
 
 include_directories ("${PROJECT_SOURCE_DIR}/RobotSystems")
 include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource")
-include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource/Optimizer/QuadProgpp/src")
+include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource/QuadProgpp")
 include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource/ParamHandler/include")
 include_directories ("${PROJECT_SOURCE_DIR}/Tasks")
 include_directories ("${PROJECT_SOURCE_DIR}/IKModule")

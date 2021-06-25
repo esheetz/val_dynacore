@@ -1,6 +1,10 @@
 # This software may be modified and distributed under the terms
 # of the MIT license.  See the LICENSE file for details.
 
+cmake_minimum_required(VERSION 3.0)
+
+project(QuadProg++ CXX)
+
 file(GLOB sources *.cc)
 file(GLOB headers *.hh)
 set(library_sources ${sources})
