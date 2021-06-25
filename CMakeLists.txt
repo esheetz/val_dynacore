@@ -32,6 +32,7 @@ include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource/ParamHandler/include"
 include_directories ("${PROJECT_SOURCE_DIR}/Tasks")
 include_directories ("${PROJECT_SOURCE_DIR}/IKModule")
 
+
 set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #------------------------------------------------------------------------
@@ -42,6 +43,7 @@ add_subdirectory (RobotSystems)
 add_subdirectory (Utils)
 add_subdirectory (Tasks)
 add_subdirectory (IKModule)
+add_subdirectory (tests)
 
 #------------------------------------------------------------------------
 # Configuration
@@ -63,22 +65,3 @@ message ("--------------------------------------------------------------")
 message ("")
 
 install(FILES ${PROJECT_SOURCE_DIR}/Configuration.h DESTINATION "${INSTALL_INCLUDE_DIR}")
-
-add_executable(main_test main_test.cpp)
-target_link_libraries(main_test dynacore_rbdl
-                                dynacore_urdf                                
-                                dynacore_utils
-                                Valkyrie_model
-                                dynacore_tasks
-                                dynacore_ik)
-
-add_executable(ik_test ik_test.cpp)
-target_link_libraries(ik_test dynacore_rbdl
-                              dynacore_urdf
-                              dynacore_utils
-                              Valkyrie_model
-                              dynacore_tasks
-                              dynacore_ik)
-
-add_executable(test_quadprog test_quadprog.cpp)
-target_link_libraries(test_quadprog quadprog)

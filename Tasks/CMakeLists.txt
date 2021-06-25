@@ -15,10 +15,3 @@ endif(UNIX)
 
 install(TARGETS dynacore_tasks DESTINATION "${INSTALL_LIB_DIR}")
 install(FILES ${cppheaders} DESTINATION "${INSTALL_INCLUDE_DIR}/Tasks")
-
-add_executable(task_test task_test.cpp)
-target_link_libraries(task_test dynacore_rbdl
-                                dynacore_urdf
-                                dynacore_utils
-                                Valkyrie_model
-                                dynacore_tasks)
