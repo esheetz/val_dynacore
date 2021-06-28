@@ -209,10 +209,10 @@ private:
 	// TASKS
 	std::vector<Task*> task_list_;
 	std::map<std::string, double> default_task_gains_ = {
-		{"Task6DPose", 1.0}
+		{"Task6DPose", 0.85}
 	}; // TODO update for more tasks
 	std::map<std::string, double> default_task_weights_ = {
-		{"Task6DPose", 1.0}
+		{"Task6DPose", 1e-3}
 	}; // TODO update for more tasks
 
 	// VIRTUAL ROTATION JOINTS

@@ -114,6 +114,10 @@ int main(int argc, char **argv)
 								valkyrie_joint::virtual_Rz,
 								valkyrie_joint::virtual_Rw);
 
+	// SET TASK GAINS/WEIGHTS
+	ik.setDefaultTaskGains();
+	//ik.setDefaultTaskWeights();
+
 	// PERFORM IK
 	std::cout << "[Test] Solve IK Problem" << std::endl;
 	dynacore::Vector q_solution;

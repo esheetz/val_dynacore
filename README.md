@@ -12,8 +12,11 @@ Library for performing kinematics and dynamics on NASA's Valkyrie robot.
 ```
 $ mkdir build && cd build
 $ cmake ..
-$ make 
-$ ./main_test # Test obtaining end-effector state and Jacobians
+$ make 				# optinal: -j4
+$ ./main_test 		# Test obtaining end-effector state and Jacobians
+$ ./ik_test			# Test IK module; computing joint solutions for predefined tasks
+$ ./task_test		# Test task module; computing residuals, velocities, costs, and Jacobians
+$ ./quadprog_test 	# Test QuadProg++ library
 ```
 
 ## Resources
