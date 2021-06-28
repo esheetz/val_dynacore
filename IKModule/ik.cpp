@@ -29,11 +29,6 @@
 
 // CONSTRUCTORS/DESTRUCTORS
 IKModule::IKModule() {
-	// initialize variables
-	initializeConfigurationVariables();
-	initializeTaskVariables();
-	initializeQPMatrices();
-
 	std::cout << "[IK Module] Constructed" << std::endl;
 }
 
@@ -41,22 +36,12 @@ IKModule::IKModule(RobotSystem& robot_model_in, int num_virtual_in) {
 	// set robot model
 	setRobotModel(robot_model_in, num_virtual_in);
 
-	// initialize variables
-	initializeConfigurationVariables();
-	initializeTaskVariables();
-	initializeQPMatrices();
-
 	std::cout << "[IK Module] Constructed" << std::endl;
 }
 
 IKModule::IKModule(RobotSystem* robot_model_in, int num_virtual_in) {
 	// set robot model
 	setRobotModel(robot_model_in, num_virtual_in);
-
-	// initialize variables
-	initializeConfigurationVariables();
-	initializeTaskVariables();
-	initializeQPMatrices();
 
 	std::cout << "[IK Module] Constructed" << std::endl;
 }
@@ -77,6 +62,12 @@ void IKModule::setRobotModel(RobotSystem* robot_model_in, int num_virtual_in) {
 	num_q_ = robot_model_->getDimQ();
 	num_qdot_ = robot_model_->getDimQdot();
 	nvirtual_ = num_virtual_in;
+
+	// initialize variables based on robot model
+	initializeConfigurationVariables();
+	initializeTaskVariables();
+	initializeQPMatrices();
+
 	return;
 }
 

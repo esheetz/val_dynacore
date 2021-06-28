@@ -6,8 +6,7 @@
 #include <Tasks/task_6dpose.h>
 #include <IKModule/ik.h>
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	std::cout << "Hello world!" << std::endl;
 
 	// CONSTRUCTORS
@@ -67,7 +66,6 @@ int main(int argc, char **argv)
 	robot_model_ptr->UpdateSystem(m_q, m_qdot);
 
 	// INITIALIZE 6DPOSE TASK
-	// TODO Task6DPose t_pose(robot_model_ptr, valkyrie_link::rightPalm);
 	Task6DPose* pose_task = new Task6DPose(robot_model_ptr, valkyrie_link::rightPalm);
 
 	// initial starting pose:
@@ -115,7 +113,9 @@ int main(int argc, char **argv)
 								valkyrie_joint::virtual_Rw);
 
 	// SET TASK GAINS/WEIGHTS
+	std::cout << "[Test] Set Default Task Gains in IK Problem" << std::endl;
 	ik.setDefaultTaskGains();
+	//std::cout << "[Test] Set Default Task Weights in IK Problem" << std::endl;
 	//ik.setDefaultTaskWeights();
 
 	// PERFORM IK
@@ -131,6 +131,18 @@ int main(int argc, char **argv)
 	}
 
 	dynacore::pretty_print(q_solution, std::cout, "IK Solution:");
+
+	// check current pose of right palm
+	dynacore::Vect3 right_palm_pos;
+	dynacore::Quaternion right_palm_quat;
+	right_palm_pos.setZero();
+	right_palm_quat.setIdentity();
+	robot_model_ptr->getPos(valkyrie_link::rightPalm, right_palm_pos);
+	robot_model_ptr->getOri(valkyrie_link::rightPalm, right_palm_quat);
+	dynacore::pretty_print(right_palm_pos, std::cout, "Right Palm Position");
+	std::cout << "Expected: [0.030000, -0.543124, 0.900000]" << std::endl;
+	dynacore::pretty_print(right_palm_quat, std::cout, "Right Palm Orientation");
+	std::cout << "Expected: [0.305308, 0.559184, 0.444851, 0.629451]" << std::endl;
 
 	return 0;
 }

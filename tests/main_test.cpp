@@ -4,8 +4,7 @@
 #include <Valkyrie/Valkyrie_Model.hpp>
 #include <Utils/utilities.hpp>
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
 	bool print_group_jacobians = false;
 	if (argc > 1) {
 		std::string input_str(argv[1]);
