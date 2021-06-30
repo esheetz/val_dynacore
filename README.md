@@ -14,9 +14,9 @@ $ mkdir build && cd build
 $ cmake ..
 $ make		# optional: -j4
 $ ./robot_model_test	# Test obtaining end-effector state and Jacobians
-$ ./ik_test 			# Test IK module; computing joint solutions for predefined tasks
-$ ./task_test			# Test task module; computing residuals, velocities, costs, and Jacobians
-$ ./quadprog_test		# Test QuadProg++ library
+$ ./ik_test 		# Test IK module; computing joint solutions for predefined tasks
+$ ./task_test		# Test task module; computing residuals, velocities, costs, and Jacobians
+$ ./quadprog_test	# Test QuadProg++ library
 ```
 
 ## Resources
