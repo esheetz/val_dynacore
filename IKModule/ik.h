@@ -32,6 +32,7 @@
 #include <math.h>
 #include <algorithm>
 #include <limits>
+#include <memory> // for std::shared_ptr, which is safer to use than raw pointer
 #include <RobotSystem.hpp>
 #include <Utils/utilities.hpp>
 #include <Quadprogpp/QuadProg++.hh>
@@ -44,20 +45,18 @@ class IKModule
 public:
 	// CONSTRUCTORS/DESTRUCTORS
 	IKModule(); // default constructor
-	IKModule(RobotSystem& robot_model_in, int num_virtual_in); // construct from RobotSystem
-	IKModule(RobotSystem* robot_model_in, int num_virtual_in); // construct from RobotSystem pointer
+	IKModule(std::shared_ptr<RobotSystem> robot_model_in, int num_virtual_in); // construct from RobotSystem pointer
 	~IKModule(); // destructor
 
 	// GETTERS/SETTERS
 	/*
 	 * sets the robot model
-	 * @param robot_model_in, the pointer/reference to robot model
+	 * @param robot_model_in, the pointer to robot model
 	 * @param num_virtual_in, number of virtual joints
 	 * @return none
 	 * @post robot model set
 	 */
-	void setRobotModel(RobotSystem& robot_model_in, int num_virtual_in);
-	void setRobotModel(RobotSystem* robot_model_in, int num_virtual_in);
+	void setRobotModel(std::shared_ptr<RobotSystem> robot_model_in, int num_virtual_in);
 
 	/*
 	 * sets the indices for the virtual joints; see {robot}_Defnition.h for joint indices
@@ -71,7 +70,7 @@ public:
 	 * @return none
 	 * @post task_in added to list of tasks
 	 */
-	void addTaskToList(Task* task_in);
+	void addTaskToList(std::shared_ptr<Task> task_in);
 
 	/*
 	 * clears the list of tasks
@@ -86,6 +85,11 @@ public:
 	 */
 	void setDefaultTaskGains();
 	void setDefaultTaskWeights();
+
+	/*
+	 * sets the debug flag; used to print cost information at each iteration of the IK solution
+	 */
+	void setDebug(bool debug_in);
 	
 	/*
 	 * sets the initial robot configuration from which to find an IK solution
@@ -111,7 +115,7 @@ public:
 	bool solve(dynacore::Vector& q_solution);
 
 	// ROBOT
-	RobotSystem* robot_model_; // robot model
+	std::shared_ptr<RobotSystem> robot_model_; // robot model
 	int num_q_ = 0; // dimension of joint position vector (configuration)
 	int num_qdot_ = 0; // dimension of joint velocity vector (ignore w-component of virtual rotation quaternion since only xyz are needed)
 	int nvirtual_ = 0; // number of virtual joints
@@ -155,7 +159,7 @@ private:
 	/*
 	 * adds task information to task variables; called whenever new task is added to task list
 	 */
-	void addTaskToTaskVariables(Task* task_in);
+	void addTaskToTaskVariables(std::shared_ptr<Task> task_in);
 
 	/*
 	 * computes the {residuals / velocity residuals / costs / Jacobians} for each task
@@ -207,7 +211,7 @@ private:
 	void computeConfigurationWithRotationVector(dynacore::Vector q_quat, dynacore::Vector& q_rvec);
 
 	// TASKS
-	std::vector<Task*> task_list_;
+	std::vector<std::shared_ptr<Task>> task_list_;
 	std::map<std::string, double> default_task_gains_ = {
 		{"Task6DPose", 0.85}
 	}; // TODO update for more tasks

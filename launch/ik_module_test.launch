@@ -1,0 +1,26 @@
+<?xml version="1.0"?>
+<!--***********************************************************
+	IK Module Test Node
+	Emily Sheetz, NSTGRO VTE 2021
+
+	run either:
+		$ roslaunch val_dynacore ik_module_test.launch
+		OR
+		$ rosrun val_dynacore ik_module_test_node
+************************************************************-->
+<launch>
+	<arg name="tasks" default="wholebody"/>
+	<!-- supported task sets:
+			"rarm": moves right palm to pre-defined pose; rest of body will float in space
+			"wholebody": moves arms and legs while keeping pelvis stationary; robot should appear to stay standing
+	-->
+
+	<arg name="debug" default="false"/>
+	<arg unless="$(arg debug)" name="launch_prefix" value="" />
+	<arg if="$(arg debug)" name="launch_prefix" value="xterm -e gdb **args" />
+
+	<node launch-prefix="$(arg launch_prefix)" pkg="val_dynacore" type="ik_module_test_node" name="IKModuleTestNode" output="screen">
+		<param name="task_set" value="$(arg tasks)"/>
+		<!--<param name="" type="" value=""/> -->
+	</node>
+</launch>

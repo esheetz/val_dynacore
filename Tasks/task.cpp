@@ -12,12 +12,7 @@ Task::Task() {
 	std::cout << "[Task] Constructed" << std::endl;
 }
 
-Task::Task(RobotSystem& robot_model_in) {
-	robot_model_ = &robot_model_in;
-	std::cout << "[Task] Constructed" << std::endl;
-}
-
-Task::Task(RobotSystem* robot_model_in) {
+Task::Task(std::shared_ptr<RobotSystem> robot_model_in) {
 	robot_model_ = robot_model_in;
 	std::cout << "[Task] Constructed" << std::endl;
 }

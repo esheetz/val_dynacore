@@ -1,9 +1,19 @@
 #include <iostream>
+#include <memory>
 
 #include <Valkyrie/Valkyrie_Definition.h>
 #include <Valkyrie/Valkyrie_Model.hpp>
 #include <Utils/utilities.hpp>
 
+/*
+ * Executable for testing fundamental functionality of the robot model.
+ * Construct robot model, set system state, get poses of links,
+ * compute Jacobians, compute joint limits.
+ *
+ * optional argument: boolean
+ * 	   used to divide Jacobians into joint groups
+ *     default false
+ */
 int main(int argc, char **argv) {
 	bool print_group_jacobians = false;
 	if (argc > 1) {
@@ -20,8 +30,9 @@ int main(int argc, char **argv) {
 	// Valkyrie_Model robot_model;
 
 	// Method 2: Make a pointer then construct it later
-	Valkyrie_Model* robot_model;
-	robot_model = new Valkyrie_Model();
+	// Valkyrie_Model* robot_model;
+	// robot_model = new Valkyrie_Model();
+	std::shared_ptr<Valkyrie_Model> robot_model(new Valkyrie_Model());
 
 	// (2) Specify Val's joint configuration
 	// See RobotSystems/Valkyrie/Valkyrie_Definition.h
@@ -208,7 +219,7 @@ int main(int argc, char **argv) {
 	dynacore::pretty_print(upper_limits, std::cout, "Upper Joint Limits:");
 	
 	// Delete
-	delete robot_model;
+	// delete robot_model;
 
 	return 0;
 }

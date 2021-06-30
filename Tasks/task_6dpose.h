@@ -7,6 +7,7 @@
 #define _TASK_6DPOSE_H_
 
 #include <iostream>
+#include <memory>
 #include <RobotSystem.hpp>
 #include <Utils/utilities.hpp>
 #include <Tasks/task.h>
@@ -16,8 +17,7 @@ class Task6DPose : public Task
 public:
 	// CONSTRUCTORS/DESTRUCTORS
 	Task6DPose(); // default constructor
-	Task6DPose(RobotSystem& robot_model_in, int frame_idx_in); // construct from RobotSystem
-	Task6DPose(RobotSystem* robot_model_in, int frame_idx_in); // construct from RobotSystem pointer
+	Task6DPose(std::shared_ptr<RobotSystem> robot_model_in, int frame_idx_in); // construct from RobotSystem pointer
 	virtual ~Task6DPose(); // destructor
 
 	// GETTERS/SETTERS

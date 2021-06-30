@@ -11,9 +11,22 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 #------------------------------------------------------------------------
 #     Build Setup
 #------------------------------------------------------------------------
-set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib )
-set(INSTALL_BIN_DIR ${CMAKE_INSTALL_PREFIX}/bin )
+#set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib )
+#set(INSTALL_BIN_DIR ${CMAKE_INSTALL_PREFIX}/bin )
 set(INSTALL_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include/${PROJECT_NAME})
+
+find_package(catkin REQUIRED COMPONENTS
+	roscpp
+	tf
+	geometry_msgs
+	sensor_msgs
+	std_msgs
+	#controller_msgs
+)
+catkin_package(
+	CATKIN_DEPENDS roscpp tf geometry_msgs sensor_msgs #controller_msgs
+)
+include_directories(${catkin_INCLUDE_DIRS})
 
 find_package(PkgConfig)
 pkg_check_modules(EIGEN3 REQUIRED eigen3)
@@ -31,9 +44,10 @@ include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource/QuadProgpp")
 include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource/ParamHandler/include")
 include_directories ("${PROJECT_SOURCE_DIR}/Tasks")
 include_directories ("${PROJECT_SOURCE_DIR}/IKModule")
+include_directories ("${PROJECT_SOURCE_DIR}/nodes")
 
 
-set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
+#set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 #------------------------------------------------------------------------
 #    Directory Selection
@@ -43,6 +57,7 @@ add_subdirectory (RobotSystems)
 add_subdirectory (Utils)
 add_subdirectory (Tasks)
 add_subdirectory (IKModule)
+add_subdirectory (nodes)
 add_subdirectory (tests)
 
 #------------------------------------------------------------------------

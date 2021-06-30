@@ -32,14 +32,7 @@ IKModule::IKModule() {
 	std::cout << "[IK Module] Constructed" << std::endl;
 }
 
-IKModule::IKModule(RobotSystem& robot_model_in, int num_virtual_in) {
-	// set robot model
-	setRobotModel(robot_model_in, num_virtual_in);
-
-	std::cout << "[IK Module] Constructed" << std::endl;
-}
-
-IKModule::IKModule(RobotSystem* robot_model_in, int num_virtual_in) {
+IKModule::IKModule(std::shared_ptr<RobotSystem> robot_model_in, int num_virtual_in) {
 	// set robot model
 	setRobotModel(robot_model_in, num_virtual_in);
 
@@ -51,13 +44,7 @@ IKModule::~IKModule() {
 }
 
 // GETTERS/SETTERS
-void IKModule::setRobotModel(RobotSystem& robot_model_in, int num_virtual_in) {
-	RobotSystem* robot_model_ptr = &robot_model_in;
-	setRobotModel(robot_model_ptr, num_virtual_in);
-	return;
-}
-
-void IKModule::setRobotModel(RobotSystem* robot_model_in, int num_virtual_in) {
+void IKModule::setRobotModel(std::shared_ptr<RobotSystem> robot_model_in, int num_virtual_in) {
 	robot_model_ = robot_model_in;
 	num_q_ = robot_model_->getDimQ();
 	num_qdot_ = robot_model_->getDimQdot();
@@ -79,7 +66,7 @@ void IKModule::setVirtualRotationJoints(int x, int y, int z, int w) {
 	return;
 }
 
-void IKModule::addTaskToList(Task* task_in) {
+void IKModule::addTaskToList(std::shared_ptr<Task> task_in) {
 	task_list_.push_back(task_in);
 	addTaskToTaskVariables(task_in);
 	return;
@@ -109,6 +96,11 @@ void IKModule::setDefaultTaskWeights() {
 		// set default weight
 		task_list_[i]->setTaskWeight(default_weight);
 	}
+	return;
+}
+
+void IKModule::setDebug(bool debug_in) {
+	debug_ = debug_in;
 	return;
 }
 
@@ -170,8 +162,14 @@ bool IKModule::solve(dynacore::Vector& q_solution) {
 	// resize solution
 	q_solution.resize(num_q_);
 
+	// initialize iteration counter, used for printing out information about final solution
+	int iter;
+
 	// solve the IK problem within max_iters_
 	for( int i = 0 ; i < max_iters_ ; i++ ) {
+		// update iteration counter
+		iter = i;
+
 		// update task residuals, velocities, and Jacobians
 		computeTaskResiduals();
 		computeTaskVelocityResiduals();
@@ -182,6 +180,13 @@ bool IKModule::solve(dynacore::Vector& q_solution) {
 		cost = computeCost();
 		impr = std::fabs(cost - prev_cost)/prev_cost;
 
+		// print initial cost info
+		if( iter == 0 ) {
+			std::printf("[IK Module] problem info -- iter=%d, cost=%0.2f, impr=%0.6f", i, cost, impr);
+			std::cout << std::endl;
+		}
+
+		// print debugging info
 		if( debug_ ) {
 			std::printf("[IK Module] solving -- iter=%d, cost=%0.2f, impr=%0.6f", i, cost, impr);
 			std::cout << std::endl;
@@ -209,14 +214,21 @@ bool IKModule::solve(dynacore::Vector& q_solution) {
 	computeConfigurationWithQuaternion(q_curr_, q_solution);
 
 	// check if converged
+	bool ik_res;
 	if( (std::fabs(cost) < cost_stop_) || (impr < impr_stop_) ) {
 		std::cout << "[IK Module] converged to solution!" << std::endl;
-		return true;
+		ik_res = true;
 	}
 	else {
 		std::cout << "[IK Module] max iterations reached" << std::endl;
-		return false;
+		ik_res = false;
 	}
+
+	// print final solution info
+	std::printf("[IK Module] solution info -- iter=%d, cost=%0.2f, impr=%0.6f", iter, cost, impr);
+	std::cout << std::endl;
+	
+	return ik_res;
 }
 
 // TASK RELATED COMPUTATIONS
@@ -244,7 +256,7 @@ void IKModule::initializeTaskVariables() {
 	return;
 }
 
-void IKModule::addTaskToTaskVariables(Task* task_in) {
+void IKModule::addTaskToTaskVariables(std::shared_ptr<Task> task_in) {
 	// set task-related vectors to appropriate size and set to zero vectors
 	// will be called every time a new task is added to task vector, so only initialize for single task
 	r_.push_back(dynacore::Vector::Zero(task_in->getTaskDimension()));

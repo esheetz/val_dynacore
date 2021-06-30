@@ -13,18 +13,7 @@ Task6DPose::Task6DPose() {
 	std::cout << "[Task6DPose] Constructed" << std::endl;
 }
 
-Task6DPose::Task6DPose(RobotSystem& robot_model_in, int frame_idx_in) {
-	// initialize parameters for task
-	initializeTaskParameters();
-
-	// set frame and robot
-	task_frame_ = frame_idx_in;
-	robot_model_ = &robot_model_in;
-	
-	std::cout << "[Task6DPose] Constructed" << std::endl;
-}
-
-Task6DPose::Task6DPose(RobotSystem* robot_model_in, int frame_idx_in) {
+Task6DPose::Task6DPose(std::shared_ptr<RobotSystem> robot_model_in, int frame_idx_in) {
 	// initialize parameters for task
 	initializeTaskParameters();
 

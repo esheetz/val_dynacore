@@ -7,6 +7,7 @@
 #define _TASK_H_
 
 #include <iostream>
+#include <memory>
 #include <RobotSystem.hpp>
 #include <Utils/utilities.hpp>
 
@@ -17,8 +18,7 @@ class Task
 public:
 	// CONSTRUCTORS/DESTRUCTORS
 	Task(); // default constructor
-	Task(RobotSystem& robot_model_in); // construct from RobotSystem
-	Task(RobotSystem* robot_model_in); // construct from RobotSystem pointer
+	Task(std::shared_ptr<RobotSystem> robot_model_in); // construct from RobotSystem pointer
 	virtual ~Task(); // destructor
 
 	// GETTERS/SETTERS
@@ -108,7 +108,7 @@ public:
 	virtual void computeTaskJacobian(dynacore::Matrix& J_task);
 
 	// ROBOT
-	RobotSystem* robot_model_;
+	std::shared_ptr<RobotSystem> robot_model_;
 
 	// PARAMETERS
 	bool debug_ = false; // used to print task information

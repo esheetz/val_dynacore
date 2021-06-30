@@ -1,5 +1,6 @@
 #include <iostream>
 #include <iomanip>
+#include <memory>
 
 #include <Valkyrie/Valkyrie_Definition.h>
 #include <Valkyrie/Valkyrie_Model.hpp>
@@ -7,6 +8,11 @@
 #include <Tasks/task.h>
 #include <Tasks/task_6dpose.h>
 
+/*
+ * Executable for testing the Task module hierarchy.
+ * Construct tasks, set gains and weights, get and set targets,
+ * compute task residual, velocity, cost, and Jacobian.
+ */
 int main(int argc, char **argv) {
 	std::cout << "Hello world!" << std::endl;
 
@@ -15,16 +21,8 @@ int main(int argc, char **argv) {
 	Task t;
 	Task6DPose tp;
 
-	std::cout << "[Test] Robot Model Construction - default" << std::endl;
-	Valkyrie_Model robot_model;
-
-	std::cout << "[Test] Task Construction - from robot model" << std::endl;
-	Task t_robot(robot_model);
-	Task6DPose t_pose_robot(robot_model, valkyrie_link::rightPalm);
-
 	std::cout << "[Test] Robot Model Construction - pointer" << std::endl;
-	Valkyrie_Model* robot_model_ptr;
-	robot_model_ptr = new Valkyrie_Model();
+	std::shared_ptr<Valkyrie_Model> robot_model_ptr(new Valkyrie_Model());
 	
 	std::cout << "[Test] Task Construction - from robot model pointer" << std::endl;
 	Task t_pointer(robot_model_ptr);

@@ -1,6 +1,8 @@
 #ifndef VALKYRIE_DEFINITION
 #define VALKYRIE_DEFINITION
 
+#include <map>
+
 namespace valkyrie_joint{
     constexpr int  virtual_X = 0;
     constexpr int  virtual_Y = 1;
@@ -57,6 +59,38 @@ namespace valkyrie{
     constexpr int num_leg_joint = 6;
     constexpr int upper_body_start_jidx = valkyrie_joint::leftShoulderPitch;
     constexpr int num_upper_joint = valkyrie_joint::virtual_Rw - valkyrie_joint::leftShoulderPitch;
+
+    // map from joint indices to names
+    std::map<int, std::string> joint_indices_to_names = {
+        {valkyrie_joint::leftHipYaw, "leftHipYaw"},
+        {valkyrie_joint::leftHipRoll, "leftHipRoll"},
+        {valkyrie_joint::leftHipPitch, "leftHipPitch"},
+        {valkyrie_joint::leftKneePitch, "leftKneePitch"},
+        {valkyrie_joint::leftAnklePitch, "leftAnklePitch"},
+        {valkyrie_joint::leftAnkleRoll, "leftAnkleRoll"},
+        {valkyrie_joint::rightHipYaw, "rightHipYaw"},
+        {valkyrie_joint::rightHipRoll, "rightHipRoll"},
+        {valkyrie_joint::rightHipPitch, "rightHipPitch"},
+        {valkyrie_joint::rightKneePitch, "rightKneePitch"},
+        {valkyrie_joint::rightAnklePitch, "rightAnklePitch"},
+        {valkyrie_joint::rightAnkleRoll, "rightAnkleRoll"},
+        {valkyrie_joint::torsoYaw, "torsoYaw"},
+        {valkyrie_joint::torsoPitch, "torsoPitch"},
+        {valkyrie_joint::torsoRoll, "torsoRoll"},
+        {valkyrie_joint::leftShoulderPitch, "leftShoulderPitch"},
+        {valkyrie_joint::leftShoulderRoll, "leftShoulderRoll"},
+        {valkyrie_joint::leftShoulderYaw, "leftShoulderYaw"},
+        {valkyrie_joint::leftElbowPitch, "leftElbowPitch"},
+        {valkyrie_joint::leftForearmYaw, "leftForearmYaw"},
+        {valkyrie_joint::lowerNeckPitch, "lowerNeckPitch"},
+        {valkyrie_joint::neckYaw, "neckYaw"},
+        {valkyrie_joint::upperNeckPitch, "upperNeckPitch"},
+        {valkyrie_joint::rightShoulderPitch, "rightShoulderPitch"},
+        {valkyrie_joint::rightShoulderRoll, "rightShoulderRoll"},
+        {valkyrie_joint::rightShoulderYaw, "rightShoulderYaw"},
+        {valkyrie_joint::rightElbowPitch, "rightElbowPitch"},
+        {valkyrie_joint::rightForearmYaw, "rightForearmYaw"}
+    };
 };
 
 namespace valkyrie_link{

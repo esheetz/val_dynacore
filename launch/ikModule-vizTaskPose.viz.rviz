@@ -1,0 +1,789 @@
+Panels:
+  - Class: rviz/Displays
+    Help Height: 78
+    Name: Displays
+    Property Tree Widget:
+      Expanded:
+        - /Global Options1
+        - /Status1
+        - /RobotModel1
+        - /Pose1
+        - /TF1
+      Splitter Ratio: 0.5
+    Tree Height: 839
+  - Class: rviz/Selection
+    Name: Selection
+  - Class: rviz/Tool Properties
+    Expanded:
+      - /2D Pose Estimate1
+      - /2D Nav Goal1
+      - /Publish Point1
+    Name: Tool Properties
+    Splitter Ratio: 0.5886790156364441
+  - Class: rviz/Views
+    Expanded:
+      - /Current View1
+    Name: Views
+    Splitter Ratio: 0.5
+  - Class: rviz/Time
+    Experimental: false
+    Name: Time
+    SyncMode: 0
+    SyncSource: ""
+Preferences:
+  PromptSaveOnExit: true
+Toolbars:
+  toolButtonStyle: 2
+Visualization Manager:
+  Class: ""
+  Displays:
+    - Alpha: 0.5
+      Cell Size: 1
+      Class: rviz/Grid
+      Color: 160; 160; 164
+      Enabled: true
+      Line Style:
+        Line Width: 0.029999999329447746
+        Value: Lines
+      Name: Grid
+      Normal Cell Count: 0
+      Offset:
+        X: 0
+        Y: 0
+        Z: 0
+      Plane: XY
+      Plane Cell Count: 10
+      Reference Frame: <Fixed Frame>
+      Value: true
+    - Alpha: 1
+      Class: rviz/RobotModel
+      Collision Enabled: false
+      Enabled: true
+      Links:
+        All Links Enabled: true
+        Expand Joint Details: false
+        Expand Link Details: false
+        Expand Tree: false
+        Link Tree Style: Links in Alphabetic Order
+        center_bottom_led_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        center_top_led_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        head_hokuyo_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        head_imu_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        hokuyo_link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftAnklePitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftCOP_Frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        leftElbowPitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftFoot:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftForearmLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftHazardCamera_Frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        leftHipPitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftHipRollLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftHipYawLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftIndexFingerPitch1Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftIndexFingerPitch2Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftIndexFingerPitch3Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftKneePitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftMiddleFingerPitch1Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftMiddleFingerPitch2Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftMiddleFingerPitch3Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftPalm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftPinkyPitch1Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftPinkyPitch2Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftPinkyPitch3Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftShoulderPitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftShoulderRollLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftShoulderYawLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftThumbPitch1Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftThumbPitch2Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftThumbPitch3Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftThumbRollLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        leftTorsoImu_Frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        leftWristRollLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        left_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        left_led_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        lowerNeckPitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        neckYawLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        pelvis:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        pelvisMiddleImu_Frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        pelvisRearImu_Frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rightAnklePitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightCOP_Frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rightElbowPitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightFoot:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightForearmLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightHazardCamera_Frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        rightHipPitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightHipRollLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightHipYawLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightIndexFingerPitch1Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightIndexFingerPitch2Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightIndexFingerPitch3Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightKneePitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightMiddleFingerPitch1Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightMiddleFingerPitch2Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightMiddleFingerPitch3Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightPalm:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightPinkyPitch1Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightPinkyPitch2Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightPinkyPitch3Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightShoulderPitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightShoulderRollLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightShoulderYawLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightThumbPitch1Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightThumbPitch2Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightThumbPitch3Link:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightThumbRollLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        rightWristRollLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        right_camera_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        right_led_frame:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+        torso:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        torsoPitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        torsoYawLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+        upperNeckPitchLink:
+          Alpha: 1
+          Show Axes: false
+          Show Trail: false
+          Value: true
+      Name: RobotModel
+      Robot Description: nstgro20_robot_description
+      TF Prefix: val_ik
+      Update Interval: 0
+      Value: true
+      Visual Enabled: true
+    - Alpha: 1
+      Axes Length: 0.20000000298023224
+      Axes Radius: 0.019999999552965164
+      Class: rviz/Pose
+      Color: 255; 25; 0
+      Enabled: true
+      Head Length: 0.30000001192092896
+      Head Radius: 0.10000000149011612
+      Name: Pose
+      Queue Size: 10
+      Shaft Length: 1
+      Shaft Radius: 0.05000000074505806
+      Shape: Axes
+      Topic: /IKModuleTestNode/nstgro20_valkyrie_ik/6dtaskpose_goal
+      Unreliable: false
+      Value: true
+    - Class: rviz/TF
+      Enabled: true
+      Frame Timeout: 15
+      Frames:
+        All Enabled: false
+        val_ik/center_bottom_led_frame:
+          Value: false
+        val_ik/center_top_led_frame:
+          Value: false
+        val_ik/head:
+          Value: false
+        val_ik/head_hokuyo_frame:
+          Value: false
+        val_ik/head_imu_link:
+          Value: false
+        val_ik/hokuyo_link:
+          Value: false
+        val_ik/leftAnklePitchLink:
+          Value: false
+        val_ik/leftCOP_Frame:
+          Value: false
+        val_ik/leftElbowPitchLink:
+          Value: false
+        val_ik/leftFoot:
+          Value: false
+        val_ik/leftForearmLink:
+          Value: false
+        val_ik/leftHazardCamera_Frame:
+          Value: false
+        val_ik/leftHipPitchLink:
+          Value: false
+        val_ik/leftHipRollLink:
+          Value: false
+        val_ik/leftHipYawLink:
+          Value: false
+        val_ik/leftIndexFingerPitch1Link:
+          Value: false
+        val_ik/leftIndexFingerPitch2Link:
+          Value: false
+        val_ik/leftIndexFingerPitch3Link:
+          Value: false
+        val_ik/leftKneePitchLink:
+          Value: false
+        val_ik/leftMiddleFingerPitch1Link:
+          Value: false
+        val_ik/leftMiddleFingerPitch2Link:
+          Value: false
+        val_ik/leftMiddleFingerPitch3Link:
+          Value: false
+        val_ik/leftPalm:
+          Value: false
+        val_ik/leftPinkyPitch1Link:
+          Value: false
+        val_ik/leftPinkyPitch2Link:
+          Value: false
+        val_ik/leftPinkyPitch3Link:
+          Value: false
+        val_ik/leftShoulderPitchLink:
+          Value: false
+        val_ik/leftShoulderRollLink:
+          Value: false
+        val_ik/leftShoulderYawLink:
+          Value: false
+        val_ik/leftThumbPitch1Link:
+          Value: false
+        val_ik/leftThumbPitch2Link:
+          Value: false
+        val_ik/leftThumbPitch3Link:
+          Value: false
+        val_ik/leftThumbRollLink:
+          Value: false
+        val_ik/leftTorsoImu_Frame:
+          Value: false
+        val_ik/leftWristRollLink:
+          Value: false
+        val_ik/left_camera_frame:
+          Value: false
+        val_ik/left_led_frame:
+          Value: false
+        val_ik/lowerNeckPitchLink:
+          Value: false
+        val_ik/neckYawLink:
+          Value: false
+        val_ik/pelvis:
+          Value: false
+        val_ik/pelvisMiddleImu_Frame:
+          Value: false
+        val_ik/pelvisRearImu_Frame:
+          Value: false
+        val_ik/rightAnklePitchLink:
+          Value: false
+        val_ik/rightCOP_Frame:
+          Value: false
+        val_ik/rightElbowPitchLink:
+          Value: false
+        val_ik/rightFoot:
+          Value: false
+        val_ik/rightForearmLink:
+          Value: false
+        val_ik/rightHazardCamera_Frame:
+          Value: false
+        val_ik/rightHipPitchLink:
+          Value: false
+        val_ik/rightHipRollLink:
+          Value: false
+        val_ik/rightHipYawLink:
+          Value: false
+        val_ik/rightIndexFingerPitch1Link:
+          Value: false
+        val_ik/rightIndexFingerPitch2Link:
+          Value: false
+        val_ik/rightIndexFingerPitch3Link:
+          Value: false
+        val_ik/rightKneePitchLink:
+          Value: false
+        val_ik/rightMiddleFingerPitch1Link:
+          Value: false
+        val_ik/rightMiddleFingerPitch2Link:
+          Value: false
+        val_ik/rightMiddleFingerPitch3Link:
+          Value: false
+        val_ik/rightPalm:
+          Value: true
+        val_ik/rightPinkyPitch1Link:
+          Value: false
+        val_ik/rightPinkyPitch2Link:
+          Value: false
+        val_ik/rightPinkyPitch3Link:
+          Value: false
+        val_ik/rightShoulderPitchLink:
+          Value: false
+        val_ik/rightShoulderRollLink:
+          Value: false
+        val_ik/rightShoulderYawLink:
+          Value: false
+        val_ik/rightThumbPitch1Link:
+          Value: false
+        val_ik/rightThumbPitch2Link:
+          Value: false
+        val_ik/rightThumbPitch3Link:
+          Value: false
+        val_ik/rightThumbRollLink:
+          Value: false
+        val_ik/rightWristRollLink:
+          Value: false
+        val_ik/right_camera_frame:
+          Value: false
+        val_ik/right_led_frame:
+          Value: false
+        val_ik/torso:
+          Value: false
+        val_ik/torsoPitchLink:
+          Value: false
+        val_ik/torsoYawLink:
+          Value: false
+        val_ik/upperNeckPitchLink:
+          Value: false
+        world:
+          Value: false
+      Marker Alpha: 1
+      Marker Scale: 1
+      Name: TF
+      Show Arrows: false
+      Show Axes: true
+      Show Names: false
+      Tree:
+        world:
+          val_ik/pelvis:
+            val_ik/leftHipYawLink:
+              val_ik/leftHipRollLink:
+                val_ik/leftHipPitchLink:
+                  val_ik/leftKneePitchLink:
+                    val_ik/leftAnklePitchLink:
+                      val_ik/leftFoot:
+                        val_ik/leftCOP_Frame:
+                          {}
+            val_ik/pelvisMiddleImu_Frame:
+              {}
+            val_ik/pelvisRearImu_Frame:
+              {}
+            val_ik/rightHipYawLink:
+              val_ik/rightHipRollLink:
+                val_ik/rightHipPitchLink:
+                  val_ik/rightKneePitchLink:
+                    val_ik/rightAnklePitchLink:
+                      val_ik/rightFoot:
+                        val_ik/rightCOP_Frame:
+                          {}
+            val_ik/torsoYawLink:
+              val_ik/torsoPitchLink:
+                val_ik/torso:
+                  val_ik/leftHazardCamera_Frame:
+                    {}
+                  val_ik/leftShoulderPitchLink:
+                    val_ik/leftShoulderRollLink:
+                      val_ik/leftShoulderYawLink:
+                        val_ik/leftElbowPitchLink:
+                          val_ik/leftForearmLink:
+                            val_ik/leftWristRollLink:
+                              val_ik/leftPalm:
+                                val_ik/leftIndexFingerPitch1Link:
+                                  val_ik/leftIndexFingerPitch2Link:
+                                    val_ik/leftIndexFingerPitch3Link:
+                                      {}
+                                val_ik/leftMiddleFingerPitch1Link:
+                                  val_ik/leftMiddleFingerPitch2Link:
+                                    val_ik/leftMiddleFingerPitch3Link:
+                                      {}
+                                val_ik/leftPinkyPitch1Link:
+                                  val_ik/leftPinkyPitch2Link:
+                                    val_ik/leftPinkyPitch3Link:
+                                      {}
+                                val_ik/leftThumbRollLink:
+                                  val_ik/leftThumbPitch1Link:
+                                    val_ik/leftThumbPitch2Link:
+                                      val_ik/leftThumbPitch3Link:
+                                        {}
+                  val_ik/leftTorsoImu_Frame:
+                    {}
+                  val_ik/lowerNeckPitchLink:
+                    val_ik/neckYawLink:
+                      val_ik/upperNeckPitchLink:
+                        val_ik/head:
+                          val_ik/center_bottom_led_frame:
+                            {}
+                          val_ik/center_top_led_frame:
+                            {}
+                          val_ik/head_imu_link:
+                            {}
+                          val_ik/hokuyo_link:
+                            val_ik/head_hokuyo_frame:
+                              {}
+                          val_ik/left_camera_frame:
+                            {}
+                          val_ik/left_led_frame:
+                            {}
+                          val_ik/right_camera_frame:
+                            {}
+                          val_ik/right_led_frame:
+                            {}
+                  val_ik/rightHazardCamera_Frame:
+                    {}
+                  val_ik/rightShoulderPitchLink:
+                    val_ik/rightShoulderRollLink:
+                      val_ik/rightShoulderYawLink:
+                        val_ik/rightElbowPitchLink:
+                          val_ik/rightForearmLink:
+                            val_ik/rightWristRollLink:
+                              val_ik/rightPalm:
+                                val_ik/rightIndexFingerPitch1Link:
+                                  val_ik/rightIndexFingerPitch2Link:
+                                    val_ik/rightIndexFingerPitch3Link:
+                                      {}
+                                val_ik/rightMiddleFingerPitch1Link:
+                                  val_ik/rightMiddleFingerPitch2Link:
+                                    val_ik/rightMiddleFingerPitch3Link:
+                                      {}
+                                val_ik/rightPinkyPitch1Link:
+                                  val_ik/rightPinkyPitch2Link:
+                                    val_ik/rightPinkyPitch3Link:
+                                      {}
+                                val_ik/rightThumbRollLink:
+                                  val_ik/rightThumbPitch1Link:
+                                    val_ik/rightThumbPitch2Link:
+                                      val_ik/rightThumbPitch3Link:
+                                        {}
+      Update Interval: 0
+      Value: true
+  Enabled: true
+  Global Options:
+    Background Color: 48; 48; 48
+    Default Light: true
+    Fixed Frame: world
+    Frame Rate: 30
+  Name: root
+  Tools:
+    - Class: rviz/Interact
+      Hide Inactive Objects: true
+    - Class: rviz/MoveCamera
+    - Class: rviz/Select
+    - Class: rviz/FocusCamera
+    - Class: rviz/Measure
+    - Class: rviz/SetInitialPose
+      Theta std deviation: 0.2617993950843811
+      Topic: /initialpose
+      X std deviation: 0.5
+      Y std deviation: 0.5
+    - Class: rviz/SetGoal
+      Topic: /move_base_simple/goal
+    - Class: rviz/PublishPoint
+      Single click: true
+      Topic: /clicked_point
+  Value: true
+  Views:
+    Current:
+      Class: rviz/Orbit
+      Distance: 5.996953964233398
+      Enable Stereo Rendering:
+        Stereo Eye Separation: 0.05999999865889549
+        Stereo Focal Distance: 1
+        Swap Stereo Eyes: false
+        Value: false
+      Field of View: 0.7853981852531433
+      Focal Point:
+        X: -0.6798042058944702
+        Y: -0.04825697839260101
+        Z: 0.1323990821838379
+      Focal Shape Fixed Size: true
+      Focal Shape Size: 0.05000000074505806
+      Invert Z Axis: false
+      Name: Current View
+      Near Clip Distance: 0.009999999776482582
+      Pitch: 0.600398063659668
+      Target Frame: <Fixed Frame>
+      Yaw: 0.10539855062961578
+    Saved: ~
+Window Geometry:
+  Displays:
+    collapsed: false
+  Height: 1136
+  Hide Left Dock: false
+  Hide Right Dock: true
+  QMainWindow State: 000000ff00000000fd000000040000000000000156000003d2fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003d000003d2000000c900fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f000003d2fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003d000003d2000000a400fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000039c0000003efc0100000002fb0000000800540069006d006501000000000000039c000002eb00fffffffb0000000800540069006d0065010000000000000450000000000000000000000240000003d200000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Selection:
+    collapsed: false
+  Time:
+    collapsed: false
+  Tool Properties:
+    collapsed: false
+  Views:
+    collapsed: true
+  Width: 924
+  X: 72
+  Y: 27

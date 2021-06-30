@@ -6,25 +6,41 @@
 #include <Tasks/task_6dpose.h>
 #include <IKModule/ik.h>
 
+/*
+ * Executable for testing IK Module.
+ * Construct IK Module, set virtual joints and robot configuration,
+ * add tasks, set debug flag, solve IK problem.
+ *
+ * optional argument: boolean
+ * 	   used to set IK Module debug flag
+ *     default true
+ */
 int main(int argc, char **argv) {
+	bool debug_ik_solution = true;
+	if (argc > 1) {
+		std::string input_str(argv[1]);
+		// take argument for verbose IK solution
+		if (input_str == "false") {
+			debug_ik_solution = false;
+		}
+	}
 	std::cout << "Hello world!" << std::endl;
 
 	// CONSTRUCTORS
 	std::cout << "[Test] IKModule Construction - default" << std::endl;
 	IKModule ik_default;
 
-	std::cout << "[Test] Robot Model Construction - default" << std::endl;
-	Valkyrie_Model robot_model;
-
-	std::cout << "[Test] IKModule Construction - from robot model" << std::endl;
-	IKModule ik_robot(robot_model, valkyrie::num_virtual);
-
 	std::cout << "[Test] Robot Model Construction - pointer" << std::endl;
-	Valkyrie_Model* robot_model_ptr;
-	robot_model_ptr = new Valkyrie_Model();
+	std::shared_ptr<Valkyrie_Model> robot_model_ptr(new Valkyrie_Model());
 	
 	std::cout << "[Test] IKModule Construction - from robot model pointer" << std::endl;
 	IKModule ik(robot_model_ptr, valkyrie::num_virtual);
+
+	std::cout << "[Test] Set Virtual Joints for Robot in IK Problem" << std::endl;
+	ik.setVirtualRotationJoints(valkyrie_joint::virtual_Rx,
+								valkyrie_joint::virtual_Ry,
+								valkyrie_joint::virtual_Rz,
+								valkyrie_joint::virtual_Rw);
 
 	// SET ROBOT INITIAL CONFIGURATION
 	dynacore::Vector m_q;
@@ -66,7 +82,7 @@ int main(int argc, char **argv) {
 	robot_model_ptr->UpdateSystem(m_q, m_qdot);
 
 	// INITIALIZE 6DPOSE TASK
-	Task6DPose* pose_task = new Task6DPose(robot_model_ptr, valkyrie_link::rightPalm);
+	std::shared_ptr<Task6DPose> pose_task(new Task6DPose(robot_model_ptr, valkyrie_link::rightPalm));
 
 	// initial starting pose:
 	// position: [0.025930, -0.543124, 0.842313]
@@ -107,10 +123,6 @@ int main(int argc, char **argv) {
 	// SET ROBOT CONFIG
 	std::cout << "[Test] Set Initial Robot Configuration in IK Problem" << std::endl;
 	ik.setInitialRobotConfiguration(m_q);
-	ik.setVirtualRotationJoints(valkyrie_joint::virtual_Rx,
-								valkyrie_joint::virtual_Ry,
-								valkyrie_joint::virtual_Rz,
-								valkyrie_joint::virtual_Rw);
 
 	// SET TASK GAINS/WEIGHTS
 	std::cout << "[Test] Set Default Task Gains in IK Problem" << std::endl;
@@ -120,6 +132,7 @@ int main(int argc, char **argv) {
 
 	// PERFORM IK
 	std::cout << "[Test] Solve IK Problem" << std::endl;
+	ik.setDebug(debug_ik_solution);
 	dynacore::Vector q_solution;
 	bool res = ik.solve(q_solution);
 

@@ -1,9 +1,9 @@
 #-------------------------------------------------
-# Main Test:
+# Robot Model Test:
 # for robot state, joint limits, Jacobians
 #-------------------------------------------------
-add_executable(main_test main_test.cpp)
-target_link_libraries(main_test dynacore_rbdl
+add_executable(robot_model_test robot_model_test.cpp)
+target_link_libraries(robot_model_test dynacore_rbdl
                                 dynacore_urdf                                
                                 dynacore_utils
                                 Valkyrie_model
