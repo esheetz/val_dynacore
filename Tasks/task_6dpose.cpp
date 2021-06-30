@@ -10,22 +10,22 @@ Task6DPose::Task6DPose() {
 	// initialize parameters for task
 	initializeTaskParameters();
 
-	std::cout << "[Task6DPose] Constructed" << std::endl;
+	// std::cout << "[Task6DPose] Constructed" << std::endl;
 }
 
 Task6DPose::Task6DPose(std::shared_ptr<RobotSystem> robot_model_in, int frame_idx_in) {
-	// initialize parameters for task
-	initializeTaskParameters();
-
 	// set frame and robot
 	task_frame_ = frame_idx_in;
 	robot_model_ = robot_model_in;
+
+	// initialize parameters for task
+	initializeTaskParameters();
 	
-	std::cout << "[Task6DPose] Constructed" << std::endl;
+	// std::cout << "[Task6DPose] Constructed" << std::endl;
 }
 
 Task6DPose::~Task6DPose() {
-	std::cout << "[Task6DPose] Destroyed" << std::endl;
+	// std::cout << "[Task6DPose] Destroyed" << std::endl;
 }
 
 // GETTERS/SETTERS
@@ -99,42 +99,6 @@ void Task6DPose::computeTaskResidual(dynacore::Vector& r_task) {
 	r_task = residual_;
 
 	return;
-}
-
-void Task6DPose::computeTaskVelocityResidual(dynacore::Vector& v_task, double dt) {
-	// compute task residual
-	dynacore::Vector r;
-	computeTaskResidual(r);
-	// computation below will use internal residual_; will be equivalent to residual r above
-
-	// v = r/dt
-	velocity_ = residual_;
-	velocity_ /= dt;
-
-	if( debug_ ) {
-		dynacore::pretty_print(velocity_, std::cout, "Task velocity:");
-	}
-
-	// set input variable
-	v_task = velocity_;
-
-	return;
-}
-
-double Task6DPose::computeTaskCost(double dt) {
-	// compute task velocity
-	dynacore::Vector v;
-	computeTaskVelocityResidual(v, dt);
-	// computation below will use internal velocity_; will be equivalent to velocity v above
-	
-	// c = w * v^T * v
-	double cost = w_task_weight_ * (static_cast<double>(velocity_.transpose() * velocity_));
-
-	if( debug_ ) {
-		std::cout << "Task cost: " << cost << std::endl;
-	}
-
-	return cost;
 }
 
 void Task6DPose::computeTaskJacobian(dynacore::Matrix& J_task) {

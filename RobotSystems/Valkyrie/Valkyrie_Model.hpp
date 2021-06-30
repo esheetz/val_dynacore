@@ -15,6 +15,8 @@ public:
     virtual int getDimQ() const;
     virtual int getDimQdot() const;
     virtual void getJointLimits(dynacore::Vector& lower_limits, dynacore::Vector& upper_limits, int num_virtual) const;
+    virtual void getCurrentQ(dynacore::Vector& q) const;
+    virtual void getCurrentQDot(dynacore::Vector& qdot) const;
 
     virtual bool getMassInertia(dynacore::Matrix & A) const ;
     virtual bool getInverseMassInertia(dynacore::Matrix & Ainv) const; 
@@ -44,6 +46,9 @@ protected:
     Valkyrie_Kin_Model* kin_model_;
 
     RigidBodyDynamics::Model* model_;
+
+    dynacore::Vector q_;
+    dynacore::Vector qdot_;
 };
 
 #endif

@@ -65,8 +65,20 @@ $ rosrun val_dynacore ik_module_test_node
 ```
 The launch file has the following optional arguments:
 - ```tasks```, which indicates the set of IK tasks to solve.  Supported values are:
-	- (default) ```wholebody```: move the pelvis, feet, and right arm; this constrains the feet to be on the floor and keeps the pelvis in place, resulting in a reasonable robot pose
 	- ```rarm```: move the right palm to a predefined pose without constraining the rest of the body; this means the robot will appear to float in the world without its feet contacting the ground
+	- ```wholebody```: move the pelvis, feet, and right arm; this constrains the feet to be on the floor and keeps the pelvis in place, resulting in a reasonable robot pose
+	- (default) ```wholebody-posture```: same as ```wholebody``` with additional tasks to keep certain joints fixed, resulting in better robot posture
+
+
+
+## Running Module Tests in Workspace
+Instead of building just the ```val_dynacore``` package and running the executable tests directly (as explained above), tests can be run from the main workspace directory.  To run tests for all of the modules, perform the following commands:
+```
+$ rosrun val_dynacore robot_model_test
+$ rosrun val_dynacore ik_test
+$ rosrun val_dynacore task_test
+$ rosrun val_dynacore quadprog_test
+```
 
 
 

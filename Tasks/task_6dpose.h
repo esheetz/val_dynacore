@@ -50,22 +50,6 @@ public:
 	 * @post r_task is modified to contain the residual (scaled by the task gain)
 	 */
 	virtual void computeTaskResidual(dynacore::Vector& r_task);
-
-	/*
-	 * computes the task velocity residual, residual/dt
-	 * @param v_task, the vector for storing the velocity residual
-	 * @param dt, the time difference used for computing velocities
-	 * @return none
-	 * @post v_task is modified to contain the velocity residual
-	 */
-	virtual void computeTaskVelocityResidual(dynacore::Vector& v_task, double dt);
-	
-	/*
-	 * computes the weighted task cost, w*v^T*v
-	 * @param dt, the time difference used for computing velocities
-	 * @return the task cost
-	 */
-	virtual double computeTaskCost(double dt);
 	
 	/*
 	 * computes the task Jacobian
@@ -76,8 +60,8 @@ public:
 	virtual void computeTaskJacobian(dynacore::Matrix& J_task);
 
 protected:
-	dynacore::Vect3 curr_pos_; // optional field for reference positions
-	dynacore::Quaternion curr_quat_; // optional field for reference quaternions
+	dynacore::Vect3 curr_pos_; // current position
+	dynacore::Quaternion curr_quat_; // current quaternion
 
 }; // end class
 

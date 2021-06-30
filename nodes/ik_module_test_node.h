@@ -20,6 +20,7 @@
 #include <Valkyrie/Valkyrie_Definition.h>
 #include <Valkyrie/Valkyrie_Model.hpp>
 #include <Tasks/task_6dpose.h>
+#include <Tasks/task_joint_config.h>
 #include <IKModule/ik.h>
 
 class IKModuleTestNode
@@ -38,6 +39,11 @@ public:
     // HELPER FUNCTIONS FOR INITIALIZATION
     void initializeIKModule();
     void setHardCodedIKProblemTasks();
+
+    // HELPER FUNCTIONS FOR SETTING HARDCODED TASKS
+    void setHardCodedRightArmIKProblemTasks();
+    void setHardCodedWholeBodyIKProblemTasks();
+    void setHardCodedWholeBodyPostureIKProblemTasks();
 
     // HELPER FUNCTIONS FOR BROADCASTING PELVIS POSE IN WORLD FRAME
     void computePelvisPoseInWorld(dynacore::Vector q);
@@ -92,6 +98,7 @@ private:
     std::shared_ptr<Task6DPose> lfoot_pose_task_;
     std::shared_ptr<Task6DPose> rfoot_pose_task_;
     std::shared_ptr<Task6DPose> pelvis_pose_task_;
+    std::shared_ptr<TaskJointConfig> joint_task_;
 
     bool update_initial_config_; // boolean indicating whether initial robot configuration should be updated
     dynacore::Vector q_curr_; // current joint positions

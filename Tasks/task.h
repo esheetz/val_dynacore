@@ -31,7 +31,7 @@ public:
 	virtual void getTarget(dynacore::Vect3& ref_pos_out);
 	virtual void getTarget(dynacore::Quaternion& ref_quat_out);
 	virtual void getTarget(dynacore::Vect3& ref_pos_out, dynacore::Quaternion& ref_quat_out);
-	virtual void getTarget(dynacore::Vector& ref_vec_out);
+	virtual void getTarget(dynacore::Vector& ref_q_out);
 
 	/*
 	 * sets the target {position/quaternion/configuration/etc.} for the task
@@ -42,7 +42,7 @@ public:
 	virtual void setTarget(dynacore::Vect3 ref_pos_in);
 	virtual void setTarget(dynacore::Quaternion ref_quat_in);
 	virtual void setTarget(dynacore::Vect3 ref_pos_in, dynacore::Quaternion ref_quat_in);
-	virtual void setTarget(dynacore::Vector ref_vec_in);
+	virtual void setTarget(dynacore::Vector ref_q_in);
 
 	/*
 	 * gets/sets the task gain
@@ -116,7 +116,7 @@ public:
 protected:
 	int task_dim_ = -1; // optional field for dimension of task
 
-	std::string task_name_ = "empty task"; // name of task
+	std::string task_name_ = "Task"; // name of task
 	int task_frame_ = -1; // index of link for task; see {robot}_Definition.h for link indices
 	
 	double kp_task_gain_ = 1.0; // task gain, used for residual during IK
@@ -124,7 +124,7 @@ protected:
 
 	dynacore::Vect3 ref_pos_; // optional field for reference positions
 	dynacore::Quaternion ref_quat_; // optional field for reference quaternions
-	dynacore::Vector ref_vec_; // optional field for reference vectors
+	dynacore::Vector ref_q_; // optional field for reference vectors
 
 	dynacore::Vector residual_; // task error/residual
 	dynacore::Vector velocity_; // task velocity residual

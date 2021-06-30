@@ -19,6 +19,11 @@ Valkyrie_Model::Valkyrie_Model(){
     dyn_model_ = new Valkyrie_Dyn_Model(model_);
     kin_model_ = new Valkyrie_Kin_Model(model_);
 
+    q_.resize(getDimQ());
+    q_.setZero();
+    qdot_.resize(getDimQdot());
+    qdot_.setZero();
+
     printf("[Valkyrie Model] Contructed\n");
 }
 
@@ -31,6 +36,8 @@ void Valkyrie_Model::UpdateSystem(const dynacore::Vector & q, const dynacore::Ve
     UpdateKinematicsCustom(*model_, &q, &qdot, NULL);
     dyn_model_->UpdateDynamics(q, qdot);
     kin_model_->UpdateKinematics(q, qdot);
+    q_ = q;
+    qdot_ = qdot;
 }
 
 int Valkyrie_Model::getDimQ() const{
@@ -82,6 +89,16 @@ void Valkyrie_Model::getJointLimits(dynacore::Vector& lower_limits, dynacore::Ve
         upper_limits[i] = ulimits[i];
     }
 
+    return;
+}
+
+void Valkyrie_Model::getCurrentQ(dynacore::Vector& q) const {
+    q = q_;
+    return;
+}
+
+void Valkyrie_Model::getCurrentQDot(dynacore::Vector& qdot) const {
+    qdot = qdot_;
     return;
 }
 

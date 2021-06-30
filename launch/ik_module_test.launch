@@ -9,10 +9,11 @@
 		$ rosrun val_dynacore ik_module_test_node
 ************************************************************-->
 <launch>
-	<arg name="tasks" default="wholebody"/>
+	<arg name="tasks" default="wholebody-posture"/>
 	<!-- supported task sets:
 			"rarm": moves right palm to pre-defined pose; rest of body will float in space
 			"wholebody": moves arms and legs while keeping pelvis stationary; robot should appear to stay standing
+			"wholebody-posture": moves arms and legs while keeping pelvis, torso, and neck stationary; robot should appear to stay standing
 	-->
 
 	<arg name="debug" default="false"/>
