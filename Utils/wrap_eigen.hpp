@@ -19,6 +19,7 @@
 #include <string>
 #include <cmath>
 #include <ctime>
+#include <tf/transform_broadcaster.h>
 
 namespace dynacore {
   typedef Eigen::Transform<double, 3, Eigen::Affine> Transform;
@@ -44,6 +45,9 @@ namespace dynacore {
   void convert(std::vector<double> const & from, dynacore::Vector & to);
   // double array to dynacore::Vector
   void convert(double const * from, size_t length, dynacore::Vector & to);
+
+  // tf::Quaternion to Quaternion
+  void convert(tf::Quaternion const & from, dynacore::Quaternion & to);
 
   // Note: when QuatMultiply is used to rotate a vector, set bound_pi to false.
   Quaternion QuatMultiply(const Quaternion & q1, const Quaternion & q2, bool bound_pi = true);

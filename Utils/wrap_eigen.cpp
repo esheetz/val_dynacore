@@ -181,6 +181,23 @@ namespace dynacore {
         to = Vector::Map(from, length);
     }
 
+    void convert(tf::Quaternion const & from, dynacore::Quaternion & to) {
+        // convert from tf quaternion to dynacore (Eigen) quaternion
+        // get axis and angle from tf quaternion
+        tf::Vector3 tf_axis = from.getAxis();
+        double angle = from.getAngle();
+
+        // create Eigen AngleAxis
+        dynacore::Vect3 aa_axis;
+        aa_axis << tf_axis.getX(), tf_axis.getY(), tf_axis.getZ();
+        Eigen::AngleAxisd aa(angle, aa_axis);
+
+        // set quaternion from AngleAxis
+        to = aa;
+
+        return;
+    }
+
   void Copy(const dynacore::Vector & sub, double* obj){
     for(int i(0);i<sub.rows(); ++i){    obj[i] = sub[i];    }
   }

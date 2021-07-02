@@ -8,13 +8,9 @@
  
 #include <math.h>
 #include <ros/ros.h>
-#include <geometry_msgs/PoseStamped.h> // TODO INCLUDE PROPER MESSAGE TYPE
+#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/JointState.h>
-// #include <controller_msgs/msg/WholeBodyTrajectoryMessage.h>
-// #include <controller_msgs/msg/ArmTrajectoryMessage.h> // TODO do I need all of these?
-// #include <controller_msgs/msg/JointspaceTrajectoryMessage.h> // TODO do I need all of these?
-// #include <controller_msgs/msg/OneDoFJointTrajectoryMessage.h> // TODO do I need all of these?
-// #include <controller_msgs/msg/TrajectoryPoint1DMessage.h> // TODO do I need all of these?
 #include <tf/transform_broadcaster.h>
 #include <RobotSystem.hpp>
 #include <Valkyrie/Valkyrie_Definition.h>
@@ -32,9 +28,6 @@ public:
 
     // CONNECTIONS
     bool initializeConnections();
-
-    // CALLBACK
-    // void refCallback(const sensor_msgs::JointState& msg); // TODO MESSAGE TYPE
 
     // HELPER FUNCTIONS FOR INITIALIZATION
     void initializeIKModule();
@@ -54,9 +47,8 @@ public:
     
     // HELPER FUNCTIONS FOR MAKING MESSAGES
     void makePoseStampedMessage(dynacore::Vect3 target_pos, dynacore::Quaternion target_quat, geometry_msgs::PoseStamped& pose_msg);
+    void makeTransformStampedMessage(tf::StampedTransform tf, geometry_msgs::TransformStamped& tf_msg);
     void makeJointStateMessage(dynacore::Vector& q, sensor_msgs::JointState& joint_state_msg);
-    // void makeIHMCWholeBodyMessage(dynacore::Vector& q, controller_msgs::WholeBodyTrajectoryMessage& wholebody_msg); // TODO?!?!
-    // void makeIHMCArmTrajectoryMessage(dynacore::Vector& q, controller_msgs::ArmTrajectoryMessage& arm_msg, int robot_side); // robot_side=0 is left arm, robot_side=1 is right arm
 
     // PUBLISH POSE MESSAGE
     void publishTaskPoseMessage();
@@ -64,9 +56,6 @@ public:
     // PUBLISH JOINT STATE MESSAGES AND BROADCAST APPROPRIATE WORLD TO PELVIS TRANSFORM
     void publishStandingJoints();
     void publishJoints();
-
-    // PUBLISH MESSAGE
-    // void publishIHMCJointMessage(dynacore::Vector& q); // TODO?!?!
 
     // SOLVE IK PROBLEM AND SEND COMMAND TO ROBOT
     bool performIKTasks();
@@ -76,6 +65,9 @@ private:
     ros::Publisher joint_state_pub_; // joint state publisher for visualizing IK solutions
     ros::Publisher task_pose_pub_; // pose publisher for visualizing IK task goal
 
+    ros::Publisher pelvis_transform_pub_; // transform publisher for IHMCInterfaceNode
+    ros::Publisher joint_command_pub_; // joint state publisher for IHMCInterfaceNode
+
     tf::TransformBroadcaster tf_bc_; // transform broadcaster for world to pelvis
     tf::Transform tf_pelvis_wrt_world_; // transform of pelvis w.r.t. world frame
 
@@ -83,10 +75,6 @@ private:
 
     double loop_rate_; // loop rate for publishing
     double publish_duration_; // seconds spent publishing messages
-
-    // TODO
-    // ros::Publisher whole_body_pub_; // publisher
-    // ros::Subscriber joint_state_sub_; // subscriber
 
     std::shared_ptr<RobotSystem> robot_model_; // robot model
     IKModule ik_; // IK module

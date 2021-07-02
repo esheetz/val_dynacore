@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!--***********************************************************
+	IHMC Interface Node
+	Emily Sheetz, NSTGRO VTE 2021
+
+	run either:
+		$ roslaunch val_dynacore ihmc_interface_node.launch
+		OR
+		$ rosrun val_dynacore ihmc_interface_node
+************************************************************-->
+<launch>
+	<arg name="debug" default="false"/>
+	<arg unless="$(arg debug)" name="launch_prefix" value="" />
+	<arg if="$(arg debug)" name="launch_prefix" value="xterm -e gdb **args" />
+
+	<node launch-prefix="$(arg launch_prefix)" pkg="val_dynacore" type="ihmc_interface_node" name="IHMCInterfaceNode" output="screen"> <!-- TODO package? -->
+		<!--<param name="" type="" value=""/> -->
+	</node>
+</launch>

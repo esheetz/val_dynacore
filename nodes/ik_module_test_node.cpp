@@ -29,44 +29,15 @@ IKModuleTestNode::~IKModuleTestNode() {
 
 // CONNECTIONS
 bool IKModuleTestNode::initializeConnections() {
-//     joint_state_sub_ = nh_.subscribe("joint_states" , 1, &IKModuleTestNode::refCallback, this); // TODO do we need subscriber?  how do we get initial state of robot?
-//     whole_body_pub_ = nh_.advertise<controller_msgs::WholeBodyTrajectoryMessage>("ihmc/valkyrie/humanoid_control/input/whole_body_trajectory", 1); // TODO MESSAGE TYPE
     joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("nstgro20_valkyrie_ik/joint_states", 1);
     task_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("nstgro20_valkyrie_ik/6dtaskpose_goal", 1);
 
+    // connections for IHMCInterfaceNode
+    pelvis_transform_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("nstgro20_valkyrie_ik/pelvis_transform", 1);
+    joint_command_pub_ = nh_.advertise<sensor_msgs::JointState>("nstgro20_valkyrie_ik/joint_commands", 1);
+
     return true;
 }
-
-// CALLBACK
-// void IKModuleTestNode::refCallback(const sensor_msgs::JointState& msg) {  // TODO MESSAGE TYPE
-//     // initialize vector for joint positions and velocities
-//     q_curr_.setZero();
-//     q_curr_.resize(robot_model_->getDimQ());
-//     qdot_curr_.setZero();
-//     qdot_curr_.resize(robot_model_->getDimQdot());
-
-//     // loop through joint position in joint state message
-//     for( int i = 0 ; i < msg.position.size() ; i++ ) {
-//         q_curr_[i] = msg.position[i];
-//     }
-
-//     // loop through joint velocity in joint state message
-//     for( int i = 0 ; i < msg.velocity.size() ; i++ ) {
-//         qdot_curr_[i] = msg.velocity[i];
-//     }
-
-//     // check if initial robot configuration should be set
-//     if( update_initial_config_ ) {
-//         // update initial configuration
-//         ik_.setInitialRobotConfiguration(q_curr_);
-//         // update robot model
-//         robot_model_->UpdateSystem(q_curr_, qdot_curr_);
-//         // node will now start setting joints, so we no longer need to update the configuration
-//         update_initial_config_ = false;
-//     }
-
-//     return;
-// }
 
 // HELPER FUNCTIONS FOR INITIALIZATION
 void IKModuleTestNode::initializeIKModule() {
@@ -112,10 +83,10 @@ void IKModuleTestNode::setHardCodedIKProblemTasks() {
         
     // set default gains/weights
     ik_.setDefaultTaskGains();
-    // ik_.setDefaultTaskWeights(); // TODO not needed with one task
+    // ik_.setDefaultTaskWeights(); // task weights set explicitly
 
     // alter default task gains to help with convergence
-    // TODO MAY NEED TO ALTER DEFAULT TASK GAINS
+    // may need to alter task gains
 
     return;
 }
@@ -264,8 +235,18 @@ void IKModuleTestNode::computePelvisPoseInWorld(dynacore::Vector q) {
 }
 
 void IKModuleTestNode::broadcastPelvisPoseInWorld() {
+    // create transform
+    tf::StampedTransform tf(tf_pelvis_wrt_world_, ros::Time::now(), "world", "val_ik/pelvis");
+
     // broadcast transform
-    tf_bc_.sendTransform(tf::StampedTransform(tf_pelvis_wrt_world_, ros::Time::now(), "world", "val_ik/pelvis"));
+    tf_bc_.sendTransform(tf);
+
+    // make transform message
+    geometry_msgs::TransformStamped tf_msg;
+    makeTransformStampedMessage(tf, tf_msg);
+
+    // publish transform for IHMCInterfaceNode
+    pelvis_transform_pub_.publish(tf_msg);
 
     return;
 }
@@ -330,6 +311,37 @@ void IKModuleTestNode::makePoseStampedMessage(dynacore::Vect3 target_pos, dynaco
     return;
 }
 
+void IKModuleTestNode::makeTransformStampedMessage(tf::StampedTransform tf, geometry_msgs::TransformStamped& tf_msg) {
+    // get transform translation
+    tf::Vector3 tf_origin = tf.getOrigin();
+
+    // set transform translation
+    tf_msg.transform.translation.x = tf_origin.getX();
+    tf_msg.transform.translation.y = tf_origin.getY();
+    tf_msg.transform.translation.z = tf_origin.getZ();
+
+    // get transform rotation
+    tf::Quaternion tf_rotation = tf.getRotation();
+    dynacore::Quaternion quat;
+    // convert from tf::Quaternion to dynacore::Quaternion
+    dynacore::convert(tf_rotation, quat);
+    
+    // set transform rotation
+    tf_msg.transform.rotation.x = quat.x();
+    tf_msg.transform.rotation.y = quat.y();
+    tf_msg.transform.rotation.z = quat.z();
+    tf_msg.transform.rotation.w = quat.w();
+
+    // set header
+    std_msgs::Header h0;
+    tf_msg.header = h0;
+    tf_msg.header.frame_id = tf.frame_id_;
+    tf_msg.header.stamp = tf.stamp_;
+    tf_msg.child_frame_id = tf.child_frame_id_; // TODO check this? might be ok because this is not checked by subscriber
+
+    return;
+}
+
 void IKModuleTestNode::makeJointStateMessage(dynacore::Vector& q, sensor_msgs::JointState& joint_state_msg) {
     // resize fields of message
     joint_state_msg.name.resize(valkyrie::num_act_joint);
@@ -348,23 +360,6 @@ void IKModuleTestNode::makeJointStateMessage(dynacore::Vector& q, sensor_msgs::J
 
     return;
 }
-
-// void IKModuleTestNode::makeIHMCWholeBodyMessage(dynacore::Vector& q, controller_msgs::WholeBodyTrajectoryMessage& wholebody_msg) { // TODO MESSAGE TYPE
-//     // create arm trajectory message
-//     makeIHMCArmTrajectoryMessage(q, wholebody_msg.left_arm_trajectory_message, 0);
-//     makeIHMCArmTrajectoryMessage(q, wholebody_msg.right_arm_trajectory_message, 1);
-
-//     // TODO NOT IMPLEMENTED
-//     return;
-// }
-
-// void IKModuleTestNode::makeIHMCArmTrajectoryMessage(dynacore::Vector& q, controller_msgs::ArmTrajectoryMessage& arm_msg, int robot_side) {
-//     // set robot side
-//     arm_msg.robot_side = robot_side;
-
-//     // TODO NOT IMPLEMENTED
-//     return;
-// }
 
 // PUBLISH POSE MESSAGE
 void IKModuleTestNode::publishTaskPoseMessage() {
@@ -448,22 +443,11 @@ void IKModuleTestNode::publishJoints() {
     // publish joint state message
     joint_state_pub_.publish(joint_state_msg);
 
-    return;
-}
-
-/*
-// PUBLISH MESSAGE
-void IKModuleTestNode::publishIHMCWholeBodyMessage(dynacore::Vector& q) {
-    // create whole body message
-    controller_msgs::WholeBodyTrajectoryMessage wholebody_msg;
-    makeIHMCWholeBodyMessage(q, wholebody_msg);
-
-    // publish message
-    whole_body_pub_.publish(wholebody_msg);
+    // publish command for IHMCInterfaceNode
+    joint_command_pub_.publish(joint_state_msg);
 
     return;
 }
-*/
 
 // SOLVE IK PROBLEM AND SEND COMMAND TO ROBOT
 bool IKModuleTestNode::performIKTasks() {
@@ -527,9 +511,9 @@ int main(int argc, char **argv) {
 
     ROS_INFO("[IK Module Test Node] Broadcasting pelvis transform in world frame, publishing IK goals, publishing IK solution joint state...");
     ros::Rate rate(10);
-    while( ros::ok() ){
+    while( ros::ok() ) {
         // broadcast transform of pelvis w.r.t. world
-        // ik_test_node.broadcastPelvisPoseInWorld(); // TODO not needed if publishing joint states
+        // ik_test_node.broadcastPelvisPoseInWorld(); // not needed if publishing joint states (below)
 
         // publish fixed task goal for visualization purposes
         ik_test_node.publishTaskPoseMessage();

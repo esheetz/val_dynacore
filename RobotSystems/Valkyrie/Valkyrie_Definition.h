@@ -91,6 +91,38 @@ namespace valkyrie{
         {valkyrie_joint::rightElbowPitch, "rightElbowPitch"},
         {valkyrie_joint::rightForearmYaw, "rightForearmYaw"}
     };
+
+    // map from joint names to indices
+    std::map<std::string, int> joint_names_to_indices = {
+        {"leftHipYaw", valkyrie_joint::leftHipYaw},
+        {"leftHipRoll", valkyrie_joint::leftHipRoll},
+        {"leftHipPitch", valkyrie_joint::leftHipPitch},
+        {"leftKneePitch", valkyrie_joint::leftKneePitch},
+        {"leftAnklePitch", valkyrie_joint::leftAnklePitch},
+        {"leftAnkleRoll", valkyrie_joint::leftAnkleRoll},
+        {"rightHipYaw", valkyrie_joint::rightHipYaw},
+        {"rightHipRoll", valkyrie_joint::rightHipRoll},
+        {"rightHipPitch", valkyrie_joint::rightHipPitch},
+        {"rightKneePitch", valkyrie_joint::rightKneePitch},
+        {"rightAnklePitch", valkyrie_joint::rightAnklePitch},
+        {"rightAnkleRoll", valkyrie_joint::rightAnkleRoll},
+        {"torsoYaw", valkyrie_joint::torsoYaw},
+        {"torsoPitch", valkyrie_joint::torsoPitch},
+        {"torsoRoll", valkyrie_joint::torsoRoll},
+        {"leftShoulderPitch", valkyrie_joint::leftShoulderPitch},
+        {"leftShoulderRoll", valkyrie_joint::leftShoulderRoll},
+        {"leftShoulderYaw", valkyrie_joint::leftShoulderYaw},
+        {"leftElbowPitch", valkyrie_joint::leftElbowPitch},
+        {"leftForearmYaw", valkyrie_joint::leftForearmYaw},
+        {"lowerNeckPitch", valkyrie_joint::lowerNeckPitch},
+        {"neckYaw", valkyrie_joint::neckYaw},
+        {"upperNeckPitch", valkyrie_joint::upperNeckPitch},
+        {"rightShoulderPitch", valkyrie_joint::rightShoulderPitch},
+        {"rightShoulderRoll", valkyrie_joint::rightShoulderRoll},
+        {"rightShoulderYaw", valkyrie_joint::rightShoulderYaw},
+        {"rightElbowPitch", valkyrie_joint::rightElbowPitch},
+        {"rightForearmYaw", valkyrie_joint::rightForearmYaw}
+    };
 };
 
 namespace valkyrie_link{

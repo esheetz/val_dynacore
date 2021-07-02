@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>val_dynacore</name>
+  <name>IHMCMsgInterface</name>
   <version>0.0.0</version>
-  <description>Adaptation of DynaCoRE kinematics and dynamics library for NASA's Valkyrie Robot.</description>
+  <description>Package for making and sending IHMC controller_msgs to NASA's Valkyrie Robot.</description>
 
   <maintainer email="esheetz@umich.edu">Emily Sheetz</maintainer>
 
@@ -14,5 +14,5 @@
   <depend>tf</depend>
   <depend>geometry_msgs</depend>
   <depend>sensor_msgs</depend>
-  <depend>std_msgs</depend>
+  <!--<depend>controller_msgs</depend>--> <!-- TODO -->
 </package>
