@@ -39,3 +39,11 @@ target_link_libraries(task_test dynacore_rbdl
 #---------------------------------------------------------------------
 add_executable(quadprog_test quadprog_test.cpp)
 target_link_libraries(quadprog_test quadprog)
+
+#---------------------------------------------------------------------
+# Potential Field Test:
+# for potential field hierarchy used for controllers
+#---------------------------------------------------------------------
+add_executable(potential_field_test potential_field_test.cpp)
+target_link_libraries(potential_field_test potential_fields
+                                           dynacore_utils)
