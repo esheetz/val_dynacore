@@ -15,4 +15,5 @@ add_library(dynacore_utils SHARED ${sources} ${headers} ${cppheaders})
 endif(UNIX)
 
 install(TARGETS dynacore_utils DESTINATION "${INSTALL_LIB_DIR}")
-install(FILES ${cppheaders} DESTINATION "${INSTALL_INCLUDE_DIR}/Utils")
+message("Installing ${cppheaders} to ${CATKIN_PACKAGE_INCLUDE_DESTINATION}/Utils")
+install(FILES ${cppheaders} DESTINATION "${CATKIN_PACKAGE_INCLUDE_DESTINATION}/Utils")

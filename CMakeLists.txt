@@ -22,8 +22,12 @@ find_package(catkin REQUIRED COMPONENTS
 	sensor_msgs
 	std_msgs
 )
+find_package(Eigen3 REQUIRED)
 catkin_package(
-	CATKIN_DEPENDS roscpp tf geometry_msgs sensor_msgs std_msgs
+	CATKIN_DEPENDS roscpp tf geometry_msgs sensor_msgs std_msgs 
+	DEPENDS EIGEN3
+	INCLUDE_DIRS . RobotSystems ExternalSource
+	LIBRARIES dynacore_utils Valkyrie_model
 )
 include_directories(${catkin_INCLUDE_DIRS})
 

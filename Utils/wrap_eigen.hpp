@@ -19,7 +19,7 @@
 #include <string>
 #include <cmath>
 #include <ctime>
-#include <tf/transform_broadcaster.h>
+#include <tf/tf.h>
 
 namespace dynacore {
   typedef Eigen::Transform<double, 3, Eigen::Affine> Transform;
