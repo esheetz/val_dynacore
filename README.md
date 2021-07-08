@@ -12,6 +12,7 @@ Library for performing kinematics and dynamics on NASA's Valkyrie robot.
 
 
 ## Compile (in Linux)
+To compile and test the `val_dynacore` package as a stand-alone package, run the following commands after cloning this package:
 ```
 $ mkdir build && cd build
 $ cmake ..
@@ -20,6 +21,16 @@ $ ./robot_model_test	# Test obtaining end-effector state and Jacobians
 $ ./ik_test 		# Test IK module; computing joint solutions for predefined tasks
 $ ./task_test		# Test task module; computing residuals, velocities, costs, and Jacobians
 $ ./quadprog_test	# Test QuadProg++ library
+```
+
+To compile and test the `val_dynacore` package as part of a catkin workspace, run the following commands after cloning this package:
+```
+$ catkin build
+$ source devel/setup.bash
+$ rosrun val_dynacore robot_model_test
+$ rosrun val_dynacore ik_test
+$ rosrun val_dynacore task_test
+$ rosrun val_dynacore quadprog_test
 ```
 
 
@@ -71,19 +82,43 @@ The launch file has the following optional arguments:
 
 
 
-## Running Module Tests in Workspace
-Instead of building just the `val_dynacore` package and running the executable tests directly (as explained above), tests can be run from the main workspace directory.  To run tests for all of the modules, perform the following commands:
+## Running in Simulation
+To send commands to the robot, the catkin workspace needs access to the IHMC Kinematics Toolbox `controller_msgs` (https://github.com/ihmcrobotics/ihmc-open-robotics-software/tree/val-develop/ihmc-interfaces/src/main/messages/ros1/controller_msgs/msg).  Once this is the case, clone the `IHMCMsgInterface` (https://github.com/esheetz/IHMCMsgInterface) into the workspace and build by running the following commands:
 ```
-$ rosrun val_dynacore robot_model_test
-$ rosrun val_dynacore ik_test
-$ rosrun val_dynacore task_test
-$ rosrun val_dynacore quadprog_test
+$ cd ~/nstgro20_ws
+$ git clone https://github.com/esheetz/IHMCMsgInterface.git
+$ catkin build
+```
+The `IHMCMsgInterface` is designed to be a stand-alone node that will create IHMC whole body messages and send them to the robot (real or in sim).  Note that `IHMCMsgInterface` has some dependencies in `val_dynacore` (for the robot model and some utility functions).
+
+To use the `IHMCMsgInterface` to send the IK solutions to the robot in simulation, follow the steps:
+1. Launch the Valkyrie SCS sim node to set up the appropriate ROS nodes:
+```
+$ roslaunch val_scs val_sim_scs.launch
 ```
 
+2. Launch the SCS sim from Eclipse.  Find `ValkyrieObstacleCourseNoGUI`, then do Run &rarr Run As &rarr Java Application.  In the pop-up window, accept the default settings.
 
+3. Verify that SCS is running properly by checking that the rostopics `/clock`, `/multisense/joint_states`, and `/tf` are getting messages.  You can run `rostopic hz <topic-name>` to do this.
 
-## Running IK in Simulation
-While the `IHMCMsgInterface` module is included in the `val_dynacore` package, the package is set up so that the `IHMCMsgInterface` will not compile, since we do not assume a dependency on IHMC's controller messages.  If running in simulation or on the robot, please uncomment the appropriate lines in `val_dynacore/CMakeLists.txt` to compile the `IHMCMsgInterface`.
+4. Start the bridge between ROS1 and ROS2 topics:
+```
+$ ~/exportable_bridge/run_bridge.sh
+```
+
+5. Launch the IK Module test node:
+```
+$ roslaunch val_dynacore ik_module_test_node.launch
+```
+
+6. Launch the IHMC Message Interface:
+```
+$ roslaunch IHMCMsgInterface ihmc_interface_node.launch
+```
+
+At this point, the robot should move to the same pose as when visualizing the IK solutions in RViz.
+
+For more information about running in the SCS sim (link will only work with NASA ID verification): https://bender.jsc.nasa.gov/confluence/pages/viewpage.action?spaceKey=VAL2&title=Running+with+SCS+instead+of+Gazebo
 
 
 
