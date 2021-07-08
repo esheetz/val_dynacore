@@ -97,7 +97,7 @@ To use the `IHMCMsgInterface` to send the IK solutions to the robot in simulatio
 $ roslaunch val_scs val_sim_scs.launch
 ```
 
-2. Launch the SCS sim from Eclipse.  Find `ValkyrieObstacleCourseNoGUI`, then do Run &rarr Run As &rarr Java Application.  In the pop-up window, accept the default settings.
+2. Launch the SCS sim from Eclipse.  Find `ValkyrieObstacleCourseNoGUI`, then do Run &rarr; Run As &rarr; Java Application.  In the pop-up window, accept the default settings.
 
 3. Verify that SCS is running properly by checking that the rostopics `/clock`, `/multisense/joint_states`, and `/tf` are getting messages.  You can run `rostopic hz <topic-name>` to do this.
 
