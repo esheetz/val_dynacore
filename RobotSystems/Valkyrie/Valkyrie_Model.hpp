@@ -17,6 +17,7 @@ public:
     virtual void getJointLimits(dynacore::Vector& lower_limits, dynacore::Vector& upper_limits, int num_virtual) const;
     virtual void getCurrentQ(dynacore::Vector& q) const;
     virtual void getCurrentQDot(dynacore::Vector& qdot) const;
+    virtual void getStandingConfiguration(dynacore::Vector& q, dynacore::Vector& qdot) const;
 
     virtual bool getMassInertia(dynacore::Matrix & A) const ;
     virtual bool getInverseMassInertia(dynacore::Matrix & Ainv) const; 
