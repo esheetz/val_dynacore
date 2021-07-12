@@ -46,5 +46,22 @@ namespace dynacore {
             *opt_sigmaOut = svd.singularValues();
         }
     }
+
+    bool pInv(const dynacore::Matrix& _J, dynacore::Matrix& _Jinv, double _eps) {
+        if (_J.rows() < _J.cols()) {
+            bool b;
+            dynacore::Matrix Jit;
+            b = pInv(_J.transpose(), Jit, _eps);
+            _Jinv = Jit.transpose();
+            return b;
+        }
+
+        Eigen::JacobiSVD<dynacore::Matrix> svd = _J.jacobiSvd(Eigen::ComputeThinU | Eigen::ComputeThinV);
+        dynacore::Matrix::Scalar tolerance = _eps * std::max(_J.cols(), _J.rows()) * svd.singularValues().array().abs().maxCoeff();
+
+        _Jinv = svd.matrixV() * dynacore::Matrix(dynacore::Matrix((svd.singularValues().array().abs() > tolerance).select(svd.singularValues().array().inverse(), 0)).asDiagonal()) * svd.matrixU().adjoint();
+
+        return true;
+    }
   
 }
