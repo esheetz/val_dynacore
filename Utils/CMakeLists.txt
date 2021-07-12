@@ -5,6 +5,7 @@ if (WIN32)
     wrap_eigen.hpp wrap_eigen.cpp
     utilities.hpp utilities.cpp
     pseudo_inverse.hpp pseudo_inverse.cpp
+    rosmsg_utils.hpp rosmsg_utils.cpp
 )
 endif(WIN32)
 

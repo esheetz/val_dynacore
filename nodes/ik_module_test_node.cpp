@@ -243,7 +243,7 @@ void IKModuleTestNode::broadcastPelvisPoseInWorld() {
 
     // make transform message
     geometry_msgs::TransformStamped tf_msg;
-    makeTransformStampedMessage(tf, tf_msg);
+    ROSMsgUtils::makeTransformStampedMessage(tf, tf_msg);
 
     // publish transform for IHMCInterfaceNode
     pelvis_transform_pub_.publish(tf_msg);
@@ -289,78 +289,6 @@ void IKModuleTestNode::computeStandingConfiguration(dynacore::Vector& q_standing
     return;
 }
 
-// HELPER FUNCTIONS FOR MAKING MESSAGES
-void IKModuleTestNode::makePoseStampedMessage(dynacore::Vect3 target_pos, dynacore::Quaternion target_quat, geometry_msgs::PoseStamped& pose_msg) {
-    // set pose position
-    pose_msg.pose.position.x = target_pos[0];
-    pose_msg.pose.position.y = target_pos[1];
-    pose_msg.pose.position.z = target_pos[2];
-
-    // set pose orientation
-    pose_msg.pose.orientation.x = target_quat.x();
-    pose_msg.pose.orientation.y = target_quat.y();
-    pose_msg.pose.orientation.z = target_quat.z();
-    pose_msg.pose.orientation.w = target_quat.w();
-
-    // set header
-    std_msgs::Header h0;
-    pose_msg.header = h0;
-    pose_msg.header.frame_id = std::string("world");
-    pose_msg.header.stamp = ros::Time::now();
-
-    return;
-}
-
-void IKModuleTestNode::makeTransformStampedMessage(tf::StampedTransform tf, geometry_msgs::TransformStamped& tf_msg) {
-    // get transform translation
-    tf::Vector3 tf_origin = tf.getOrigin();
-
-    // set transform translation
-    tf_msg.transform.translation.x = tf_origin.getX();
-    tf_msg.transform.translation.y = tf_origin.getY();
-    tf_msg.transform.translation.z = tf_origin.getZ();
-
-    // get transform rotation
-    tf::Quaternion tf_rotation = tf.getRotation();
-    dynacore::Quaternion quat;
-    // convert from tf::Quaternion to dynacore::Quaternion
-    dynacore::convert(tf_rotation, quat);
-    
-    // set transform rotation
-    tf_msg.transform.rotation.x = quat.x();
-    tf_msg.transform.rotation.y = quat.y();
-    tf_msg.transform.rotation.z = quat.z();
-    tf_msg.transform.rotation.w = quat.w();
-
-    // set header
-    std_msgs::Header h0;
-    tf_msg.header = h0;
-    tf_msg.header.frame_id = tf.frame_id_;
-    tf_msg.header.stamp = tf.stamp_;
-    tf_msg.child_frame_id = tf.child_frame_id_; // TODO check this? might be ok because this is not checked by subscriber
-
-    return;
-}
-
-void IKModuleTestNode::makeJointStateMessage(dynacore::Vector& q, sensor_msgs::JointState& joint_state_msg) {
-    // resize fields of message
-    joint_state_msg.name.resize(valkyrie::num_act_joint);
-    joint_state_msg.position.resize(valkyrie::num_act_joint);
-    joint_state_msg.velocity.resize(valkyrie::num_act_joint);
-    joint_state_msg.effort.resize(valkyrie::num_act_joint);
-
-    // set fields of message based on input configuration
-    for( int i = valkyrie::num_virtual ; i < valkyrie::num_virtual + valkyrie::num_act_joint ; i++ ) {
-        int idx = i - valkyrie::num_virtual;
-        joint_state_msg.name[idx] = valkyrie::joint_indices_to_names[i];
-        joint_state_msg.position[idx] = q[i];
-        joint_state_msg.velocity[idx] = 0.0;
-        joint_state_msg.effort[idx] = 0.0;
-    }
-
-    return;
-}
-
 // PUBLISH POSE MESSAGE
 void IKModuleTestNode::publishTaskPoseMessage() {
     // get target pose
@@ -370,7 +298,7 @@ void IKModuleTestNode::publishTaskPoseMessage() {
 
     // create pose message
     geometry_msgs::PoseStamped task_pose_msg;
-    makePoseStampedMessage(target_pos, target_quat, task_pose_msg);
+    ROSMsgUtils::makePoseStampedMessage(target_pos, target_quat, std::string("world"), ros::Time::now(), task_pose_msg);
 
     // publish message
     task_pose_pub_.publish(task_pose_msg);
@@ -399,7 +327,7 @@ void IKModuleTestNode::publishStandingJoints() {
 
     // create joint message
     sensor_msgs::JointState standing_state_msg;
-    makeJointStateMessage(q, standing_state_msg);
+    ROSMsgUtils::makeJointStateMessage(q, valkyrie::joint_indices_to_names, standing_state_msg);
 
     // publish messages for several seconds to ensure robot is standing
     ROS_INFO("[IK Module Test Node] Setting to standing for %f seconds...", pub_duration.toSec());
@@ -438,7 +366,7 @@ void IKModuleTestNode::publishJoints() {
 
     // create joint message
     sensor_msgs::JointState joint_state_msg;
-    makeJointStateMessage(q_current_, joint_state_msg);
+    ROSMsgUtils::makeJointStateMessage(q_current_, valkyrie::joint_indices_to_names, joint_state_msg);
 
     // publish joint state message
     joint_state_pub_.publish(joint_state_msg);

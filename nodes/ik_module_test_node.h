@@ -15,6 +15,7 @@
 #include <RobotSystem.hpp>
 #include <Valkyrie/Valkyrie_Definition.h>
 #include <Valkyrie/Valkyrie_Model.hpp>
+#include <Utils/rosmsg_utils.hpp>
 #include <Tasks/task_6dpose.h>
 #include <Tasks/task_joint_config.h>
 #include <IKModule/ik.h>
@@ -45,11 +46,6 @@ public:
     // HELPER FUNCTIONS FOR COMPUTING CONFIGURATIONS
     void computeStandingConfiguration(dynacore::Vector& q_standing, dynacore::Vector& qdot_standing);
     
-    // HELPER FUNCTIONS FOR MAKING MESSAGES
-    void makePoseStampedMessage(dynacore::Vect3 target_pos, dynacore::Quaternion target_quat, geometry_msgs::PoseStamped& pose_msg);
-    void makeTransformStampedMessage(tf::StampedTransform tf, geometry_msgs::TransformStamped& tf_msg);
-    void makeJointStateMessage(dynacore::Vector& q, sensor_msgs::JointState& joint_state_msg);
-
     // PUBLISH POSE MESSAGE
     void publishTaskPoseMessage();
 
