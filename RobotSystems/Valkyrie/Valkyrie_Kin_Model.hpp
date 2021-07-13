@@ -9,9 +9,6 @@ class Valkyrie_Kin_Model{
         Valkyrie_Kin_Model(RigidBodyDynamics::Model* model);
         ~Valkyrie_Kin_Model(void);
 
-        void getStandingConfiguration(dynacore::Vector& q, int dim_q,
-                                      dynacore::Vector& qdot, int dim_qdot);
-
         void getPos(int link_id, dynacore::Vect3 & pos);
         // Return Quaternion
         void getOri(int link_id, dynacore::Quaternion & ori);

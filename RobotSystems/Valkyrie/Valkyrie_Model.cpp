@@ -102,11 +102,6 @@ void Valkyrie_Model::getCurrentQDot(dynacore::Vector& qdot) const {
     return;
 }
 
-void Valkyrie_Model::getStandingConfiguration(dynacore::Vector& q, dynacore::Vector& qdot) const {
-    kin_model_->getStandingConfiguration(q, getDimQ(), qdot, getDimQdot());
-    return;
-}
-
 void Valkyrie_Model::getCentroidInertia(dynacore::Matrix & Icent) const{
     kin_model_->getCentroidInertia(Icent);
 }

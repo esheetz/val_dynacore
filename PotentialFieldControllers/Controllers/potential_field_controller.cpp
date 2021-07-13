@@ -11,12 +11,21 @@ double PotentialFieldController::NUDGE_EPS_ = 0.15;
 
 // CONSTRUCTORS/DESTRUCTORS
 PotentialFieldController::PotentialFieldController(std::shared_ptr<RobotSystem> robot_model,
+                                                   int num_virtual_joints,
+                                                   std::vector<int> virtual_rotation_joints,
                                                    std::string robot_name,
-                                                   std::string base_name) {
+                                                   std::string ref_frame) {
     // set robot parameters
     robot_model_ = robot_model;
     robot_name_ = robot_name;
-    base_name_ = base_name;
+    ref_frame_name_ = ref_frame;
+
+    // setup ik module
+    ik_.setRobotModel(robot_model, num_virtual_joints);
+    ik_.setVirtualRotationJoints(virtual_rotation_joints[0],
+                                 virtual_rotation_joints[1],
+                                 virtual_rotation_joints[2],
+                                 virtual_rotation_joints[3]);
 
     // intialize flags
     initialized_ = false;
@@ -71,12 +80,15 @@ void PotentialFieldController::reset() {
     // clear current robot information
     curr_pos_.setZero();
     curr_quat_.setIdentity();
+    q_.resize(robot_model_->getDimQ());
     q_.setZero();
+    qdot_.resize(robot_model_->getDimQdot());
     qdot_.setZero();
 
     // clear references
     ref_pos_.setZero();
     ref_quat_.setIdentity();
+    ref_q_.resize(robot_model_->getDimQ());
     ref_q_.setZero();
 
     // set flags
@@ -113,6 +125,9 @@ void PotentialFieldController::update() {
     makeJointStateMessage(joint_command, js_msg);
     cmd_pub_.publish(js_msg);
 
+    // update the robot model
+    robot_model_->UpdateSystem(q_, qdot_); // TODO this may be weird because IK Module has access to same pointer
+
     ROS_INFO("%s::update() -- update performed! potential: %f", getName().c_str(), potential());
 
     return;
@@ -145,10 +160,21 @@ double PotentialFieldController::nudgeEps() {
     return NUDGE_EPS_;
 }
 
+std::string PotentialFieldController::getReferenceTopic() {
+    return ref_topic_;
+}
+
+std::string PotentialFieldController::getCommandTopic() {
+    return cmd_topic_;
+}
+
 // HELPER FUNCTIONS
 void PotentialFieldController::updateConfiguration() {
     // update current configuration based on robot model
     robot_model_->getCurrentQ(q_);
+
+    // update configuration in IK module
+    ik_.setInitialRobotConfiguration(q_);
 
     return;
 }

@@ -15,6 +15,7 @@
 #include <RobotSystem.hpp>
 #include <Valkyrie/Valkyrie_Definition.h>
 #include <Valkyrie/Valkyrie_Model.hpp>
+#include <Valkyrie/valkyrie_utils.h>
 #include <Utils/rosmsg_utils.hpp>
 #include <Tasks/task_6dpose.h>
 #include <Tasks/task_joint_config.h>
@@ -42,9 +43,6 @@ public:
     // HELPER FUNCTIONS FOR BROADCASTING PELVIS POSE IN WORLD FRAME
     void computePelvisPoseInWorld(dynacore::Vector q);
     void broadcastPelvisPoseInWorld();
-
-    // HELPER FUNCTIONS FOR COMPUTING CONFIGURATIONS
-    void computeStandingConfiguration(dynacore::Vector& q_standing, dynacore::Vector& qdot_standing);
     
     // PUBLISH POSE MESSAGE
     void publishTaskPoseMessage();

@@ -9,9 +9,11 @@ using controllers::PositionController;
 
 // CONSTRUCTORS/DESTRUCTORS
 PositionController::PositionController(std::shared_ptr<RobotSystem> robot_model_in,
+                                       int num_virtual_joints,
+                                       std::vector<int> virtual_rotation_joints,
                                        std::string robot_name,
-                                       std::string base_name)
-    : PotentialFieldController(robot_model_in, robot_name, base_name) {
+                                       std::string ref_frame)
+    : PotentialFieldController(robot_model_in, num_virtual_joints, virtual_rotation_joints, robot_name, ref_frame) {
     // TODO NOT IMPLEMENTED
 }
 

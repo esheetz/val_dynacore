@@ -14,7 +14,10 @@
 #include <tf/transform_listener.h>
 
 #include <Utils/wrap_eigen.hpp>
+#include <Utils/pseudo_inverse.hpp>
 #include <RobotSystems/RobotSystem.hpp>
+#include <IKModule/ik.h>
+#include <Tasks/task_6dpose.h>
 #include <Controllers/potential_field_controller.h>
 #include <PotentialFields/attractive_potential_field.h>
 
@@ -25,8 +28,10 @@ class PoseController : public PotentialFieldController
 public:
     // CONSTRUCTORS/DESTRUCTORS
     PoseController(std::shared_ptr<RobotSystem> robot_model_in,
+                   int num_virtual_joints,
+                   std::vector<int> virtual_rotation_joints,
                    std::string robot_name,
-                   std::string base_name);
+                   std::string ref_frame = std::string("world"));
     ~PoseController();
 
     // CONTROLLER FUNCTIONS
@@ -59,7 +64,7 @@ public:
     /*
      * updates the protected data members with the reference pose for controlled frame index
      */
-    void updateGoalPose();
+    void updateReferencePose();
 
     // CONTROL LAW FUNCTIONS
     /*
@@ -84,7 +89,7 @@ public:
      * @return none
      * @post _grad updated to represent gradient of potential function evaluated at current pose
      */
-    void gradient(dynacore::Vector _grad);
+    void gradient(dynacore::Vector& _grad);
 
     /*
      * computes the change in end-effector pose or force (negative gradient) based on the current pose
@@ -115,6 +120,9 @@ public:
 protected:
     // attractive potential field
     controllers::AttractivePotentialField att_potential_; // potential field
+
+    // 6Dpose task
+    std::shared_ptr<Task6DPose> pose_task_; // 6d pose task for ik module
 
     // controller gains
     double kp_; // gain proportional to controller error

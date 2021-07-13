@@ -25,8 +25,10 @@ class RotationController : public PotentialFieldController
 public:
     // CONSTRUCTORS/DESTRUCTORS
     RotationController(std::shared_ptr<RobotSystem> robot_model_in,
+                       int num_virtual_joints,
+                       std::vector<int> virtual_rotation_joints,
                        std::string robot_name,
-                       std::string base_name);
+                       std::string ref_frame = std::string("world"));
     ~RotationController();
 
     // CONTROLLER FUNCTIONS

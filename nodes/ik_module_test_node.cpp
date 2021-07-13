@@ -201,7 +201,7 @@ void IKModuleTestNode::setHardCodedWholeBodyPostureIKProblemTasks() {
     dynacore::Vector standing_q;
     dynacore::Vector standing_qdot; // not used
     // from standing start pose, keep torso, left arm, and neck stationary
-    computeStandingConfiguration(standing_q, standing_qdot);
+    ValUtils::getStandingConfiguration(robot_model_, standing_q, standing_qdot);
     for( int i = 0 ; i < joint_idxs.size() ; i++ ) {
         joint_target_q[i] = standing_q[joint_idxs[i]];
     }
@@ -251,44 +251,6 @@ void IKModuleTestNode::broadcastPelvisPoseInWorld() {
     return;
 }
 
-// HELPER FUNCTIONS FOR COMPUTING CONFIGURATIONS
-void IKModuleTestNode::computeStandingConfiguration(dynacore::Vector& q_standing, dynacore::Vector& qdot_standing) {
-    // initialize vectors for standing
-    q_standing.setZero(robot_model_->getDimQ());
-    qdot_standing.setZero(robot_model_->getDimQdot());
-
-    // set joint positions for standing
-    // virtual linear joints
-    q_standing[valkyrie_joint::virtual_X] = 0.0;
-    q_standing[valkyrie_joint::virtual_Y] = 0.0;
-    q_standing[valkyrie_joint::virtual_Z] = 1.121277; 
-    // virtual rotational joints; set pelvis quaternion to identity
-    q_standing[valkyrie_joint::virtual_Rx] = 0.0;
-    q_standing[valkyrie_joint::virtual_Ry] = 0.0;
-    q_standing[valkyrie_joint::virtual_Rz] = 0.0;
-    q_standing[valkyrie_joint::virtual_Rw] = 1.0;
-    // left leg
-    q_standing[valkyrie_joint::leftHipPitch] = -0.3;
-    q_standing[valkyrie_joint::leftKneePitch] = 0.6;
-    q_standing[valkyrie_joint::leftAnklePitch] = -0.3;
-    // right leg
-    q_standing[valkyrie_joint::rightHipPitch] = -0.3;
-    q_standing[valkyrie_joint::rightKneePitch] = 0.6;
-    q_standing[valkyrie_joint::rightAnklePitch] = -0.3;
-    // left arm
-    q_standing[valkyrie_joint::leftShoulderPitch] = -0.2;
-    q_standing[valkyrie_joint::leftShoulderRoll] = -1.1;
-    q_standing[valkyrie_joint::leftElbowPitch] = -0.4;
-    q_standing[valkyrie_joint::leftForearmYaw] = 1.5;
-    // right arm
-    q_standing[valkyrie_joint::rightShoulderPitch] = 0.2;
-    q_standing[valkyrie_joint::rightShoulderRoll] = 1.1;
-    q_standing[valkyrie_joint::rightElbowPitch] = 0.4;
-    q_standing[valkyrie_joint::rightForearmYaw] = 1.5;
-
-    return;
-}
-
 // PUBLISH POSE MESSAGE
 void IKModuleTestNode::publishTaskPoseMessage() {
     // get target pose
@@ -320,7 +282,7 @@ void IKModuleTestNode::publishStandingJoints() {
     // compute standing configuration
     dynacore::Vector q;
     dynacore::Vector qdot;
-    computeStandingConfiguration(q, qdot);
+    ValUtils::getStandingConfiguration(robot_model_, q, qdot);
 
     // compute pelvis pose in world
     computePelvisPoseInWorld(q);

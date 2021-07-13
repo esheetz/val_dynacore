@@ -14,7 +14,9 @@
 #include <tf/transform_listener.h>
 
 #include <Utils/wrap_eigen.hpp>
+#include <Utils/pseudo_inverse.hpp>
 #include <RobotSystems/RobotSystem.hpp>
+#include <IKModule/ik.h>
 #include <PotentialFields/potential_field.h>
 
 namespace controllers
@@ -24,8 +26,10 @@ class PotentialFieldController
 public:
     // CONSTRUCTORS/DESTRUCTORS
     PotentialFieldController(std::shared_ptr<RobotSystem> robot_model_in,
+                             int num_virtual_joints,
+                             std::vector<int> virtual_rotation_joints,
                              std::string robot_name,
-                             std::string base_name);
+                             std::string ref_frame = std::string("world"));
     virtual ~PotentialFieldController();
 
     // CONTROLLER FUNCTIONS
@@ -53,6 +57,9 @@ public:
 
     // GETTERS/SETTERS
     double nudgeEps();
+    std::string getReferenceTopic();
+    std::string getCommandTopic();
+
 
     // HELPER FUNCTIONS
     /*
@@ -143,6 +150,9 @@ protected:
     ros::NodeHandle nh_; // node handler
     tf::TransformListener tf_; // transforms between frames
 
+    // IK module
+    IKModule ik_;
+
     // for publishing/subscribing to commands/references
     ros::Subscriber ref_sub_; // subscriber to receive inputs from
     ros::Publisher cmd_pub_; // publisher to send outputs to
@@ -157,7 +167,6 @@ protected:
 
     // info about controlled robot
     std::string robot_name_;
-    std::string base_name_;
 
     // info about controlled joint group
     std::string joint_group_;
@@ -173,6 +182,8 @@ protected:
     dynacore::Quaternion curr_quat_;
 
     // reference pose and/or configuration
+    std::string ref_frame_name_;
+    geometry_msgs::PoseStamped ref_pose_msg_;
     dynacore::Vect3 ref_pos_;
     dynacore::Quaternion ref_quat_;
     dynacore::Vector ref_q_;
