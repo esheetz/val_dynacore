@@ -49,10 +49,8 @@ include_directories ("${PROJECT_SOURCE_DIR}/Tasks")
 include_directories ("${PROJECT_SOURCE_DIR}/IKModule")
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers")
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/PotentialFields")
-include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/Controllers")
+#include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/Controllers")
 include_directories ("${PROJECT_SOURCE_DIR}/nodes")
-#include_directories ("${PROJECT_SOURCE_DIR}/IHMCMsgInterface")
-#include_directories ("${PROJECT_SOURCE_DIR}/IHMCMsgInterface/ihmc_utils")
 
 
 #set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -68,7 +66,6 @@ add_subdirectory (IKModule)
 add_subdirectory (PotentialFieldControllers)
 add_subdirectory (nodes)
 add_subdirectory (tests)
-#add_subdirectory (IHMCMsgInterface)
 
 #------------------------------------------------------------------------
 # Configuration
