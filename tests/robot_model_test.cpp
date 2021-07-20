@@ -214,7 +214,16 @@ int main(int argc, char **argv) {
 	std::cout << "[Test] Robot Model Joint Limits" << std::endl;
 	dynacore::Vector lower_limits;
 	dynacore::Vector upper_limits;
-	robot_model->getJointLimits(lower_limits, upper_limits, valkyrie::num_virtual);
+	robot_model->getJointLimits(lower_limits, upper_limits);
+	std::cout << "Lower Limit Size: " << lower_limits.size() << " Expected: " << robot_model->getDimQdot() << std::endl;
+	std::cout << "Upper Limit Size: " << upper_limits.size() << " Expected: " << robot_model->getDimQdot() << std::endl;
+	dynacore::pretty_print(lower_limits, std::cout, "Lower Joint Limits:");
+	dynacore::pretty_print(upper_limits, std::cout, "Upper Joint Limits:");
+
+	std::cout << "[Test] Robot Model Joint Limits with Virtual Joints" << std::endl;
+	robot_model->getJointLimits(lower_limits, upper_limits, true);
+	std::cout << "Lower Limit Size: " << lower_limits.size() << " Expected: " << robot_model->getDimQ() << std::endl;
+	std::cout << "Upper Limit Size: " << upper_limits.size() << " Expected: " << robot_model->getDimQ() << std::endl;
 	dynacore::pretty_print(lower_limits, std::cout, "Lower Joint Limits:");
 	dynacore::pretty_print(upper_limits, std::cout, "Upper Joint Limits:");
 	

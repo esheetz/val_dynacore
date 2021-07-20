@@ -18,6 +18,7 @@ add_executable(ik_test ik_test.cpp)
 target_link_libraries(ik_test dynacore_rbdl
                               dynacore_urdf
                               dynacore_utils
+                              dynacore_robot
                               Valkyrie_model
                               dynacore_tasks
                               dynacore_ik)
@@ -30,6 +31,7 @@ add_executable(task_test task_test.cpp)
 target_link_libraries(task_test dynacore_rbdl
                                 dynacore_urdf
                                 dynacore_utils
+                                dynacore_robot
                                 Valkyrie_model
                                 dynacore_tasks)
 

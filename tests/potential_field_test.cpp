@@ -2,7 +2,7 @@
 
 #include <Utils/utilities.hpp>
 #include <PotentialFields/potential_field.h>
-#include <PotentialFields/attractive_potential_field.h>
+#include <PotentialFields/attractive_potential_field_pose.h>
 #include <PotentialFields/repulsive_potential_field.h>
 
 /*
@@ -16,7 +16,7 @@ int main(int argc, char **argv) {
 	// CONSTRUCTORS
 	std::cout << "[Test] Potential Field Construction - default" << std::endl;
 	controllers::PotentialField pf;
-	controllers::AttractivePotentialField apf;
+	controllers::AttractivePotentialFieldPose apf;
 	controllers::RepulsivePotentialField rpf;
 
 	std::cout << "[Test] Potential Field Construction - non default" << std::endl;
@@ -31,7 +31,7 @@ int main(int argc, char **argv) {
 	target_quat.z() = 0.0;
 	target_quat.w() = 0.7071068;
 	// initialize attractive potential field
-	controllers::AttractivePotentialField apfg(target_pos, target_quat);
+	controllers::AttractivePotentialFieldPose apfg(target_pos, target_quat);
 
 	// GETTERS AND SETTERS
 	// get scaling factor

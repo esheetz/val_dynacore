@@ -7,6 +7,7 @@ target_link_libraries(ik_module_test_node ${catkin_LIBRARIES}
                                           dynacore_rbdl
                                           dynacore_urdf
                                           dynacore_utils
+                                          dynacore_robot
                                           Valkyrie_model
                                           dynacore_tasks
                                           dynacore_ik)
@@ -20,6 +21,7 @@ target_link_libraries(controller_test_node ${catkin_LIBRARIES}
                                            dynacore_rbdl
                                            dynacore_urdf
                                            dynacore_utils
+                                           dynacore_robot
                                            Valkyrie_model
                                            dynacore_tasks
                                            dynacore_ik

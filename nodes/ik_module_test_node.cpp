@@ -11,14 +11,13 @@ IKModuleTestNode::IKModuleTestNode(const ros::NodeHandle& nh) {
 
     // set up parameters
     nh_.param("task_set", task_set_, std::string("wholebody-posture"));
+    nh_.param("repeat", repeat_, false);
 
     loop_rate_ = 10.0; // Hz
     publish_duration_ = 3.0; // secs
 
     initializeConnections();
     initializeIKModule();
-
-    update_initial_config_ = true;
 
     std::cout << "[IK Module Test Node] Constructed" << std::endl;
 }
@@ -39,6 +38,11 @@ bool IKModuleTestNode::initializeConnections() {
     return true;
 }
 
+// GETTERS/SETTERS
+bool IKModuleTestNode::repeat() {
+    return repeat_;
+}
+
 // HELPER FUNCTIONS FOR INITIALIZATION
 void IKModuleTestNode::initializeIKModule() {
     // set debug to false
@@ -56,7 +60,7 @@ void IKModuleTestNode::initializeIKModule() {
     robot_model_->UpdateSystem(q, qdot);
 
     // set robot model for IK Module
-    ik_.setRobotModel(robot_model_, valkyrie::num_virtual);
+    ik_.setRobotModel(robot_model_);
 
     // set virtual joints for robot model
     ik_.setVirtualRotationJoints(valkyrie_joint::virtual_Rx,
@@ -194,7 +198,7 @@ void IKModuleTestNode::setHardCodedWholeBodyPostureIKProblemTasks() {
     std::vector<int> joint_idxs = {valkyrie_joint::torsoYaw, valkyrie_joint::torsoPitch, valkyrie_joint::torsoRoll,
                                    valkyrie_joint::leftShoulderPitch, valkyrie_joint::leftShoulderRoll, valkyrie_joint::leftShoulderYaw, valkyrie_joint::leftElbowPitch, valkyrie_joint::leftForearmYaw,
                                    valkyrie_joint::lowerNeckPitch, valkyrie_joint::neckYaw, valkyrie_joint::upperNeckPitch};
-    joint_task_ = std::make_shared<TaskJointConfig>(TaskJointConfig(robot_model_, joint_idxs, valkyrie::joint_indices_to_names));
+    joint_task_ = std::make_shared<TaskJointConfig>(TaskJointConfig(robot_model_, joint_idxs, val::joint_indices_to_names));
     // set target
     dynacore::Vector joint_target_q;
     joint_target_q.resize(joint_idxs.size());
@@ -289,7 +293,7 @@ void IKModuleTestNode::publishStandingJoints() {
 
     // create joint message
     sensor_msgs::JointState standing_state_msg;
-    ROSMsgUtils::makeJointStateMessage(q, valkyrie::joint_indices_to_names, standing_state_msg);
+    ROSMsgUtils::makeJointStateMessage(q, val::joint_indices_to_names, standing_state_msg);
 
     // publish messages for several seconds to ensure robot is standing
     ROS_INFO("[IK Module Test Node] Setting to standing for %f seconds...", pub_duration.toSec());
@@ -313,7 +317,6 @@ void IKModuleTestNode::publishStandingJoints() {
 
     // update robot model and set initial ik module config
     robot_model_->UpdateSystem(q, qdot);
-    ik_.setInitialRobotConfiguration(q);
     ROS_INFO("[IK Module Test Node] Set robot model and initial IK configuration to standing!");
 
     return;
@@ -328,7 +331,7 @@ void IKModuleTestNode::publishJoints() {
 
     // create joint message
     sensor_msgs::JointState joint_state_msg;
-    ROSMsgUtils::makeJointStateMessage(q_current_, valkyrie::joint_indices_to_names, joint_state_msg);
+    ROSMsgUtils::makeJointStateMessage(q_current_, val::joint_indices_to_names, joint_state_msg);
 
     // publish joint state message
     joint_state_pub_.publish(joint_state_msg);
@@ -390,29 +393,62 @@ int main(int argc, char **argv) {
     // pause_duration.sleep();
     // ROS_INFO("[IK Module Test Node] Continuing now.");
 
-    // perform IK task
-    bool ik_result = ik_test_node.performIKTasks();
-    if( ik_result ) {
-        ROS_INFO("[IK Module Test Node] IK Module converged to solution!");
+    ros::Rate rate(10);
+
+    // check if we want to repeatedly solve IK task
+    if( ik_test_node.repeat() ) {
+        ROS_INFO("[IK Module Test Node] Broadcasting pelvis transform in world frame, publishing IK goals, publishing IK solution joint state...");
+        while( ros::ok() ) {
+            std::cout << "========================================" << std::endl;
+            // perform IK task
+            bool ik_result = ik_test_node.performIKTasks();
+        
+            // broadcast transform of pelvis w.r.t. world
+            // ik_test_node.broadcastPelvisPoseInWorld(); // not needed if publishing joint states (below)
+
+            // publish fixed task goal for visualization purposes
+            ik_test_node.publishTaskPoseMessage();
+
+            // publish joint state message
+            ik_test_node.publishJoints();
+
+            if( ik_result ) {
+                ROS_INFO("[IK Module Test Node] IK Module converged to solution!");
+                ROS_INFO("[IK Module Test Node] Press [Enter] to resolve IK problem");
+                std::cin.get();
+            }
+            else {
+                ROS_WARN("[IK Module Test Node] IK Module could not converge to solution");
+            }
+
+            ros::spinOnce();
+            rate.sleep();
+        }
     }
     else {
-        ROS_WARN("[IK Module Test Node] IK Module could not converge to solution");
-    }
+        // perform IK task
+        bool ik_result = ik_test_node.performIKTasks();
+        if( ik_result ) {
+            ROS_INFO("[IK Module Test Node] IK Module converged to solution!");
+        }
+        else {
+            ROS_WARN("[IK Module Test Node] IK Module could not converge to solution");
+        }
 
-    ROS_INFO("[IK Module Test Node] Broadcasting pelvis transform in world frame, publishing IK goals, publishing IK solution joint state...");
-    ros::Rate rate(10);
-    while( ros::ok() ) {
-        // broadcast transform of pelvis w.r.t. world
-        // ik_test_node.broadcastPelvisPoseInWorld(); // not needed if publishing joint states (below)
+        ROS_INFO("[IK Module Test Node] Broadcasting pelvis transform in world frame, publishing IK goals, publishing IK solution joint state...");
+        while( ros::ok() ) {
+            // broadcast transform of pelvis w.r.t. world
+            // ik_test_node.broadcastPelvisPoseInWorld(); // not needed if publishing joint states (below)
 
-        // publish fixed task goal for visualization purposes
-        ik_test_node.publishTaskPoseMessage();
+            // publish fixed task goal for visualization purposes
+            ik_test_node.publishTaskPoseMessage();
 
-        // publish joint state message
-        ik_test_node.publishJoints();
+            // publish joint state message
+            ik_test_node.publishJoints();
 
-        ros::spinOnce();
-        rate.sleep();
+            ros::spinOnce();
+            rate.sleep();
+        }
     }
 
     ROS_INFO("[IK Module Test Node] Node stopped, all done!");

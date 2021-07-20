@@ -10,7 +10,7 @@ public:
 
     virtual int getDimQ() const = 0;
     virtual int getDimQdot() const = 0;
-    virtual void getJointLimits(dynacore::Vector& lower_limits, dynacore::Vector& upper_limits, int num_virtual) const = 0;
+    virtual void getJointLimits(dynacore::Vector& lower_limits, dynacore::Vector& upper_limits, bool include_all_virtual = false) const = 0;
     virtual void getCurrentQ(dynacore::Vector& q) const = 0;
     virtual void getCurrentQDot(dynacore::Vector& qdot) const = 0;
 

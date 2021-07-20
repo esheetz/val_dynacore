@@ -9,6 +9,7 @@
 #include <iostream>
 #include <memory>
 #include <RobotSystem.hpp>
+#include <RobotSystems/robot_utils.h>
 #include <Utils/utilities.hpp>
 
 // namespace Tasks {

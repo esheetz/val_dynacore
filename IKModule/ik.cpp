@@ -32,9 +32,9 @@ IKModule::IKModule() {
 	std::cout << "[IK Module] Constructed" << std::endl;
 }
 
-IKModule::IKModule(std::shared_ptr<RobotSystem> robot_model_in, int num_virtual_in) {
+IKModule::IKModule(std::shared_ptr<RobotSystem> robot_model_in) {
 	// set robot model
-	setRobotModel(robot_model_in, num_virtual_in);
+	setRobotModel(robot_model_in);
 
 	std::cout << "[IK Module] Constructed" << std::endl;
 }
@@ -44,11 +44,10 @@ IKModule::~IKModule() {
 }
 
 // GETTERS/SETTERS
-void IKModule::setRobotModel(std::shared_ptr<RobotSystem> robot_model_in, int num_virtual_in) {
+void IKModule::setRobotModel(std::shared_ptr<RobotSystem> robot_model_in) {
 	robot_model_ = robot_model_in;
 	num_q_ = robot_model_->getDimQ();
 	num_qdot_ = robot_model_->getDimQdot();
-	nvirtual_ = num_virtual_in;
 
 	// initialize variables based on robot model
 	initializeConfigurationVariables();
@@ -157,6 +156,8 @@ bool IKModule::solve(dynacore::Vector& q_solution) {
 	double impr = 1e6;
 
 	// initialize current configuration
+	robot_model_->getCurrentQ(q_init_);
+	setInitialRobotConfiguration(q_init_);
 	computeConfigurationWithRotationVector(q_init_, q_curr_);
 
 	// resize solution
@@ -356,7 +357,7 @@ void IKModule::buildQPMatrices() {
 	// get joint limits
 	dynacore::Vector limit_lower;
 	dynacore::Vector limit_upper;
-	robot_model_->getJointLimits(limit_lower, limit_upper, nvirtual_);
+	robot_model_->getJointLimits(limit_lower, limit_upper);
 
 	// set velocity limits
 	qd_min_ = dof_limit_gain_ * ((limit_lower - q_curr_) / dt_);

@@ -34,7 +34,7 @@ int main(int argc, char **argv) {
 	std::shared_ptr<Valkyrie_Model> robot_model_ptr(new Valkyrie_Model());
 	
 	std::cout << "[Test] IKModule Construction - from robot model pointer" << std::endl;
-	IKModule ik(robot_model_ptr, valkyrie::num_virtual);
+	IKModule ik(robot_model_ptr);
 
 	std::cout << "[Test] Set Virtual Joints for Robot in IK Problem" << std::endl;
 	ik.setVirtualRotationJoints(valkyrie_joint::virtual_Rx,

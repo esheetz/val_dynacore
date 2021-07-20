@@ -98,9 +98,5 @@ namespace ValUtils {
 
         return;
     }
-    
-    void setIKTasksForGroup() {
-        // TODO NOT IMPLEMENTED
-    }
 
 } // end namespace ValUtils

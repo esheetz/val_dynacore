@@ -102,24 +102,11 @@ void Task6DPose::computeTaskResidual(dynacore::Vector& r_task) {
 }
 
 void Task6DPose::computeTaskJacobian(dynacore::Matrix& J_task) {
-	// create temporary Jacobian matrix
-	dynacore::Matrix J_tmp;
+	// create temporary Jacobian pseudoinverse matrix
+	dynacore::Matrix Jinv_tmp;
 
-	// get Jacobian from robot model
-	robot_model_->getFullJacobian(task_frame_, J_tmp);
-
-	// get number DOFs and resize Jacobian matrix
-	int ndofs = robot_model_->getDimQdot();
-	J_task.resize(6, ndofs);
-
-	// RBDL Jacobians have the convention of being rotational elements first, then linear elements
-	// so each column is [dwx/dq; dwy/dq; dwz/dq; dx/dq; dy/dq; dz/dq]
-	// invert RBDL Jacobian to be linear then rotational
-	
-	// set linear Jacobian
-	J_task.block(0, 0, 3, ndofs) = J_tmp.block(3, 0, 3, ndofs);
-	// set angular Jacobian
-	J_task.block(3, 0, 3, ndofs) = J_tmp.block(0, 0, 3, ndofs);
+	// get Jacobian from robot model and invert RBDL Jacobian to be [linear; rotational]
+	RobotUtils::getRobotModelJacobians(robot_model_, task_frame_, J_task, Jinv_tmp);
 
 	if( debug_ ) {
 		dynacore::pretty_print(J_task, std::cout, "Task Jacobian:");

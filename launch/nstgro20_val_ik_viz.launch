@@ -1,0 +1,23 @@
+<?xml version="1.0"?>
+<launch>
+  <!-- Nice Reference at: http://answers.gazebosim.org/question/9403/multi-robot-controller-manager-for-different-robot_descripion/ -->
+
+  <param name="nstgro20_valkyrie_robot_description" textfile="$(find val_dynacore)/RobotSystems/Valkyrie/valkyrie_simple.urdf" />
+
+  <node name="nstgro20_joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
+      <rosparam param="source_list">[IKModuleTestNode/nstgro20_valkyrie_ik/joint_states]</rosparam>
+      <remap from="robot_description" to="nstgro20_valkyrie_robot_description" />
+      <remap from="joint_states" to="/nstgro20_valkyrie/joint_states" />
+  </node>
+  
+  <!-- <node name="nstgro_robot_state_publisher" type="robot_state_publisher" pkg="robot_state_publisher"> -->
+  <node name="nstgro20_robot_state_publisher" type="state_publisher" pkg="kinetic_robot_state_publisher">
+      <remap from="robot_description" to="nstgro20_valkyrie_robot_description" />
+      <remap from="joint_states" to="/nstgro20_valkyrie/joint_states" />
+      <param name="tf_prefix" type="string" value="val_ik" />  <!-- we use kinetic_robot_state_publisher so we can use tf_prefix-->
+  </node>
+
+  <!-- <node name="rviz_ik" pkg="rviz" type="rviz" args="-d $(find val_dynacore)/launch/ikModule.viz.rviz" required="true" /> --> <!-- regular IK visualization -->
+  <node name="rviz_ik" pkg="rviz" type="rviz" args="-d $(find val_dynacore)/launch/ikModule-vizTaskPose.viz.rviz" required="true" /> <!-- IK visualization with visualizations of 6d task pose(s); when launched this way, robot model WILL NOT show up correctly until tf broadcaster is started between world and pelvis -->
+
+</launch>

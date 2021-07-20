@@ -2,6 +2,7 @@
 #define VALKYRIE_DEFINITION
 
 #include <map>
+#include <vector>
 
 namespace valkyrie_joint{
     constexpr int  virtual_X = 0;
@@ -59,9 +60,23 @@ namespace valkyrie{
     constexpr int num_leg_joint = 6;
     constexpr int upper_body_start_jidx = valkyrie_joint::leftShoulderPitch;
     constexpr int num_upper_joint = valkyrie_joint::virtual_Rw - valkyrie_joint::leftShoulderPitch;
+};
 
+namespace valkyrie_link{
+    constexpr int pelvis = 0;
+    constexpr int torso = 1;
+    constexpr int rightCOP_Frame = 2;
+    constexpr int leftCOP_Frame = 3;
+    constexpr int rightPalm = 4;
+    constexpr int leftPalm = 5;
+    constexpr int head = 6;
+    constexpr int rightFoot = 7;
+    constexpr int leftFoot = 8;
+}
+
+namespace val{
     // map from joint indices to names
-    std::map<int, std::string> joint_indices_to_names = {
+    static std::map<int, std::string> joint_indices_to_names = {
         {valkyrie_joint::leftHipYaw, "leftHipYaw"},
         {valkyrie_joint::leftHipRoll, "leftHipRoll"},
         {valkyrie_joint::leftHipPitch, "leftHipPitch"},
@@ -93,7 +108,7 @@ namespace valkyrie{
     };
 
     // map from joint names to indices
-    std::map<std::string, int> joint_names_to_indices = {
+    static std::map<std::string, int> joint_names_to_indices = {
         {"leftHipYaw", valkyrie_joint::leftHipYaw},
         {"leftHipRoll", valkyrie_joint::leftHipRoll},
         {"leftHipPitch", valkyrie_joint::leftHipPitch},
@@ -123,18 +138,40 @@ namespace valkyrie{
         {"rightElbowPitch", valkyrie_joint::rightElbowPitch},
         {"rightForearmYaw", valkyrie_joint::rightForearmYaw}
     };
-};
 
-namespace valkyrie_link{
-    constexpr int pelvis = 0;
-    constexpr int torso = 1;
-    constexpr int rightCOP_Frame = 2;
-    constexpr int leftCOP_Frame = 3;
-    constexpr int rightPalm = 4;
-    constexpr int leftPalm = 5;
-    constexpr int head = 6;
-    constexpr int rightFoot = 7;
-    constexpr int leftFoot = 8;
-}
+    // map from link indices to names
+    static std::map<int, std::string> link_indices_to_names = {
+        {valkyrie_link::pelvis, "pelvis"},
+        {valkyrie_link::torso, "torso"},
+        {valkyrie_link::rightCOP_Frame, "rightCOP_Frame"},
+        {valkyrie_link::leftCOP_Frame, "leftCOP_Frame"},
+        {valkyrie_link::rightPalm, "rightPalm"},
+        {valkyrie_link::leftPalm, "leftPalm"},
+        {valkyrie_link::head, "head"},
+        {valkyrie_link::rightFoot, "rightFoot"},
+        {valkyrie_link::leftFoot, "leftFoot"}
+    };
+
+    // map from link names to indices
+    static std::map<std::string, int> link_names_to_indices = {
+        {"pelvis", valkyrie_link::pelvis},
+        {"torso", valkyrie_link::torso},
+        {"rightCOP_Frame", valkyrie_link::rightCOP_Frame},
+        {"leftCOP_Frame", valkyrie_link::leftCOP_Frame},
+        {"rightPalm", valkyrie_link::rightPalm},
+        {"leftPalm", valkyrie_link::leftPalm},
+        {"head", valkyrie_link::head},
+        {"rightFoot", valkyrie_link::rightFoot},
+        {"leftFoot", valkyrie_link::leftFoot}
+    };
+
+    // vector of rotational virtual joints TODO
+    // static std::vector<int> virtual_rotation_joints = {
+    //     valkyrie_joint::virtual_Rx,
+    //     valkyrie_joint::virtual_Ry,
+    //     valkyrie_joint::virtual_Rz,
+    //     valkyrie_joint::virtual_Rw
+    // };
+};
 
 #endif

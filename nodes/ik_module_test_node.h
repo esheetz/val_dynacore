@@ -12,10 +12,9 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/JointState.h>
 #include <tf/transform_broadcaster.h>
-#include <RobotSystem.hpp>
 #include <Valkyrie/Valkyrie_Definition.h>
 #include <Valkyrie/Valkyrie_Model.hpp>
-#include <Valkyrie/valkyrie_utils.h>
+#include <Valkyrie/valkyrie_utils.hpp>
 #include <Utils/rosmsg_utils.hpp>
 #include <Tasks/task_6dpose.h>
 #include <Tasks/task_joint_config.h>
@@ -30,6 +29,9 @@ public:
 
     // CONNECTIONS
     bool initializeConnections();
+
+    // GETTERS/SETTERS
+    bool repeat();
 
     // HELPER FUNCTIONS FOR INITIALIZATION
     void initializeIKModule();
@@ -70,8 +72,10 @@ private:
     double loop_rate_; // loop rate for publishing
     double publish_duration_; // seconds spent publishing messages
 
-    std::shared_ptr<RobotSystem> robot_model_; // robot model
+    std::shared_ptr<Valkyrie_Model> robot_model_; // robot model
     IKModule ik_; // IK module
+
+    bool repeat_; // indicates if IK task will be solved more than once
 
     std::string task_set_; // used to indicate set of tasks; either "rarm" or "wholebody"
 
@@ -81,10 +85,6 @@ private:
     std::shared_ptr<Task6DPose> rfoot_pose_task_;
     std::shared_ptr<Task6DPose> pelvis_pose_task_;
     std::shared_ptr<TaskJointConfig> joint_task_;
-
-    bool update_initial_config_; // boolean indicating whether initial robot configuration should be updated
-    dynacore::Vector q_curr_; // current joint positions
-    dynacore::Vector qdot_curr_; // current joint velocities
 
 }; // end class IKModuleTestNode
 

@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 	Task t_pointer(robot_model_ptr);
 	Task6DPose t_pose(robot_model_ptr, valkyrie_link::rightPalm);
 	std::vector<int> joint_idxs = {valkyrie_joint::leftHipPitch, valkyrie_joint::rightHipPitch};
-	TaskJointConfig t_joint(robot_model_ptr, joint_idxs, valkyrie::joint_indices_to_names);
+	TaskJointConfig t_joint(robot_model_ptr, joint_idxs, val::joint_indices_to_names);
 
 	// GET/SET GAIN/WEIGHT
 	std::streamsize ss = std::cout.precision();

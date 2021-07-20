@@ -1,4 +1,5 @@
 #include "Valkyrie_Model.hpp"
+#include "Valkyrie_Definition.h"
 #include "Valkyrie_Dyn_Model.hpp"
 #include "Valkyrie_Kin_Model.hpp"
 #include "rbdl/urdfreader.h"
@@ -49,7 +50,7 @@ int Valkyrie_Model::getDimQdot() const{
     return model_->qdot_size;
 }
 
-void Valkyrie_Model::getJointLimits(dynacore::Vector& lower_limits, dynacore::Vector& upper_limits, int num_virtual) const{
+void Valkyrie_Model::getJointLimits(dynacore::Vector& lower_limits, dynacore::Vector& upper_limits, bool include_all_virtual) const{
     // create helper vectors
     std::vector<double> llimits;
     std::vector<double> ulimits;
@@ -58,8 +59,8 @@ void Valkyrie_Model::getJointLimits(dynacore::Vector& lower_limits, dynacore::Ve
     int lidx = 0; // index for limits, used to index into llimits and ulimits
     int jidx = 0; // index for joints, used to index into model_->mJoints (vector of joints)
     while( lidx < getDimQdot() ) {
-        // virtual joints at beginning and end do not have joint limits; set to large value
-        if( (lidx < num_virtual) || (jidx >= model_->mJoints.size()) ) {
+        // virtual joints at beginning and end do not have joint limits; set to large value (using int since this number is sufficiently large)
+        if( (lidx < valkyrie::num_virtual) || (jidx >= model_->mJoints.size()) ) {
             llimits.push_back(-(std::numeric_limits<int>::max() / 2));
             ulimits.push_back((std::numeric_limits<int>::max() / 2));
             lidx++;
@@ -79,12 +80,19 @@ void Valkyrie_Model::getJointLimits(dynacore::Vector& lower_limits, dynacore::Ve
         }
     }
 
-    // resize input vectors (ignore final joint, the z-coordinate of a rotation quaternion)
-    lower_limits.resize(getDimQdot());
-    upper_limits.resize(getDimQdot());
+    // check if final virtual joint, the z-coordinate of rotation quaternion, should be included in joint limits
+    if( include_all_virtual ) {
+        // add no limit for virtual rotation joint
+        llimits.push_back(-(std::numeric_limits<int>::max() / 2));
+        ulimits.push_back((std::numeric_limits<int>::max() / 2));
+    }
+
+    // resize input vectors
+    lower_limits.resize(llimits.size());
+    upper_limits.resize(ulimits.size());
 
     // set input vectors accordingly
-    for( int i = 0 ; i < getDimQdot() ; i++ ) {
+    for( int i = 0 ; i < llimits.size() ; i++ ) {
         lower_limits[i] = llimits[i];
         upper_limits[i] = ulimits[i];
     }

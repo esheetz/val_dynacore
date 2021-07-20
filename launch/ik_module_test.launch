@@ -16,12 +16,19 @@
 			"wholebody-posture": moves arms and legs while keeping pelvis, torso, and neck stationary; robot should appear to stay standing
 	-->
 
+	<arg name="repeat" default="false"/>
+	<!-- repeat argument indicates whether we want to repeatedly solve IK problem
+			true: upon converging to a solution, the node will wait for user's input to continue before resolving the IK problem from the current configuration
+			false: the node will solve the IK problem once and keep publishing these joint commands
+	-->
+
 	<arg name="debug" default="false"/>
 	<arg unless="$(arg debug)" name="launch_prefix" value="" />
 	<arg if="$(arg debug)" name="launch_prefix" value="xterm -e gdb **args" />
 
 	<node launch-prefix="$(arg launch_prefix)" pkg="val_dynacore" type="ik_module_test_node" name="IKModuleTestNode" output="screen">
 		<param name="task_set" value="$(arg tasks)"/>
+		<param name="repeat" value="$(arg repeat)"/>
 		<!--<param name="" type="" value=""/> -->
 	</node>
 </launch>

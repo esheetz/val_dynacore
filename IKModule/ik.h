@@ -45,7 +45,7 @@ class IKModule
 public:
 	// CONSTRUCTORS/DESTRUCTORS
 	IKModule(); // default constructor
-	IKModule(std::shared_ptr<RobotSystem> robot_model_in, int num_virtual_in); // construct from RobotSystem pointer
+	IKModule(std::shared_ptr<RobotSystem> robot_model_in); // construct from RobotSystem pointer
 	~IKModule(); // destructor
 
 	// GETTERS/SETTERS
@@ -56,7 +56,7 @@ public:
 	 * @return none
 	 * @post robot model set
 	 */
-	void setRobotModel(std::shared_ptr<RobotSystem> robot_model_in, int num_virtual_in);
+	void setRobotModel(std::shared_ptr<RobotSystem> robot_model_in);
 
 	/*
 	 * sets the indices for the virtual joints; see {robot}_Defnition.h for joint indices
@@ -118,7 +118,6 @@ public:
 	std::shared_ptr<RobotSystem> robot_model_; // robot model
 	int num_q_ = 0; // dimension of joint position vector (configuration)
 	int num_qdot_ = 0; // dimension of joint velocity vector (ignore w-component of virtual rotation quaternion since only xyz are needed)
-	int nvirtual_ = 0; // number of virtual joints
 
 	// PARAMETERS
 	bool debug_ = true; // used to print cost information at each iteration of the IK solution

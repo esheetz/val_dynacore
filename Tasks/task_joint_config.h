@@ -10,6 +10,7 @@
 #include <memory>
 #include <map>
 #include <RobotSystem.hpp>
+#include <RobotSystems/robot_utils.h>
 #include <Utils/utilities.hpp>
 #include <Tasks/task.h>
 
