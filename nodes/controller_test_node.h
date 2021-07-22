@@ -11,6 +11,7 @@
 #include <vector>
 #include <utility>
 #include <ros/ros.h>
+#include <std_msgs/String.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/JointState.h>
@@ -51,6 +52,9 @@ public:
     // PUBLISH JOINT STATE MESSAGES AND BROADCAST APPROPRIATE WORLD TO PELVIS TRANSFORM
     void publishStandingJoints();
     void publishForIHMCMsgInterface();
+    
+    // PUBLISH STATUS MESSAGES
+    void publishStopStatusMessage();
 
     // RUN CONTROLLER
     bool singleControllerStep();
@@ -60,8 +64,10 @@ private:
     ros::Publisher joint_state_pub_; // joint state publisher for visualizing controller commands
     ros::Publisher ref_pub_; // publisher for controller goal
 
+    bool publish_for_ihmc_; // flag indicating whether to publish messages to IHMCInterfaceNode
     ros::Publisher pelvis_transform_pub_; // transform publisher for IHMCInterfaceNode
     ros::Publisher joint_command_pub_; // joint state publisher for IHMCInterfaceNode
+    ros::Publisher status_pub_; // publisher for controller status
 
     tf::TransformBroadcaster tf_bc_; // transform broadcaster for world to pelvis
     tf::Transform tf_pelvis_wrt_world_; // transform of pelvis w.r.t. world frame

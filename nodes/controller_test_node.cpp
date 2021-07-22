@@ -49,6 +49,8 @@ ControllerTestNode::ControllerTestNode(const ros::NodeHandle& nh) {
     robot_model_->UpdateSystem(q, qdot);
 
 	initializeConnections();
+	
+	publish_for_ihmc_ = true;
 
 	std::cout << "[Controller Test Node] Constructed" << std::endl;
 }
@@ -79,6 +81,7 @@ bool ControllerTestNode::initializeConnections() {
     // connections for IHMCInterfaceNode
     pelvis_transform_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("controllers/pelvis_transform", 1);
     joint_command_pub_ = nh_.advertise<sensor_msgs::JointState>("controllers/joint_commands", 1);
+    status_pub_ = nh_.advertise<std_msgs::String>("controllers/status", 1);
 
 	return true;
 }
@@ -250,6 +253,21 @@ void ControllerTestNode::publishForIHMCMsgInterface() {
     return;
 }
 
+// PUBLISH STATUS MESSAGES
+void ControllerTestNode::publishStopStatusMessage() {
+    // create string message
+    std_msgs::String status_msg;
+    status_msg.data = std::string("STOP");
+    
+    // publish status for IHMCInterfaceNode
+    status_pub_.publish(status_msg);
+    
+    // set flag to stop publishing messages for IHMCMsgInterface
+    publish_for_ihmc_ = false;
+    
+    return;
+}
+
 // RUN CONTROLLER
 bool ControllerTestNode::singleControllerStep() {
 	// perform controller update
@@ -265,7 +283,9 @@ bool ControllerTestNode::singleControllerStep() {
 	robot_model_->getCurrentQ(q_current_);
 
     // publish messages required for IHMCMsgInterface
-    publishForIHMCMsgInterface();
+    if( publish_for_ihmc_ ) {
+        publishForIHMCMsgInterface();
+    }
 
 	// check completion bounds
 	return run_controller_->checkControllerConvergence();
@@ -294,6 +314,7 @@ int main(int argc, char **argv) {
     ROS_INFO("[Controller Test Node] Running controller...");
     ros::Rate rate(10);
     bool controller_converged = false;
+    bool status_sent = false;
     while( ros::ok() ) {
     	// publish fixed controller goal for visualization purposes
     	cnode.publishReferenceMessage();
@@ -301,8 +322,10 @@ int main(int argc, char **argv) {
     	// perform controller update
     	controller_converged = cnode.singleControllerStep();
 
-    	if( controller_converged ) {
-    		ROS_INFO("[Controller Test Node] Controller converged!");
+    	if( controller_converged && !status_sent ) {
+    		ROS_INFO("[Controller Test Node] Controller converged! Sending stop status...");
+    		cnode.publishStopStatusMessage();
+    		status_sent = true;
     	}
 
     	ros::spinOnce();
