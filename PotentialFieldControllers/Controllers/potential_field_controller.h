@@ -60,6 +60,7 @@ public:
     // CHECK STOPPING CONDITIONS
     bool checkObjectiveConvergence();
     bool checkStepConvergence();
+    bool checkControllerConvergence();
 
     // GETTERS/SETTERS
     double nudgeEps();

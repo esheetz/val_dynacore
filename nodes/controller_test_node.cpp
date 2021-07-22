@@ -268,7 +268,7 @@ bool ControllerTestNode::singleControllerStep() {
     publishForIHMCMsgInterface();
 
 	// check completion bounds
-	return run_controller_->checkObjectiveConvergence();
+	return run_controller_->checkControllerConvergence();
 }
 
 int main(int argc, char **argv) {

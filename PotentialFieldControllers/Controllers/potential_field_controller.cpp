@@ -262,6 +262,15 @@ bool PotentialFieldController::checkStepConvergence() {
     return (step_size_ < step_threshold_);
 }
 
+bool PotentialFieldController::checkControllerConvergence() {
+    // if reference not set, do not check convergence
+    if( !reference_set_ ) {
+        return false;
+    }
+    
+    return (checkObjectiveConvergence() || checkStepConvergence());
+}
+
 // GETTERS/SETTERS
 double PotentialFieldController::nudgeEps() {
     return NUDGE_EPS_;
