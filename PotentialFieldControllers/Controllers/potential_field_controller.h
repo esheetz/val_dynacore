@@ -8,14 +8,19 @@
 
 #include <string>
 #include <vector>
+#include <map>
 #include <memory>
+#include <algorithm>
+#include <math.h>
 #include <ros/ros.h>
 #include <sensor_msgs/JointState.h>
 #include <tf/transform_listener.h>
 
 #include <Utils/wrap_eigen.hpp>
 #include <Utils/pseudo_inverse.hpp>
-#include <RobotSystems/RobotSystem.hpp>
+#include <Utils/rosmsg_utils.hpp>
+#include <RobotSystem.hpp>
+#include <RobotSystems/robot_utils.h>
 #include <IKModule/ik.h>
 #include <PotentialFields/potential_field.h>
 
@@ -25,19 +30,19 @@ class PotentialFieldController
 {
 public:
     // CONSTRUCTORS/DESTRUCTORS
-    PotentialFieldController(std::shared_ptr<RobotSystem> robot_model_in,
-                             int num_virtual_joints,
-                             std::vector<int> virtual_rotation_joints,
-                             std::string robot_name,
-                             std::string ref_frame = std::string("world"));
+    PotentialFieldController();
     virtual ~PotentialFieldController();
 
     // CONTROLLER FUNCTIONS
     virtual void init(ros::NodeHandle& nh,
-                      std::string group_name,
-                      std::vector<std::string> joint_names,
+                      std::shared_ptr<RobotSystem> robot_model,
+                      // int num_virtual_joints,
+                      // std::vector<int> virtual_rotation_joints,
+                      std::string robot_name,
                       std::vector<int> joint_indices,
-                      std::string frame_name, int frame_idx);
+                      std::vector<std::string> joint_names,
+                      int frame_idx, std::string frame_name,
+                      std::string ref_frame = std::string("world"));
     virtual void start();
     virtual void stop();
     virtual void reset();
@@ -45,7 +50,7 @@ public:
 
     // CONNECTIONS
     virtual void initializeConnections() = 0;
-    
+
     // GET CONTROLLER INFO
     virtual std::string getReferenceType();
     virtual std::string getCommandType();
@@ -53,22 +58,47 @@ public:
     virtual std::string getName();
 
     // CHECK STOPPING CONDITIONS
-    bool checkWithinCompletionBounds();
+    bool checkObjectiveConvergence();
+    bool checkStepConvergence();
 
     // GETTERS/SETTERS
     double nudgeEps();
     std::string getReferenceTopic();
     std::string getCommandTopic();
 
-
     // HELPER FUNCTIONS
     /*
      * updates the protected data members with the current configuration or pose of controlled frame index
      */
     void updateConfiguration();
+    void updateVelocityLimits();
     void updateCurrentPose();
 
-    void makeJointStateMessage(dynacore::Vector& q, sensor_msgs::JointState& joint_state_msg);
+    /*
+     * updates the protected data members with the relevant information for the controller
+     */
+    virtual void updateAllVariables() = 0;
+
+    /*
+     * clips a joint command based on the velocity limits
+     * uniformly: all joints clipped by same factor, which is determined by the joint closest to its velocity limit
+     * non-uniformly: only joints close to their velocity limits are clipped, others are left unchanged
+     */
+    double clipVelocityUniformly(dynacore::Vector& _dq);
+    double clipVelocity(dynacore::Vector& _dq);
+
+    /*
+     * computes the full change in configuration vector from the change in configuration for the commanded joints
+     * all of the non-commanded joints will have dq = 0.0 (no change)
+     * @param _dq_commanded, the vector containing the change in configuration for the commanded joints
+     * @param commanded_joint_indices, a vector of indices corresponding to the commanded joints
+     * @param _dq, the vector that will be udpated to contain the full configuration of all robot joints
+     * @return none
+     * @post _dq updated to be change in configuration of full robot
+     */
+    void getFullDqFromCommanded(dynacore::Vector _dq_commanded,
+                                std::vector<int> commanded_joint_indices,
+                                dynacore::Vector& _dq);
 
     /*
      * looks up transform between two frames
@@ -151,7 +181,7 @@ protected:
     tf::TransformListener tf_; // transforms between frames
 
     // IK module
-    IKModule ik_;
+    // IKModule ik_; // TODO we may not need this; hopefully we will not need this
 
     // for publishing/subscribing to commands/references
     ros::Subscriber ref_sub_; // subscriber to receive inputs from
@@ -163,15 +193,17 @@ protected:
     controllers::PotentialField potential_; // potential field
 
     // info about convergence
-    double potential_threshold_; // threshold for determining convergence
+    double potential_threshold_; // threshold for determining convergence based on objective
+    double step_threshold_; // threshold for determining convergence based on step size
+    double step_size_; // step size taken by joint command
 
     // info about controlled robot
     std::string robot_name_;
 
     // info about controlled joint group
-    std::string joint_group_;
     std::vector<std::string> commanded_joint_names_;
     std::vector<int> commanded_joint_indices_;
+    std::map<int, std::string> commanded_joint_indices_to_names_;
 
     // info about controlled link
     std::string frame_name_;
@@ -184,6 +216,8 @@ protected:
     // reference pose and/or configuration
     std::string ref_frame_name_;
     geometry_msgs::PoseStamped ref_pose_msg_;
+    geometry_msgs::PointStamped ref_point_msg_;
+    geometry_msgs::QuaternionStamped ref_quat_msg_;
     dynacore::Vect3 ref_pos_;
     dynacore::Quaternion ref_quat_;
     dynacore::Vector ref_q_;
@@ -195,15 +229,29 @@ protected:
 
     // vectors/matrices for computing controller updates
     dynacore::Vector q_; // configuration (nx1)
+    dynacore::Vector q_commanded_; // configuration of commanded joints
     dynacore::Vector qdot_; // change in configuration ((n-1)x1 if orientation of base expressed as quaternion, nx1 otherwise)
     dynacore::Vector err_; // pose error (6x1)
     dynacore::Vector q_min_; // minimum joint limit (nx1)
     dynacore::Vector q_max_; // maximum joint limit (nx1)
+    dynacore::Vector qd_min_; // minimum joint velocity (nx1)
+    dynacore::Vector qd_max_; // maximum joint velocity (nx1)
     dynacore::Vector qc_; // center of joint range (nx1)
+    dynacore::Vector qd_lim_; // joint velocity limit (nx1)
     dynacore::Matrix J_; // manipulator jacobian (6x(n-1) if orientation of base expressed as quaternion, 6xn otherwise)
     dynacore::Matrix Jinv_; // pseudoinverse of manipulator jacobian ((n-1)x6 if orientation of base expressed as quaternion, nx6 otherwise)
+    dynacore::Matrix Jlin_; // linear components of manipulator jacobian (3x(n-1) if orientation of base expressed as quaternion, 3xn otherwise)
+    dynacore::Matrix Jlininv_; // pseudoinverse of linear components of manipulator jacobian ((n-1)x3 if orientation of base expressed as quaternion, nx3 otherwise)
+    dynacore::Matrix Jang_; // angular components of manipulator jacobian (3x(n-1) if orientation of base expressed as quaternion, 3xn otherwise)
+    dynacore::Matrix Janginv_; // pseudoinverse of angular components of manipulator jacobian ((n-1)x3 if orientation of base expressed as quaternion, nx3 otherwise)
     dynacore::Matrix I_; // identity ((n-1)x(n-1) if orientation of base expressed as quaternion, nxn otherwise)
     dynacore::Matrix N_; // nullspace of manipulator jacobian ((n-1)x(n-1) if orientation of base expressed as quaternion, nxn otherwise)
+
+    // timestep used to compute velocity (should not affect properties of controller, since we work with step size)
+    double dt_;
+
+    // gain for approaching joint limits
+    double kp_dof_limit_;
 
     /*
      * small nudge to joint in either direction for joint-wise linear approximation of objective Jacobian

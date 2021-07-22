@@ -49,7 +49,7 @@ include_directories ("${PROJECT_SOURCE_DIR}/Tasks")
 include_directories ("${PROJECT_SOURCE_DIR}/IKModule")
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers")
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/PotentialFields")
-#include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/Controllers")
+include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/Controllers")
 include_directories ("${PROJECT_SOURCE_DIR}/nodes")
 
 

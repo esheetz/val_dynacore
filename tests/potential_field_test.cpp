@@ -3,6 +3,9 @@
 #include <Utils/utilities.hpp>
 #include <PotentialFields/potential_field.h>
 #include <PotentialFields/attractive_potential_field_pose.h>
+#include <PotentialFields/attractive_potential_field_position.h>
+#include <PotentialFields/attractive_potential_field_orientation.h>
+#include <PotentialFields/attractive_potential_field_joint.h>
 #include <PotentialFields/repulsive_potential_field.h>
 
 /*
@@ -32,6 +35,9 @@ int main(int argc, char **argv) {
 	target_quat.w() = 0.7071068;
 	// initialize attractive potential field
 	controllers::AttractivePotentialFieldPose apfg(target_pos, target_quat);
+	controllers::AttractivePotentialFieldPosition apfp(target_pos);
+	controllers::AttractivePotentialFieldOrientation apfr(target_quat);
+	controllers::AttractivePotentialFieldJoint apfj(0.5);
 
 	// GETTERS AND SETTERS
 	// get scaling factor
@@ -80,7 +86,7 @@ int main(int argc, char **argv) {
 	std::cout << "Obstacle Influence: " << rpf.obstInfluence() << " Expected: 0.4" << std::endl;
 
 	// POTENTIAL FIELD COMPUTATIONS
-	std::cout << "[Test] Attractive Potential Field Computations" << std::endl;
+	std::cout << "[Test] Attractive Potential Field Pose Computations" << std::endl;
 	pos.setZero();
 	quat.setIdentity();
 
@@ -101,6 +107,61 @@ int main(int argc, char **argv) {
 	apfg.getDx(pos, quat, dx_p, dx_r);
 	dynacore::pretty_print(dx_p, std::cout, "Linear change in pose:");
 	dynacore::pretty_print(dx_r, std::cout, "Rotational change in pose:");
+
+	std::cout << "[Test] Attractive Potential Field Position Computations" << std::endl;
+	pos.setZero();
+
+	// compute distance
+	std::cout << "Distance: " << apfp.distanceToGoal(pos) << std::endl;
+
+	// compute potential
+	std::cout << "Potential: " << apfp.potential(pos) << std::endl;
+
+	// compute gradient
+	apfp.gradient(pos, grad);
+	dynacore::pretty_print(grad, std::cout, "Gradient:");
+
+	// compute dx
+	apfp.getDx(pos, dx_p, dx_r);
+	dynacore::pretty_print(dx_p, std::cout, "Linear change in pose:");
+	dynacore::pretty_print(dx_r, std::cout, "Rotational change in pose:");
+
+	std::cout << "[Test] Attractive Potential Field Orientation Computations" << std::endl;
+	quat.setIdentity();
+
+	// compute distance
+	std::cout << "Distance: " << apfr.distanceToGoal(quat) << std::endl;
+
+	// compute potential
+	std::cout << "Potential: " << apfr.potential(quat) << std::endl;
+
+	// compute gradient
+	apfr.gradient(quat, grad);
+	dynacore::pretty_print(grad, std::cout, "Gradient:");
+
+	// compute dx
+	apfr.getDx(quat, dx_p, dx_r);
+	dynacore::pretty_print(dx_p, std::cout, "Linear change in pose:");
+	dynacore::pretty_print(dx_r, std::cout, "Rotational change in pose:");
+
+	std::cout << "[Test] Attractive Potential Field Joint Computations" << std::endl;
+	double q = 0.0;
+
+	// compute distance
+	std::cout << "Distance: " << apfj.distanceToGoal(q) << std::endl;
+
+	// compute potential
+	std::cout << "Potential: " << apfj.potential(q) << std::endl;
+
+	// compute gradient
+	double g;
+	apfj.gradient(q, g);
+	std::cout << "Gradient: " << g << std::endl;
+
+	// compute dq
+	double dq;
+	apfj.getDq(q, dq);
+	std::cout << "Change in joint: " << dq << std::endl;
 
 	std::cout << "[Test] Repulsive Potential Field Computations" << std::endl;
 	dynacore::Vect3 obst_pos_close;

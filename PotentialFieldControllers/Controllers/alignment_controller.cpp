@@ -8,14 +8,18 @@
 using controllers::AlignmentController;
 
 // CONSTRUCTORS/DESTRUCTORS
-AlignmentController::AlignmentController(std::shared_ptr<RobotSystem> robot_model_in,
-                                         int num_virtual_joints,
-                                         std::vector<int> virtual_rotation_joints,
-                                         std::string robot_name,
-                                         std::string ref_frame)
-    : PotentialFieldController(robot_model_in, num_virtual_joints, virtual_rotation_joints, robot_name, ref_frame) {
+AlignmentController::AlignmentController() {
     // TODO NOT IMPLEMENTED
 }
+
+// AlignmentController::AlignmentController(std::shared_ptr<RobotSystem> robot_model_in,
+//                                          int num_virtual_joints,
+//                                          std::vector<int> virtual_rotation_joints,
+//                                          std::string robot_name,
+//                                          std::string ref_frame)
+//     : PotentialFieldController(robot_model_in, num_virtual_joints, virtual_rotation_joints, robot_name, ref_frame) {
+//     // TODO NOT IMPLEMENTED
+// }
 
 AlignmentController::~AlignmentController() {
     // TODO NOT IMPLEMENTED
@@ -23,10 +27,14 @@ AlignmentController::~AlignmentController() {
 
 // CONTROLLER FUNCTIONS
 void AlignmentController::init(ros::NodeHandle& nh,
-                              std::string group_name,
-                              std::vector<std::string> joint_names,
-                              std::vector<int> joint_indices,
-                              std::string frame_name, int frame_idx) {
+                               std::shared_ptr<RobotSystem> robot_model,
+                               // int num_virtual_joints,
+                               // std::vector<int> virtual_rotation_joints,
+                               std::string robot_name,
+                               std::vector<int> joint_indices,
+                               std::vector<std::string> joint_names,
+                               int frame_idx, std::string frame_name,
+                               std::string ref_frame) {
     // TODO NOT IMPLEMENTED
     return;
 }

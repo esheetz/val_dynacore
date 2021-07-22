@@ -1,10 +1,10 @@
 /**
- * Rotation Controller
+ * Orientation Controller
  * Emily Sheetz, NSTGRO VTE 2021
  **/
 
-#ifndef _ROTATION_CONTROLLER_H_
-#define _ROTATION_CONTROLLER_H_
+#ifndef _ORIENTATION_CONTROLLER_H_
+#define _ORIENTATION_CONTROLLER_H_
 
 #include <string>
 #include <vector>
@@ -14,29 +14,33 @@
 #include <tf/transform_listener.h>
 
 #include <Utils/wrap_eigen.hpp>
-#include <RobotSystems/RobotSystem.hpp>
+#include <Utils/pseudo_inverse.hpp>
+#include <RobotSystem.hpp>
+#include <RobotSystems/robot_utils.h>
+#include <IKModule/ik.h>
+#include <Tasks/task_6dpose.h>
 #include <Controllers/potential_field_controller.h>
-#include <PotentialFields/attractive_potential_field.h>
+#include <PotentialFields/attractive_potential_field_orientation.h>
 
 namespace controllers
 {
-class RotationController : public PotentialFieldController
+class OrientationController : public PotentialFieldController
 {
 public:
     // CONSTRUCTORS/DESTRUCTORS
-    RotationController(std::shared_ptr<RobotSystem> robot_model_in,
-                       int num_virtual_joints,
-                       std::vector<int> virtual_rotation_joints,
-                       std::string robot_name,
-                       std::string ref_frame = std::string("world"));
-    ~RotationController();
+    OrientationController();
+    ~OrientationController();
 
     // CONTROLLER FUNCTIONS
     void init(ros::NodeHandle& nh,
-              std::string group_name,
-              std::vector<std::string> joint_names,
+              std::shared_ptr<RobotSystem> robot_model,
+              // int num_virtual_joints,
+              // std::vector<int> virtual_rotation_joints,
+              std::string robot_name,
               std::vector<int> joint_indices,
-              std::string frame_name, int frame_idx) override;
+              std::vector<std::string> joint_names,
+              int frame_idx, std::string frame_name,
+              std::string ref_frame = std::string("world")) override;
     void start() override;
     void stop() override;
     void reset() override;
@@ -44,7 +48,7 @@ public:
 
     // CONNECTIONS
     void initializeConnections() override;
-    
+
     // GET CONTROLLER INFO
     std::string getReferenceType() override;
     std::string getCommandType() override;
@@ -59,9 +63,10 @@ public:
 
     // HELPER FUNCTIONS
     /*
-     * updates the protected data members with the reference rotation for controlled frame index
+     * updates the protected data members with the reference orientation for controlled frame index
      */
-    void updateGoalRotation();
+    void updateReferenceOrientation();
+    void updateAllVariables() override;
 
     // CONTROL LAW FUNCTIONS
     /*
@@ -116,7 +121,7 @@ public:
 
 protected:
     // attractive potential field
-    controllers::AttractivePotentialField att_potential_; // potential field
+    controllers::AttractivePotentialFieldOrientation att_potential_; // potential field
 
     // controller gains
     double kp_; // gain proportional to controller error

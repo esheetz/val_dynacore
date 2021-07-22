@@ -15,11 +15,12 @@
 
 #include <Utils/wrap_eigen.hpp>
 #include <Utils/pseudo_inverse.hpp>
-#include <RobotSystems/RobotSystem.hpp>
+#include <RobotSystem.hpp>
+#include <RobotSystems/robot_utils.h>
 #include <IKModule/ik.h>
 #include <Tasks/task_6dpose.h>
 #include <Controllers/potential_field_controller.h>
-#include <PotentialFields/attractive_potential_field.h>
+#include <PotentialFields/attractive_potential_field_pose.h>
 
 namespace controllers
 {
@@ -27,19 +28,19 @@ class PoseController : public PotentialFieldController
 {
 public:
     // CONSTRUCTORS/DESTRUCTORS
-    PoseController(std::shared_ptr<RobotSystem> robot_model_in,
-                   int num_virtual_joints,
-                   std::vector<int> virtual_rotation_joints,
-                   std::string robot_name,
-                   std::string ref_frame = std::string("world"));
+    PoseController();
     ~PoseController();
 
     // CONTROLLER FUNCTIONS
     void init(ros::NodeHandle& nh,
-              std::string group_name,
-              std::vector<std::string> joint_names,
+              std::shared_ptr<RobotSystem> robot_model,
+              // int num_virtual_joints,
+              // std::vector<int> virtual_rotation_joints,
+              std::string robot_name,
               std::vector<int> joint_indices,
-              std::string frame_name, int frame_idx) override;
+              std::vector<std::string> joint_names,
+              int frame_idx, std::string frame_name,
+              std::string ref_frame = std::string("world")) override;
     void start() override;
     void stop() override;
     void reset() override;
@@ -47,7 +48,7 @@ public:
 
     // CONNECTIONS
     void initializeConnections() override;
-    
+
     // GET CONTROLLER INFO
     std::string getReferenceType() override;
     std::string getCommandType() override;
@@ -65,6 +66,7 @@ public:
      * updates the protected data members with the reference pose for controlled frame index
      */
     void updateReferencePose();
+    void updateAllVariables() override;
 
     // CONTROL LAW FUNCTIONS
     /*
@@ -119,10 +121,10 @@ public:
 
 protected:
     // attractive potential field
-    controllers::AttractivePotentialField att_potential_; // potential field
+    controllers::AttractivePotentialFieldPose att_potential_; // potential field
 
     // 6Dpose task
-    std::shared_ptr<Task6DPose> pose_task_; // 6d pose task for ik module
+    //std::shared_ptr<Task6DPose> pose_task_; // 6d pose task for ik module // TODO do we need IK?!
 
     // controller gains
     double kp_; // gain proportional to controller error

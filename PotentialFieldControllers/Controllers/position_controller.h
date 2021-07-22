@@ -14,9 +14,13 @@
 #include <tf/transform_listener.h>
 
 #include <Utils/wrap_eigen.hpp>
-#include <RobotSystems/RobotSystem.hpp>
+#include <Utils/pseudo_inverse.hpp>
+#include <RobotSystem.hpp>
+#include <RobotSystems/robot_utils.h>
+#include <IKModule/ik.h>
+#include <Tasks/task_6dpose.h>
 #include <Controllers/potential_field_controller.h>
-#include <PotentialFields/attractive_potential_field.h>
+#include <PotentialFields/attractive_potential_field_position.h>
 
 namespace controllers
 {
@@ -24,19 +28,19 @@ class PositionController : public PotentialFieldController
 {
 public:
     // CONSTRUCTORS/DESTRUCTORS
-    PositionController(std::shared_ptr<RobotSystem> robot_model_in,
-                       int num_virtual_joints,
-                       std::vector<int> virtual_rotation_joints,
-                       std::string robot_name,
-                       std::string ref_frame = std::string("world"));
+    PositionController();
     ~PositionController();
 
     // CONTROLLER FUNCTIONS
     void init(ros::NodeHandle& nh,
-              std::string group_name,
-              std::vector<std::string> joint_names,
+              std::shared_ptr<RobotSystem> robot_model,
+              // int num_virtual_joints,
+              // std::vector<int> virtual_rotation_joints,
+              std::string robot_name,
               std::vector<int> joint_indices,
-              std::string frame_name, int frame_idx) override;
+              std::vector<std::string> joint_names,
+              int frame_idx, std::string frame_name,
+              std::string ref_frame = std::string("world")) override;
     void start() override;
     void stop() override;
     void reset() override;
@@ -44,7 +48,7 @@ public:
 
     // CONNECTIONS
     void initializeConnections() override;
-    
+
     // GET CONTROLLER INFO
     std::string getReferenceType() override;
     std::string getCommandType() override;
@@ -61,7 +65,8 @@ public:
     /*
      * updates the protected data members with the reference position for controlled frame index
      */
-    void updateGoalPosition();
+    void updateReferencePosition();
+    void updateAllVariables() override;
 
     // CONTROL LAW FUNCTIONS
     /*
@@ -116,7 +121,7 @@ public:
 
 protected:
     // attractive potential field
-    controllers::AttractivePotentialField att_potential_; // potential field
+    controllers::AttractivePotentialFieldPosition att_potential_; // potential field
 
     // controller gains
     double kp_; // gain proportional to controller error

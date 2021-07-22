@@ -1,23 +1,23 @@
 /**
- * Attractive Potential Field
+ * Attractive Potential Field Pose
  * Emily Sheetz, NSTGRO VTE 2021
  **/
 
-#ifndef _ATTRACTIVE_POTENTIAL_FIELD_H_
-#define _ATTRACTIVE_POTENTIAL_FIELD_H_
+#ifndef _ATTRACTIVE_POTENTIAL_FIELD_POSE_H_
+#define _ATTRACTIVE_POTENTIAL_FIELD_POSE_H_
 
 #include <algorithm>
 #include <PotentialFields/potential_field.h>
 
 namespace controllers
 {
-class AttractivePotentialField : public controllers::PotentialField
+class AttractivePotentialFieldPose : public controllers::PotentialField
 {
 public:
     // CONSTRUCTORS/DESTRUCTORS
-    AttractivePotentialField(); // default constructor
-    AttractivePotentialField(dynacore::Vect3 goal_pos, dynacore::Quaternion goal_quat); // construct from goal pose
-    ~AttractivePotentialField(); // destructor
+    AttractivePotentialFieldPose(); // default constructor
+    AttractivePotentialFieldPose(dynacore::Vect3 goal_pos, dynacore::Quaternion goal_quat); // construct from goal pose
+    ~AttractivePotentialFieldPose(); // destructor
 
     // GETTERS/SETTERS
     void getGoal(dynacore::Vect3& goal_pos_out, dynacore::Quaternion& goal_quat_out);

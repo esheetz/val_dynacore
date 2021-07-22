@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<!--***********************************************************
+	Controller Test Node
+	Emily Sheetz, NSTGRO VTE 2021
+
+	run either:
+		$ roslaunch val_dynacore controller_test.launch
+		OR
+		$ rosrun val_dynacore controller_test_node
+************************************************************-->
+<launch>
+	<arg name="controller" default="pose"/>
+	<!-- supported controller types:
+			"pose": runs pose controller
+			"position": runs position controller
+			"orientation": runs orientation controller
+	-->
+
+	<arg name="debug" default="false"/>
+	<arg unless="$(arg debug)" name="launch_prefix" value="" />
+	<arg if="$(arg debug)" name="launch_prefix" value="xterm -e gdb **args" />
+
+	<node launch-prefix="$(arg launch_prefix)" pkg="val_dynacore" type="controller_test_node" name="ControllerTestNode" output="screen">
+		<param name="controller" value="$(arg controller)"/>
+		<!--<param name="" type="" value=""/> -->
+	</node>
+</launch>

@@ -10,22 +10,21 @@ using controllers::PotentialFieldController;
 double PotentialFieldController::NUDGE_EPS_ = 0.15;
 
 // CONSTRUCTORS/DESTRUCTORS
-PotentialFieldController::PotentialFieldController(std::shared_ptr<RobotSystem> robot_model,
-                                                   int num_virtual_joints,
-                                                   std::vector<int> virtual_rotation_joints,
-                                                   std::string robot_name,
-                                                   std::string ref_frame) {
-    // set robot parameters
-    robot_model_ = robot_model;
-    robot_name_ = robot_name;
-    ref_frame_name_ = ref_frame;
+PotentialFieldController::PotentialFieldController() {
+    // set time step (should not affect computation)
+    dt_ = 0.1;
 
-    // setup ik module
-    ik_.setRobotModel(robot_model, num_virtual_joints);
-    ik_.setVirtualRotationJoints(virtual_rotation_joints[0],
-                                 virtual_rotation_joints[1],
-                                 virtual_rotation_joints[2],
-                                 virtual_rotation_joints[3]);
+    // set potential threshold
+    potential_threshold_ = 1e-5;
+
+    // set step size threshold
+    step_threshold_ = 1e-10;
+
+    // set step size to be large
+    step_size_ = 100;
+
+    // set joint limit gain
+    kp_dof_limit_ = 0.5;
 
     // intialize flags
     initialized_ = false;
@@ -38,17 +37,80 @@ PotentialFieldController::~PotentialFieldController() {
 
 // CONTROLLER FUNCTIONS
 void PotentialFieldController::init(ros::NodeHandle& nh,
-                                    std::string group_name,
-                                    std::vector<std::string> joint_names,
+                                    std::shared_ptr<RobotSystem> robot_model,
+                                    // int num_virtual_joints,
+                                    // std::vector<int> virtual_rotation_joints,
+                                    std::string robot_name,
                                     std::vector<int> joint_indices,
-                                    std::string frame_name, int frame_idx) {
+                                    std::vector<std::string> joint_names,
+                                    int frame_idx, std::string frame_name,
+                                    std::string ref_frame) {
     // set parameters
     nh_ = nh;
-    joint_group_ = group_name;
-    commanded_joint_names_ = joint_names;
+
+    // set robot parameters
+    robot_model_ = robot_model;
+    robot_name_ = robot_name;
+
+    // set commanded joint group parameters
     commanded_joint_indices_ = joint_indices;
-    frame_name_ = frame_name;
+    commanded_joint_names_ = joint_names;
     frame_idx_ = frame_idx;
+    frame_name_ = frame_name;
+
+    // set reference frame
+    ref_frame_name_ = ref_frame;
+
+    // create map of joint indices to names
+    RobotUtils::zipJointIndicesNames(commanded_joint_indices_, commanded_joint_names_,
+                                     commanded_joint_indices_to_names_);
+
+    // setup ik module
+    // ik_.setRobotModel(robot_model); // TODO do we need IK?!
+    // ik_.setVirtualRotationJoints(virtual_rotation_joints[0],
+    //                              virtual_rotation_joints[1],
+    //                              virtual_rotation_joints[2],
+    //                              virtual_rotation_joints[3]); // TODO do we need IK?!
+
+    // initialize current robot information
+    curr_pos_.setZero();
+    curr_quat_.setIdentity();
+    q_.resize(robot_model_->getDimQ());
+    q_.setZero();
+    qdot_.resize(robot_model_->getDimQdot());
+    qdot_.setZero();
+
+    // initialize commanded configuration
+    q_commanded_.resize(commanded_joint_indices_.size());
+    q_commanded_.setZero();
+
+    // initialize joint position and velocity limits
+    q_min_.resize(robot_model_->getDimQ());
+    q_min_.setZero();
+    q_max_.resize(robot_model_->getDimQ());
+    q_max_.setZero();
+    qd_min_.resize(robot_model_->getDimQ());
+    qd_min_.setZero();
+    qd_max_.resize(robot_model_->getDimQ());
+    qd_max_.setZero();
+    qc_.resize(robot_model_->getDimQ());
+    qc_.setZero();
+    qd_lim_.resize(robot_model_->getDimQ());
+    qd_lim_.setZero();
+
+    // initialize references
+    ref_pos_.setZero();
+    ref_quat_.setIdentity();
+    ref_q_.resize(robot_model_->getDimQ());
+    ref_q_.setZero();
+
+    // set references based on current robot information
+    robot_model_->getPos(frame_idx_, ref_pos_);
+    robot_model_->getOri(frame_idx_, ref_quat_);
+    robot_model_->getCurrentQ(q_);
+
+    // initialize connections
+    initializeConnections();
 
     // set flag
     initialized_ = true;
@@ -58,7 +120,7 @@ void PotentialFieldController::init(ros::NodeHandle& nh,
 
 void PotentialFieldController::start() {
     // if initialized and references set, set controller to active
-    if( initialized_ && reference_set_ ) {
+    if( initialized_ ) {
         active_ = true;
         ROS_INFO("%s::start() -- started controller", getName().c_str());
     }
@@ -84,6 +146,22 @@ void PotentialFieldController::reset() {
     q_.setZero();
     qdot_.resize(robot_model_->getDimQdot());
     qdot_.setZero();
+    q_commanded_.resize(robot_model_->getDimQ());
+    q_commanded_.setZero();
+
+    // clear joint position and velocity limits
+    q_min_.resize(robot_model_->getDimQ());
+    q_min_.setZero();
+    q_max_.resize(robot_model_->getDimQ());
+    q_max_.setZero();
+    qd_min_.resize(robot_model_->getDimQ());
+    qd_min_.setZero();
+    qd_max_.resize(robot_model_->getDimQ());
+    qd_max_.setZero();
+    qc_.resize(robot_model_->getDimQ());
+    qc_.setZero();
+    qd_lim_.resize(robot_model_->getDimQ());
+    qd_lim_.setZero();
 
     // clear references
     ref_pos_.setZero();
@@ -101,13 +179,19 @@ void PotentialFieldController::reset() {
 void PotentialFieldController::update() {
     // check if controller is active
     if( !initialized_ || !active_ ) {
-        ROS_WARN("%s::update() -- controller not active; no update performed", getName().c_str());
+        ROS_WARN("%s::update() -- controller not active, no update performed", getName().c_str());
         return;
     }
 
-    // check if update needed
-    if( checkWithinCompletionBounds() ) {
-        ROS_INFO("%s::update() -- close enough to target; no update performed", getName().c_str());
+    // check if reference set
+    if( !reference_set_ ) {
+        ROS_WARN("%s::update() -- controller reference not set, no update performed", getName().c_str());
+        return;
+    }
+
+    // check if update needed due to objective
+    if( checkObjectiveConvergence() ) {
+        ROS_INFO("%s::update() -- close enough to target, no update performed; potential=%f", getName().c_str(), potential());
         return;
     }
 
@@ -115,20 +199,29 @@ void PotentialFieldController::update() {
     dynacore::Vector dq;
     getDq(dq);
 
-    // TODO CAP?!
+    // update change in configuration based on velocity limits
+    step_size_ = clipVelocity(dq);
+
+    // check if update needed due to step size
+    if( checkStepConvergence() ) {
+        // ROS_INFO("%s::update() -- small commanded step size, no update performed; step size=%f, potential=%f", getName().c_str(), step_size_, potential());
+        // step size will be so small, there is no point in printing it out
+        ROS_INFO("%s::update() -- small commanded step size, no update performed; potential=%f", getName().c_str(), potential());
+        return;
+    }
 
     // compute new joint position
     dynacore::Vector joint_command = q_ + dq;
 
     // create joint state message and publish
     sensor_msgs::JointState js_msg;
-    makeJointStateMessage(joint_command, js_msg);
+    ROSMsgUtils::makeJointStateMessage(joint_command, commanded_joint_indices_to_names_, js_msg);
     cmd_pub_.publish(js_msg);
 
     // update the robot model
-    robot_model_->UpdateSystem(q_, qdot_); // TODO this may be weird because IK Module has access to same pointer
+    robot_model_->UpdateSystem(joint_command, qdot_);
 
-    ROS_INFO("%s::update() -- update performed! potential: %f", getName().c_str(), potential());
+    ROS_INFO("%s::update() -- update performed! potential=%f", getName().c_str(), potential());
 
     return;
 }
@@ -151,8 +244,22 @@ std::string PotentialFieldController::getName() {
 }
 
 // CHECK STOPPING CONDITIONS
-bool PotentialFieldController::checkWithinCompletionBounds() {
+bool PotentialFieldController::checkObjectiveConvergence() {
+    // if reference not set, do not check convergence
+    if( !reference_set_ ) {
+        return false;
+    }
+
     return (potential() < potential_threshold_);
+}
+
+bool PotentialFieldController::checkStepConvergence() {
+    // if reference not set, do not check convergence
+    if( !reference_set_ ) {
+        return false;
+    }
+
+    return (step_size_ < step_threshold_);
 }
 
 // GETTERS/SETTERS
@@ -174,7 +281,33 @@ void PotentialFieldController::updateConfiguration() {
     robot_model_->getCurrentQ(q_);
 
     // update configuration in IK module
-    ik_.setInitialRobotConfiguration(q_);
+    // ik_.setInitialRobotConfiguration(q_); // TODO do we need IK?!
+
+    // update configuration of commanded joints
+    for( int i = 0 ; i < commanded_joint_indices_.size() ; i++ ) {
+        q_commanded_[i] = q_[commanded_joint_indices_[i]];
+    }
+
+    return;
+}
+
+void PotentialFieldController::updateVelocityLimits() {
+    // compute lower and upper joint limits
+    robot_model_->getJointLimits(q_min_, q_max_, true);
+
+    // compute center of joint range
+    qc_ = 0.5 * (q_max_ - q_min_);
+
+    // compute lower and upper velocity limits
+    qd_min_ = kp_dof_limit_ * ((q_min_ - q_) / dt_);
+    qd_max_ = kp_dof_limit_ * ((q_max_ - q_) / dt_);
+
+    // compute velocity limits (smallest between lower and upper velocity)
+    qd_lim_.resize(q_min_.size());
+    qd_lim_.setZero();
+    for( int i = 0 ; i < qd_lim_.size() ; i++ ) {
+        qd_lim_[i] = std::min(std::fabs(qd_min_[i]), std::fabs(qd_max_[i]));
+    }
 
     return;
 }
@@ -187,20 +320,66 @@ void PotentialFieldController::updateCurrentPose() {
     return;
 }
 
-void PotentialFieldController::makeJointStateMessage(dynacore::Vector& q, sensor_msgs::JointState& joint_state_msg) {
-    // resize fields of message
-    joint_state_msg.name.resize(q.size());
-    joint_state_msg.position.resize(q.size());
-    joint_state_msg.velocity.resize(q.size());
-    joint_state_msg.effort.resize(q.size());
+double PotentialFieldController::clipVelocityUniformly(dynacore::Vector& _dq) {
+    // initialize reduction scaling factor; 1.0 indicates no reduction
+    double reduce_factor = 1.0;
+    double reduce_factor_joint_i;
 
-    // set fields of message based on input configuration
-    for( int i = 0 ; i < q.size() ; i++ ) {
-        joint_state_msg.name[i] = commanded_joint_names_[i];
-        joint_state_msg.position[i] = q[i];
-        joint_state_msg.velocity[i] = 0.0;
-        joint_state_msg.effort[i] = 0.0;
+    // determine smallest scaling factor to keep joints within velocity limits
+    for( int i = 0 ; i < _dq.size() ; i++ ) {
+        // check if step is too large for velocity limit
+        if( std::fabs(_dq[i]) > (qd_lim_[i] * dt_) ) {
+            // compute scaling factor for this joint, such that scaled step would stay within velocity bounds
+            reduce_factor_joint_i = (qd_lim_[i] * dt_) / std::fabs(_dq[i]);
+            // update scaling factor to smallest factor
+            if( reduce_factor_joint_i < reduce_factor ) {
+                reduce_factor = reduce_factor_joint_i;
+            }
+        }
     }
+
+    // check if reduction factor is valid
+    if( reduce_factor <= 1.0 && reduce_factor > 0 ) {
+        // scale change in configuration by reduction factor
+        _dq *= reduce_factor;
+    }
+    else {
+        ROS_WARN("%s::clipVelocityUniformly() -- velocity not clipped due to reduction factor=%f", getName().c_str(), reduce_factor);
+    }
+
+    return _dq.norm();
+}
+
+double PotentialFieldController::clipVelocity(dynacore::Vector& _dq) {
+    // initialize joint-wise reduction scaling factor
+    double reduce_factor_joint_i;
+
+    // loop through all joints, clipping as necessary based on velocity limits
+    for( int i = 0 ; i < _dq.size() ; i++ ) {
+        // check if step is too large for velocity limit
+        if( std::fabs(_dq[i]) > (qd_lim_[i] * dt_) ) {
+            // compute scaling factor for this joint, such that scaled step would stay within velocity bounds
+            reduce_factor_joint_i = (qd_lim_[i] * dt_) / std::fabs(_dq[i]);
+            // scale joint step accordingly
+            _dq[i] *= reduce_factor_joint_i;
+        }
+    }
+
+    return _dq.norm();
+}
+
+void PotentialFieldController::getFullDqFromCommanded(dynacore::Vector _dq_commanded,
+                                                      std::vector<int> commanded_joint_indices,
+                                                      dynacore::Vector& _dq) {
+    // initialize robot configuration to be zero
+    _dq.resize(robot_model_->getDimQ());
+    _dq.setZero();
+
+    // set change in configuration of commanded joints
+    for( int i = 0 ; i < commanded_joint_indices.size() ; i++ ) {
+        _dq[commanded_joint_indices[i]] = _dq_commanded[i];
+    }
+    // non-commanded joints are still 0
 
     return;
 }
@@ -247,6 +426,6 @@ void PotentialFieldController::objectiveNullspace(dynacore::Matrix& _N) {
 
     // compute nullspace
     N_ = I_ - (Jinv_ * J_); // (nxn) = (nxn) - ((nx1) * (1xn))
-    
+
     return;
 }

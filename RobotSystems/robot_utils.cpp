@@ -47,9 +47,9 @@ namespace RobotUtils {
         _Jang.resize(3, ndofs);
 
         // set linear Jacobian
-        _Jlin.block(0, 0, 3, ndofs) = J_tmp.block(3, 0, 3, ndofs);
+        _Jlin = J_tmp.block(3, 0, 3, ndofs);
         // set angular Jacobian
-        _Jang.block(3, 0, 3, ndofs) = J_tmp.block(0, 0, 3, ndofs);
+        _Jang = J_tmp.block(0, 0, 3, ndofs);
 
         // compute Jacobian pseudoinverse
         dynacore::pInv(_Jlin, _Jlin_inv);

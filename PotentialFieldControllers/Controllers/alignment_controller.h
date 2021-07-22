@@ -16,7 +16,7 @@
 #include <Utils/wrap_eigen.hpp>
 #include <RobotSystems/RobotSystem.hpp>
 #include <Controllers/potential_field_controller.h>
-#include <PotentialFields/attractive_potential_field.h>
+#include <PotentialFields/attractive_potential_field_pose.h>
 
 namespace controllers
 {
@@ -24,19 +24,24 @@ class AlignmentController : public PotentialFieldController
 {
 public:
     // CONSTRUCTORS/DESTRUCTORS
-    AlignmentController(std::shared_ptr<RobotSystem> robot_model_in,
-                        int num_virtual_joints,
-                        std::vector<int> virtual_rotation_joints,
-                        std::string robot_name,
-                        std::string ref_frame = std::string("world"));
+    AlignmentController();
+    // AlignmentController(std::shared_ptr<RobotSystem> robot_model_in,
+    //                     int num_virtual_joints,
+    //                     std::vector<int> virtual_rotation_joints,
+    //                     std::string robot_name,
+    //                     std::string ref_frame = std::string("world"));
     ~AlignmentController();
 
     // CONTROLLER FUNCTIONS
     void init(ros::NodeHandle& nh,
-              std::string group_name,
-              std::vector<std::string> joint_names,
+              std::shared_ptr<RobotSystem> robot_model,
+              // int num_virtual_joints,
+              // std::vector<int> virtual_rotation_joints,
+              std::string robot_name,
               std::vector<int> joint_indices,
-              std::string frame_name, int frame_idx) override;
+              std::vector<std::string> joint_names,
+              int frame_idx, std::string frame_name,
+              std::string ref_frame = std::string("world")) override;
     void start() override;
     void stop() override;
     void reset() override;
@@ -116,7 +121,7 @@ public:
 
 protected:
     // attractive potential field
-    controllers::AttractivePotentialField att_potential_; // potential field
+    controllers::AttractivePotentialFieldPose att_potential_; // potential field
 
     // controller gains
     double kp_; // gain proportional to controller error
