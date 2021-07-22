@@ -121,7 +121,7 @@ public:
 
 protected:
     // attractive potential field
-    controllers::AttractivePotentialFieldPose att_potential_; // potential field
+    potential_fields::AttractivePotentialFieldPose att_potential_; // potential field
 
     // 6Dpose task
     //std::shared_ptr<Task6DPose> pose_task_; // 6d pose task for ik module // TODO do we need IK?!

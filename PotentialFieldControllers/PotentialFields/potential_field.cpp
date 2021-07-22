@@ -5,7 +5,7 @@
 
 #include <PotentialFields/potential_field.h>
 
-using controllers::PotentialField;
+using potential_fields::PotentialField;
 
 // STATIC DATA MEMBERS
 double PotentialField::MAX_POTENTIAL_ = 100.0;

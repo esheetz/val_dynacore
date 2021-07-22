@@ -18,12 +18,12 @@ int main(int argc, char **argv) {
 
 	// CONSTRUCTORS
 	std::cout << "[Test] Potential Field Construction - default" << std::endl;
-	controllers::PotentialField pf;
-	controllers::AttractivePotentialFieldPose apf;
-	controllers::RepulsivePotentialField rpf;
+	potential_fields::PotentialField pf;
+	potential_fields::AttractivePotentialFieldPose apf;
+	potential_fields::RepulsivePotentialField rpf;
 
 	std::cout << "[Test] Potential Field Construction - non default" << std::endl;
-	controllers::PotentialField pfk(0.5); // set gain
+	potential_fields::PotentialField pfk(0.5); // set gain
 
 	// initialize position and orientation
 	dynacore::Vect3 target_pos;
@@ -34,10 +34,10 @@ int main(int argc, char **argv) {
 	target_quat.z() = 0.0;
 	target_quat.w() = 0.7071068;
 	// initialize attractive potential field
-	controllers::AttractivePotentialFieldPose apfg(target_pos, target_quat);
-	controllers::AttractivePotentialFieldPosition apfp(target_pos);
-	controllers::AttractivePotentialFieldOrientation apfr(target_quat);
-	controllers::AttractivePotentialFieldJoint apfj(0.5);
+	potential_fields::AttractivePotentialFieldPose apfg(target_pos, target_quat);
+	potential_fields::AttractivePotentialFieldPosition apfp(target_pos);
+	potential_fields::AttractivePotentialFieldOrientation apfr(target_quat);
+	potential_fields::AttractivePotentialFieldJoint apfj(0.5);
 
 	// GETTERS AND SETTERS
 	// get scaling factor

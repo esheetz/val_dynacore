@@ -191,7 +191,7 @@ protected:
     std::string cmd_topic_; // publisher topic name to send outputs to
 
     // potential fields
-    controllers::PotentialField potential_; // potential field
+    potential_fields::PotentialField potential_; // potential field
 
     // info about convergence
     double potential_threshold_; // threshold for determining convergence based on objective

@@ -9,7 +9,7 @@
 #include <vector>
 #include <Utils/wrap_eigen.hpp>
 
-namespace controllers
+namespace potential_fields
 {
 class PotentialField
 {
@@ -67,6 +67,6 @@ protected:
     static double MAX_GRADIENT_; // maximum gradient allowed
 }; // end class
 
-}; // end namespace controllers
+}; // end namespace potential_fields
 
 #endif

@@ -121,7 +121,7 @@ public:
 
 protected:
     // attractive potential field
-    controllers::AttractivePotentialFieldPose att_potential_; // potential field
+    potential_fields::AttractivePotentialFieldPose att_potential_; // potential field
 
     // controller gains
     double kp_; // gain proportional to controller error

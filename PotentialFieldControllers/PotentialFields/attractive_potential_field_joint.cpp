@@ -5,7 +5,7 @@
 
 #include <PotentialFields/attractive_potential_field_joint.h>
 
-using controllers::AttractivePotentialFieldJoint;
+using potential_fields::AttractivePotentialFieldJoint;
 
 // CONSTRUCTORS/DESTRUCTORS
 AttractivePotentialFieldJoint::AttractivePotentialFieldJoint() {

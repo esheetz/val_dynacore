@@ -5,7 +5,7 @@
 
 #include <PotentialFields/attractive_potential_field_pose.h>
 
-using controllers::AttractivePotentialFieldPose;
+using potential_fields::AttractivePotentialFieldPose;
 
 // CONSTRUCTORS/DESTRUCTORS
 AttractivePotentialFieldPose::AttractivePotentialFieldPose() {

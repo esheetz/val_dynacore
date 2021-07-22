@@ -5,7 +5,7 @@
 
 #include <PotentialFields/repulsive_potential_field.h>
 
-using controllers::RepulsivePotentialField;
+using potential_fields::RepulsivePotentialField;
 
 // STATIC DATA MEMBERS (in meters)
 double RepulsivePotentialField::OBST_RADIUS_ = 0.0;

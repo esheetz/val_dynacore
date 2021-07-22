@@ -9,9 +9,9 @@
 #include <algorithm>
 #include <PotentialFields/potential_field.h>
 
-namespace controllers
+namespace potential_fields
 {
-class AttractivePotentialFieldJoint : public controllers::PotentialField
+class AttractivePotentialFieldJoint : public potential_fields::PotentialField
 {
 public:
     // CONSTRUCTORS/DESTRUCTORS
@@ -106,6 +106,6 @@ protected:
 
 }; // end class
 
-}; // end namespace controllers
+}; // end namespace potential_fields
 
 #endif
