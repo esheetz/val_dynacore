@@ -103,6 +103,11 @@ void IKModule::setDebug(bool debug_in) {
 	return;
 }
 
+void IKModule::setAllowRandomRestarts(bool restart_in) {
+	allow_random_restarts_ = restart_in;
+	return;
+}
+
 void IKModule::setInitialRobotConfiguration(dynacore::Vector q_in) {
 	// set initial configuration (virtual rotation joints as quaternion)
 	q_init_ = q_in;
@@ -150,86 +155,34 @@ bool IKModule::ikStep() {
 }
 
 bool IKModule::solve(dynacore::Vector& q_solution) {
-	// initialize stopping conditions to be large values
-	double cost = 1e6;
-	double prev_cost = cost;
-	double impr = 1e6;
+	// check if random restarts allowed
+	if( !allow_random_restarts_ ) {
+		// no random restarts, solve IK problem locally
+		bool ik_res = solveIKProblem(q_solution);
+		// set solution info
+		best_solution_.copyAll(curr_solution_);
 
-	// initialize current configuration
-	robot_model_->getCurrentQ(q_init_);
-	setInitialRobotConfiguration(q_init_);
-	computeConfigurationWithRotationVector(q_init_, q_curr_);
-
-	// resize solution
-	q_solution.resize(num_q_);
-
-	// initialize iteration counter, used for printing out information about final solution
-	int iter;
-
-	// solve the IK problem within max_iters_
-	for( int i = 0 ; i < max_iters_ ; i++ ) {
-		// update iteration counter
-		iter = i;
-
-		// update task residuals, velocities, and Jacobians
-		computeTaskResiduals();
-		computeTaskVelocityResiduals();
-		computeTaskJacobians();
-
-		// compute costs
-		prev_cost = cost;
-		cost = computeCost();
-		impr = std::fabs(cost - prev_cost)/prev_cost;
-
-		// print initial cost info
-		if( iter == 0 ) {
-			std::printf("[IK Module] problem info -- iter=%d, cost=%0.2f, impr=%0.6f", i, cost, impr);
-			std::cout << std::endl;
-		}
-
-		// print debugging info
-		if( debug_ ) {
-			std::printf("[IK Module] solving -- iter=%d, cost=%0.2f, impr=%0.6f", i, cost, impr);
-			std::cout << std::endl;
-		}
-
-		// check if converged
-		if( (std::fabs(cost) < cost_stop_) || (impr < impr_stop_) ) {
-			// break out of for loop to stop computing solutions
-			break;
-		}
-
-		// perform IK step
-		bool ik_res = ikStep();
-
-		// check for successful IK step
-		if( !ik_res ) {
-			// IK step not performed successfully (problem infeasible), set solution
-			computeConfigurationWithQuaternion(q_curr_, q_solution);
-			std::cout << "[IK Module] problem infeasible" << std::endl;
-			return false;
-		}
-	}
-
-	// converged or max iterations reached, set solution
-	computeConfigurationWithQuaternion(q_curr_, q_solution);
-
-	// check if converged
-	bool ik_res;
-	if( (std::fabs(cost) < cost_stop_) || (impr < impr_stop_) ) {
-		std::cout << "[IK Module] converged to solution!" << std::endl;
-		ik_res = true;
+		return ik_res;
 	}
 	else {
-		std::cout << "[IK Module] max iterations reached" << std::endl;
-		ik_res = false;
-	}
+		// try solving local IK problem
+		bool ik_res = solveIKProblem(q_solution);
 
-	// print final solution info
-	std::printf("[IK Module] solution info -- iter=%d, cost=%0.2f, impr=%0.6f", iter, cost, impr);
-	std::cout << std::endl;
-	
-	return ik_res;
+		// print initial (local) solution info
+		if( ik_res ) {
+			std::cout << "[IK Module] solved local IK problem!" << std::endl;
+			// set solution info
+			best_solution_.copyAll(curr_solution_);
+			return ik_res;
+		}
+		else {
+			std::cout << "[IK Module] could not solve local IK problem, trying random restarts" << std::endl;
+			// set current best solution info
+			best_solution_.copyAll(curr_solution_);
+			// solve from here with random restarts
+			return solveIKProblemRandomRestarts(q_solution);
+		}
+	}
 }
 
 // TASK RELATED COMPUTATIONS
@@ -427,6 +380,184 @@ double IKModule::solveQP() {
 	return qp_result;
 }
 
+bool IKModule::solveIKProblem(dynacore::Vector& q_solution) {
+	// initialize stopping conditions to be large values
+	double cost = 1e6;
+	double prev_cost = cost;
+	double impr = 1e6;
+
+	// initialize current configuration
+	robot_model_->getCurrentQ(q_init_);
+	setInitialRobotConfiguration(q_init_);
+	computeConfigurationWithRotationVector(q_init_, q_curr_);
+
+	// resize solution
+	q_solution.resize(num_q_);
+
+	// initialize iteration counter, used for printing out information about final solution
+	int iter;
+
+	// solve the IK problem within max_iters_
+	for( int i = 0 ; i < max_iters_ ; i++ ) {
+		// update iteration counter
+		iter = i;
+
+		// update task residuals, velocities, and Jacobians
+		computeTaskResiduals();
+		computeTaskVelocityResiduals();
+		computeTaskJacobians();
+
+		// compute costs
+		prev_cost = cost;
+		cost = computeCost();
+		impr = std::fabs(cost - prev_cost)/prev_cost;
+
+		// print initial cost info
+		if( iter == 0 ) {
+			std::printf("[IK Module] problem info -- iter=%d, cost=%0.2f, impr=%0.6f", i, cost, impr);
+			std::cout << std::endl;
+		}
+
+		// print debugging info
+		if( debug_ ) {
+			std::printf("[IK Module] solving -- iter=%d, cost=%0.2f, impr=%0.6f", i, cost, impr);
+			std::cout << std::endl;
+		}
+
+		// check if converged
+		if( (std::fabs(cost) < cost_stop_) || (impr < impr_stop_) ) {
+			// break out of for loop to stop computing solutions
+			break;
+		}
+
+		// perform IK step
+		bool ik_res = ikStep();
+
+		// check for successful IK step
+		if( !ik_res ) {
+			// IK step not performed successfully (problem infeasible), set solution
+			computeConfigurationWithQuaternion(q_curr_, q_solution);
+			std::cout << "[IK Module] problem infeasible" << std::endl;
+			curr_solution_.setSolutionInfo(iter, cost, impr,
+									 	   IKSolutionStatus::PROBLEM_INFEASIBLE,
+									 	   q_solution);
+			return false;
+		}
+	}
+
+	// converged or max iterations reached, set solution
+	computeConfigurationWithQuaternion(q_curr_, q_solution);
+
+	// check if converged
+	bool ik_res;
+	IKSolutionStatus status;
+	if( std::fabs(cost) < cost_stop_ ) {
+		std::cout << "[IK Module] converged to solution!" << std::endl;
+		status = IKSolutionStatus::CONVERGED;
+		ik_res = true;
+	}
+	else if( impr < impr_stop_ ) {
+		std::cout << "[IK Module] reached local minimum" << std::endl;
+		status = IKSolutionStatus::LOCAL_MINIMUM;
+		ik_res = false;
+	}
+	else {
+		std::cout << "[IK Module] max iterations reached" << std::endl;
+		status = IKSolutionStatus::MAX_ITERS;
+		ik_res = false;
+	}
+
+	// set solution information
+	curr_solution_.setSolutionInfo(iter, cost, impr,
+							 	   status,
+							 	   q_solution);
+
+	// print final solution info
+	std::printf("[IK Module] solution info -- iter=%d, cost=%0.2f, impr=%0.6f", iter, cost, impr);
+	std::cout << std::endl;
+	
+	return ik_res;
+}
+
+bool IKModule::solveIKProblemRandomRestarts(dynacore::Vector& q_solution) {
+	// initialize current configuration
+	dynacore::Vector starting_q;
+	robot_model_->getCurrentQ(starting_q);
+
+	// initialize restart counter, used for printing out information about final solution
+	int restarts;
+
+	// solve the IK problem within max_random_restarts_
+	for( int i = 0 ; i < max_random_restarts_ ; i++ ) {
+		// update restart counter
+		restarts = i;
+
+		// compute random joint configuration
+		setRandomRobotModelConfiguration();
+
+		// solve IK problem
+		bool ik_res = solveIKProblem(q_solution);
+
+		// update best running solution
+		best_solution_ = IKSolutionInfo::bestRunningSolution(best_solution_, curr_solution_);
+
+		// print debugging info
+		// if( debug_ ) {
+		std::printf("[IK Module] current best -- restart=%d, best cost=%0.2f, best impr=%0.6f",
+					i, best_solution_.cost, best_solution_.impr);
+		std::cout << std::endl;
+		// }
+
+		// check if converged
+		if( ik_res ) {
+			break;
+		}
+	}
+
+	// set best solution number of restarts
+	best_solution_.num_restarts = restarts;
+
+	// check solution status
+	bool ik_res;
+	std::string status_msg;
+	if( best_solution_.status == IKSolutionStatus::CONVERGED ) {
+		status_msg = std::string("converged to solution!");
+		ik_res = true;
+	}
+	else if( best_solution_.status == IKSolutionStatus::LOCAL_MINIMUM ) {
+		status_msg = std::string("local minimum reached");
+		ik_res = false;
+	}
+	else if( best_solution_.status == IKSolutionStatus::MAX_ITERS ) {
+		status_msg = std::string("maximum iterations reached");
+		ik_res = false;
+	}
+	else if( best_solution_.status == IKSolutionStatus::PROBLEM_INFEASIBLE ) {
+		status_msg = std::string("problem infeasible");
+		ik_res = false;
+	}
+	else { // best_solution_.status == IKSolutionStatus::NONE
+		// this should never happen
+		status_msg = std::string("no solution status");
+		ik_res = false;
+	}
+
+	// print final solution info
+	std::printf("[IK Module] solution info -- restarts=%d, total iters=%d, cost=%0.2f, impr=%0.6f",
+				best_solution_.num_restarts, best_solution_.iters, best_solution_.cost, best_solution_.impr);
+	std::cout << std::endl;
+	std::printf("[IK Module] solution status -- %s", status_msg.c_str());
+	std::cout << std::endl;
+
+	// // reset robot model to starting configuration // TODO?!?!?!
+	// dynacore::Vector qdot;
+	// qdot.resize(robot_model_->getDimQdot());
+	// qdot.setZero();
+	// robot_model_->UpdateSystem(starting_q, qdot);
+
+	return ik_res;
+}
+
 // HELPER FUNCTIONS
 void IKModule::computeConfigurationWithQuaternion(dynacore::Vector q_rvec, dynacore::Vector& q_quat) {
 	// get rotation vector of virtual joints from configuration
@@ -472,6 +603,61 @@ void IKModule::computeConfigurationWithRotationVector(dynacore::Vector q_quat, d
 	q_rvec[Rx_joint_idx_] = rot_rvec[0];
 	q_rvec[Ry_joint_idx_] = rot_rvec[1];
 	q_rvec[Rz_joint_idx_] = rot_rvec[2];
+
+	return;
+}
+
+void IKModule::setRandomRobotModelConfiguration() {
+	// get joint limits
+	dynacore::Vector limit_lower;
+	dynacore::Vector limit_upper;
+	robot_model_->getJointLimits(limit_lower, limit_upper);
+
+	// clip joint limits (this only affects virtual joints within very large limits)
+	for( int i = 0 ; i < limit_lower.size() ; i++ ) {
+		// check if lower limit is very large
+		if( limit_lower[i] < -100.0 ) {
+			// clip large lower limit to something smaller
+			limit_lower[i] = -0.5;
+		}
+		// check if upper limit is very large
+		if( limit_upper[i] > 100.0 ) {
+			// clip large upper limit to something smaller
+			limit_upper[i] = 0.5;
+		}
+	}
+
+	// initialize random configuration
+	dynacore::Vector q_rand_rvec;
+	q_rand_rvec.resize(robot_model_->getDimQdot()); // compute with virtual rotation vector
+	q_rand_rvec.setZero();
+
+	// set random configuration for each joint
+	for( int i = 0 ; i < q_rand_rvec.size() ; i++ ) {
+		// compute seed based on current time
+		unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
+		// initialize random number generator
+		std::mt19937 rng(seed);
+		// set uniform distribution
+		std::uniform_real_distribution<double> uniform_dist(limit_lower[i], limit_upper[i]);
+
+		// set random joint position
+		q_rand_rvec[i] = uniform_dist(rng);
+	}
+
+	// set random configuration vector with virtual quaternion
+	dynacore::Vector q_rand;
+	computeConfigurationWithQuaternion(q_rand_rvec, q_rand);
+
+	// set robot model to random configuration
+	dynacore::Vector qdot;
+	qdot.resize(robot_model_->getDimQdot());
+	qdot.setZero();
+	robot_model_->UpdateSystem(q_rand, qdot);
+
+	if( debug_ ) {
+		dynacore::pretty_print(q_rand, std::cout, "Random configuration:");
+	}
 
 	return;
 }

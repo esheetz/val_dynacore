@@ -12,18 +12,31 @@
  * add tasks, set debug flag, solve IK problem.
  *
  * optional argument: boolean
+ * 	   used to set IK Module allow random restarts flag
+ *     default false
+ *
+ * optional argument: boolean
  * 	   used to set IK Module debug flag
  *     default true
  */
 int main(int argc, char **argv) {
-	bool debug_ik_solution = true;
-	if (argc > 1) {
+	bool random_restarts = false;
+	if( argc > 1 ) {
 		std::string input_str(argv[1]);
-		// take argument for verbose IK solution
-		if (input_str == "false") {
-			debug_ik_solution = false;
+		// take argument for random restarts
+		if( input_str == "true" ) {
+			random_restarts = true;
 		}
 	}
+	bool debug_ik_solution = false;
+	if( argc > 2 ) {
+		std::string input_str(argv[2]);
+		// take argument for verbose IK solution
+		if( input_str == "true" ) {
+			debug_ik_solution = true;
+		}
+	}
+	
 	std::cout << "Hello world!" << std::endl;
 
 	// CONSTRUCTORS
@@ -133,6 +146,7 @@ int main(int argc, char **argv) {
 	// PERFORM IK
 	std::cout << "[Test] Solve IK Problem" << std::endl;
 	ik.setDebug(debug_ik_solution);
+	ik.setAllowRandomRestarts(random_restarts);
 	dynacore::Vector q_solution;
 	bool res = ik.solve(q_solution);
 

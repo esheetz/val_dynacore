@@ -33,6 +33,8 @@
 #include <algorithm>
 #include <limits>
 #include <memory> // for std::shared_ptr, which is safer to use than raw pointer
+#include <random>
+#include <chrono>
 #include <RobotSystem.hpp>
 #include <Utils/utilities.hpp>
 #include <Quadprogpp/QuadProg++.hh>
@@ -90,6 +92,11 @@ public:
 	 * sets the debug flag; used to print cost information at each iteration of the IK solution
 	 */
 	void setDebug(bool debug_in);
+
+	/*
+	 * sets the allow random restarts flag
+	 */
+	void setAllowRandomRestarts(bool restart_in);
 	
 	/*
 	 * sets the initial robot configuration from which to find an IK solution
@@ -108,7 +115,7 @@ public:
 	bool ikStep();
 
 	/*
-	 * solve the IK problem
+	 * solve the IK problem, using random restarts (if specified)
 	 * @param q_solution, vector that will be modified to contain IK solution
 	 * @return boolean indicating whether IK solution converged
 	 */
@@ -142,6 +149,10 @@ public:
 
 	// improvement cost
 	double impr_stop_ = 1e-5; // threshold used to determine when cost improvement is low enough
+
+	// random restarts
+	bool allow_random_restarts_ = false; // flag indicating whether random restarts should be used to avoid local minima
+	int max_random_restarts_ = 100; // maximum number of random restarts // TODO?!?!
 
 private:
 	// TASK RELATED COMPUTATIONS
@@ -190,6 +201,14 @@ private:
 	 */
 	double solveQP();
 
+	/*
+	 * solve the IK problem
+	 * @param q_solution, vector that will be modified to contain IK solution
+	 * @return boolean indicating whether IK solution converged
+	 */
+	bool solveIKProblem(dynacore::Vector& q_solution);
+	bool solveIKProblemRandomRestarts(dynacore::Vector& q_solution);
+
 	// HELPER FUNCTIONS
 	/*
 	 * computes the configuration such that the virtual rotation is expressed as a quaternion
@@ -208,6 +227,104 @@ private:
 	 * @post q_rvec contains the configuration with virtual rotation as a rotation vector
 	 */
 	void computeConfigurationWithRotationVector(dynacore::Vector q_quat, dynacore::Vector& q_rvec);
+
+	/*
+	 * computes a random joint configuration and sets the robot model to that random configuration
+	 * @post robot_model_ updated to be at random joint configuration
+	 */
+	void setRandomRobotModelConfiguration();
+
+	// STRUCTS/ENUMS
+	enum struct IKSolutionStatus {
+		NONE,
+		CONVERGED,
+		LOCAL_MINIMUM,
+		MAX_ITERS,
+		PROBLEM_INFEASIBLE
+	}; // end enum
+
+	struct IKSolutionInfo {
+		int iters;
+		int num_restarts;
+		double cost;
+		double impr;
+		IKSolutionStatus status;
+		dynacore::Vector solution;
+
+		IKSolutionInfo() {
+			iters = 0;
+			num_restarts = 0;
+			cost = 1e6;
+			impr = 1e6;
+			status = IKSolutionStatus::NONE;
+			solution.resize(0);
+			solution.setZero();
+		}
+
+		void setSolutionInfo(int iters_in,
+							 double cost_in,
+							 double impr_in,
+							 IKSolutionStatus status_in,
+							 dynacore::Vector solution_in) {
+			// setting based on one solve of IK problem
+			iters = iters_in;
+			cost = cost_in;
+			impr = impr_in;
+			status = status_in;
+			solution = solution_in;
+
+			return;
+		}
+
+		void copyAll(IKSolutionInfo other) {
+			// update fields based on given solution info
+			iters = other.iters;
+			num_restarts = other.num_restarts;
+			cost = other.cost;
+			impr = other.impr;
+			status = other.status;
+			solution = other.solution;
+
+			return;
+		}
+
+		void copyRelevantSolutionInfo(IKSolutionInfo other) {
+			// update fields based on relevant solution info
+			// this is used when computing best running solution
+			cost = other.cost;
+			impr = other.impr;
+			status = other.status;
+			solution = other.solution;
+
+			return;
+		}
+
+		static IKSolutionInfo bestRunningSolution(IKSolutionInfo sol1, IKSolutionInfo sol2) {
+			IKSolutionInfo best_sol;
+
+			// get lowest cost solution
+			if( sol1.cost < sol2.cost ) {
+				best_sol.copyRelevantSolutionInfo(sol1);
+			}
+			else if( sol2.cost < sol1.cost ) {
+				best_sol.copyRelevantSolutionInfo(sol2);
+			}
+			else { // sol1.cost == sol2.cost
+				// get best improvement
+				if( sol1.impr <= sol2.impr ) {
+					best_sol.copyRelevantSolutionInfo(sol1);
+				}
+				else { // sol2.impr < sol1.impr
+					best_sol.copyRelevantSolutionInfo(sol2);
+				}
+			}
+
+			// compute cumulative iterations
+			best_sol.iters = sol1.iters + sol2.iters;
+
+			return best_sol;
+		}
+	}; // end struct
 
 	// TASKS
 	std::vector<std::shared_ptr<Task>> task_list_;
@@ -262,6 +379,10 @@ private:
 	int ndof_quadprog_ = 1; // QP n-dimension, number of degrees of freedom
 	int nic_quadprog_ = 0; 	// QP m-dimension, number of inequality constraints
 	int nec_quadprog_ = 0; 	// QP p-dimension, number of equality constraints
+
+	// STRUCTS FOR STORING INFO ABOUT RANDOM RESTARTS
+	IKSolutionInfo best_solution_;
+	IKSolutionInfo curr_solution_;
 
 }; // end class
 
