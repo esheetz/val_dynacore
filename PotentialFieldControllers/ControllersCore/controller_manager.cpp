@@ -125,10 +125,17 @@ void ControllerManager::jointStateCallback(const sensor_msgs::JointState& msg) {
 
     // update current configuration based on message
     for( int i = 0 ; i < msg.name.size() ; i++ ) {
-        // joint state message may publish joints in an order not expected by configuration vector
-        // set index for joint based on joint name; add offset to ignoring virtual joints
-        int jidx = val::joint_names_to_indices[msg.name[i]] - valkyrie::num_virtual;
-        q_joint_state_[jidx] = msg.position[i];
+        // joint state message may contain joints we don't care about, especially when coming from IHMC
+        // check if joint is one of Valkyrie's action joints
+        std::map<std::string, int>::iterator it;
+        it = val::joint_names_to_indices.find(msg.name[i]);
+        if( it != val::joint_names_to_indices.end() ) {
+            // joint state message may publish joints in an order not expected by configuration vector
+            // set index for joint based on joint name; add offset to ignoring virtual joints
+            int jidx = val::joint_names_to_indices[msg.name[i]] - valkyrie::num_virtual;
+            q_joint_state_[jidx] = msg.position[i];
+        }
+        // if joint name is not one of Valkyrie's action joints, ignore it
     }
 
     // set flag indicating joint state has been received
