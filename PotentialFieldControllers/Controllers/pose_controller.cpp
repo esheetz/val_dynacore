@@ -9,7 +9,7 @@ using controllers::PoseController;
 
 // CONSTRUCTORS/DESTRUCTORS
 PoseController::PoseController() {
-    kp_ = 0.5; // default gain
+    kp_ = 0.45;//0.5; // default gain
 
     // set topic names
     ref_topic_ = std::string("controllers/input/reference_pose");

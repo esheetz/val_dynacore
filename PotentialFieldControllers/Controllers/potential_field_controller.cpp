@@ -15,7 +15,10 @@ PotentialFieldController::PotentialFieldController() {
     dt_ = 0.1;
 
     // set potential threshold
-    potential_threshold_ = 1e-5;
+    potential_threshold_ = 6.25e-3;//1e-5;
+
+    // set potential to be large
+    potential_ = 100;
 
     // set step size threshold
     step_threshold_ = 1e-10;
@@ -30,6 +33,9 @@ PotentialFieldController::PotentialFieldController() {
     initialized_ = false;
     reference_set_ = false;
     active_ = false;
+    converged_objective_ = false;
+    converged_step_ = false;
+    converged_ = false;
 }
 
 PotentialFieldController::~PotentialFieldController() {
@@ -198,9 +204,12 @@ void PotentialFieldController::update() {
         return;
     }
 
+    // compute current potential
+    potential_ = potential();
+
     // check if update needed due to objective
     if( checkObjectiveConvergence() ) {
-        ROS_INFO("%s::update() -- close enough to target, no update performed; potential=%f", getName().c_str(), potential());
+        ROS_INFO("%s::update() -- close enough to target, no update performed; potential=%f", getName().c_str(), potential_);
         // set internal position and step vectors
         q_step_command_.setZero();
         q_posn_command_ = q_ + q_step_command_;
@@ -218,9 +227,9 @@ void PotentialFieldController::update() {
 
     // check if update needed due to step size
     if( checkStepConvergence() ) {
-        // ROS_INFO("%s::update() -- small commanded step size, no update performed; step size=%f, potential=%f", getName().c_str(), step_size_, potential());
+        // ROS_INFO("%s::update() -- small commanded step size, no update performed; step size=%f, potential=%f", getName().c_str(), step_size_, potential_);
         // step size will be so small, there is no point in printing it out
-        ROS_INFO("%s::update() -- small commanded step size, no update performed; potential=%f", getName().c_str(), potential());
+        ROS_INFO("%s::update() -- small commanded step size, no update performed; potential=%f", getName().c_str(), potential_);
         // set internal position and step vectors
         q_step_command_.setZero();
         q_posn_command_ = q_ + q_step_command_;
@@ -247,7 +256,7 @@ void PotentialFieldController::update() {
         robot_model_->UpdateSystem(joint_command, qdot_);
     }
 
-    ROS_INFO("%s::update() -- update performed! potential=%f", getName().c_str(), potential());
+    ROS_INFO("%s::update() -- update performed! potential=%f", getName().c_str(), potential_);
 
     return;
 }
@@ -276,7 +285,10 @@ bool PotentialFieldController::checkObjectiveConvergence() {
         return false;
     }
 
-    return (potential() < potential_threshold_);
+    // set objective convergence
+    converged_objective_ = potential_ < potential_threshold_;
+
+    return converged_objective_;
 }
 
 bool PotentialFieldController::checkStepConvergence() {
@@ -285,7 +297,10 @@ bool PotentialFieldController::checkStepConvergence() {
         return false;
     }
 
-    return (step_size_ < step_threshold_);
+    // set step convergence
+    converged_step_ = step_size_ < step_threshold_;
+
+    return converged_step_;
 }
 
 bool PotentialFieldController::checkControllerConvergence() {
@@ -294,7 +309,7 @@ bool PotentialFieldController::checkControllerConvergence() {
         return false;
     }
     
-    return (checkObjectiveConvergence() || checkStepConvergence());
+    return (converged_objective_ || converged_step_);
 }
 
 // GETTERS/SETTERS

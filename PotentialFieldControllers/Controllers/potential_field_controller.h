@@ -191,7 +191,7 @@ protected:
     std::string cmd_topic_; // publisher topic name to send outputs to
 
     // potential fields
-    potential_fields::PotentialField potential_; // potential field
+    potential_fields::PotentialField potential_field_; // potential field
 
     // info about convergence
     double potential_threshold_; // threshold for determining convergence based on objective
@@ -227,6 +227,12 @@ protected:
     bool initialized_;
     bool reference_set_;
     bool active_;
+    bool converged_objective_;
+    bool converged_step_;
+    bool converged_;
+
+    // current potential of objective
+    double potential_;
 
     // flag indicating whether to update robot model internally after command is computed
     // when set to false:
