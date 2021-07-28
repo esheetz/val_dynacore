@@ -16,7 +16,12 @@
 			"orientation": publishes reference orientation
 			"multiobj": publishes reference position and orientation
 	-->
-	<arg name="tf_prefix" default="val_controller/"/> <!-- default for testing in simulation with controllers -->
+	
+	<arg name="sim" default="false"/>
+	<!-- if not testing in sim, no tf prefix -->
+	<arg unless="$(arg sim)" name="tf_prefix" value=""/>
+	<!-- if testing in sim, set tf prefix to be same as in ControllerTestNode -->
+	<arg if="$(arg sim)" name="tf_prefix" value="val_controller/"/>
 
 	<arg name="debug" default="false"/>
 	<arg unless="$(arg debug)" name="launch_prefix" value="" />
