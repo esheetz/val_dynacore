@@ -198,6 +198,21 @@ namespace dynacore {
         return;
     }
 
+    void convert(tf::Transform const & from, dynacore::Vect3 & to_pos, dynacore::Quaternion & to_quat) {
+        // convert from tf transform to dynacore (Eigen) position and quaternion
+        // get transform translation
+        tf::Vector3 tf_origin = from.getOrigin();
+        // convert from tf::Vector3 to dynacore::Vect3
+        to_pos << tf_origin.getX(), tf_origin.getY(), tf_origin.getZ();
+
+        // get transform rotation
+        tf::Quaternion tf_rotation = from.getRotation();
+        // convert from tf::Quaternion to dynacore::Quaternion
+        dynacore::convert(tf_rotation, to_quat);
+
+        return;
+    }
+
   void Copy(const dynacore::Vector & sub, double* obj){
     for(int i(0);i<sub.rows(); ++i){    obj[i] = sub[i];    }
   }

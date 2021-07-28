@@ -25,22 +25,16 @@ class AlignmentController : public PotentialFieldController
 public:
     // CONSTRUCTORS/DESTRUCTORS
     AlignmentController();
-    // AlignmentController(std::shared_ptr<RobotSystem> robot_model_in,
-    //                     int num_virtual_joints,
-    //                     std::vector<int> virtual_rotation_joints,
-    //                     std::string robot_name,
-    //                     std::string ref_frame = std::string("world"));
     ~AlignmentController();
 
     // CONTROLLER FUNCTIONS
     void init(ros::NodeHandle& nh,
               std::shared_ptr<RobotSystem> robot_model,
-              // int num_virtual_joints,
-              // std::vector<int> virtual_rotation_joints,
               std::string robot_name,
               std::vector<int> joint_indices,
               std::vector<std::string> joint_names,
               int frame_idx, std::string frame_name,
+              bool update_robot_model_internally = true,
               std::string ref_frame = std::string("world")) override;
     void start() override;
     void stop() override;

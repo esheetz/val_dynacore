@@ -7,9 +7,9 @@
 
 namespace ROSMsgUtils {
 
-	// GEOMETRY_MSGS
+    // GEOMETRY_MSGS
 
-	void makePointMessage(dynacore::Vect3 pos,
+    void makePointMessage(dynacore::Vect3 pos,
                           geometry_msgs::Point& point_msg) {
         // set point
         point_msg.x = pos[0];
@@ -32,13 +32,13 @@ namespace ROSMsgUtils {
                                  std::string frame,
                                  ros::Time stamp_time,
                                  geometry_msgs::PointStamped& point_msg) {
-    	// set point
-    	makePointMessage(pos, point_msg.point);
+        // set point
+        makePointMessage(pos, point_msg.point);
 
-    	// set header
-    	makeHeaderMessage(frame, stamp_time, point_msg.header);
-    	
-    	return;
+        // set header
+        makeHeaderMessage(frame, stamp_time, point_msg.header);
+        
+        return;
     }
 
     void makePoseMessage(dynacore::Vect3 pos,
@@ -49,6 +49,19 @@ namespace ROSMsgUtils {
 
         // set orientation
         makeQuaternionMessage(quat, pose_msg.orientation);
+
+        return;
+    }
+
+    void makePoseMessage(tf::Transform tf,
+                         geometry_msgs::Pose& pose_msg) {
+        // get position and quaternion
+        dynacore::Vect3 pos;
+        dynacore::Quaternion quat;
+        dynacore::convert(tf, pos, quat);
+
+        // make pose message
+        makePoseMessage(pos, quat, pose_msg);
 
         return;
     }
@@ -68,13 +81,13 @@ namespace ROSMsgUtils {
                                 std::string frame,
                                 ros::Time stamp_time,
                                 geometry_msgs::PoseStamped& pose_msg) {
-    	// set pose
-    	makePoseMessage(pos, quat, pose_msg.pose);
+        // set pose
+        makePoseMessage(pos, quat, pose_msg.pose);
 
-    	// set header
-    	makeHeaderMessage(frame, stamp_time, pose_msg.header);
+        // set header
+        makeHeaderMessage(frame, stamp_time, pose_msg.header);
 
-    	return;
+        return;
     }
 
     void makeQuaternionMessage(dynacore::Quaternion quat,
@@ -112,50 +125,43 @@ namespace ROSMsgUtils {
                                       std::string frame,
                                       ros::Time stamp_time,
                                       geometry_msgs::QuaternionStamped& quat_msg) {
-    	// set quaternion
-    	makeQuaternionMessage(quat, quat_msg.quaternion);
+        // set quaternion
+        makeQuaternionMessage(quat, quat_msg.quaternion);
 
-    	// set header
-    	makeHeaderMessage(frame, stamp_time, quat_msg.header);
-    	
-    	return;
+        // set header
+        makeHeaderMessage(frame, stamp_time, quat_msg.header);
+        
+        return;
     }
 
     void makeTransformMessage(tf::Transform tf,
                               geometry_msgs::Transform& tf_msg) {
-    	// get translation
-	    tf::Vector3 tf_origin = tf.getOrigin();
-	    // convert from tf::Vector3 to dynacore::Vect3
-	    dynacore::Vect3 trans;
-	    trans << tf_origin.getX(), tf_origin.getY(), tf_origin.getZ();
+        // get position and quaternion
+        dynacore::Vect3 pos;
+        dynacore::Quaternion quat;
+        dynacore::convert(tf, pos, quat);
 
-	    // set translation
-	    makeVector3Message(trans, tf_msg.translation);
+        // set translation
+        makeVector3Message(pos, tf_msg.translation);
 
-	    // get rotation
-	    tf::Quaternion tf_rotation = tf.getRotation();
-	    // convert from tf::Quaternion to dynacore::Quaternion
-	    dynacore::Quaternion quat;
-	    dynacore::convert(tf_rotation, quat);
+        // set rotation
+        makeQuaternionMessage(quat, tf_msg.rotation);
 
-	    // set rotation
-	    makeQuaternionMessage(quat, tf_msg.rotation);
-
-    	return;
+        return;
     }
 
     void makeTransformStampedMessage(tf::StampedTransform tf,
                                      geometry_msgs::TransformStamped& tf_msg) {
-    	// set transform
-    	makeTransformMessage(tf, tf_msg.transform);
+        // set transform
+        makeTransformMessage(tf, tf_msg.transform);
 
-    	// set header
-    	makeHeaderMessage(tf.frame_id_, tf.stamp_, tf_msg.header);
+        // set header
+        makeHeaderMessage(tf.frame_id_, tf.stamp_, tf_msg.header);
 
-    	// set child frame id
-	    tf_msg.child_frame_id = tf.child_frame_id_;
+        // set child frame id
+        tf_msg.child_frame_id = tf.child_frame_id_;
 
-    	return;
+        return;
     }
 
     void makeVector3Message(dynacore::Vect3 vec,
@@ -181,13 +187,29 @@ namespace ROSMsgUtils {
                                    std::string frame,
                                    ros::Time stamp_time,
                                    geometry_msgs::Vector3Stamped& vec_msg) {
-    	// set vector
-    	makeVector3Message(vec, vec_msg.vector);
+        // set vector
+        makeVector3Message(vec, vec_msg.vector);
 
-    	// set header
-    	makeHeaderMessage(frame, stamp_time, vec_msg.header);
-    	
-    	return;
+        // set header
+        makeHeaderMessage(frame, stamp_time, vec_msg.header);
+        
+        return;
+    }
+
+    // NAV_MSGS
+
+    void makeOdometryMessage(tf::StampedTransform tf,
+                             nav_msgs::Odometry& odom_msg) {
+        // set pose
+        makePoseMessage(tf, odom_msg.pose.pose);
+
+        // set header
+        makeHeaderMessage(tf.frame_id_, tf.stamp_, odom_msg.header);
+
+        // set child frame id
+        odom_msg.child_frame_id = tf.child_frame_id_;
+
+        return;
     }
 
     // SENSOR_MSGS
@@ -195,34 +217,34 @@ namespace ROSMsgUtils {
     void makeJointStateMessage(dynacore::Vector q,
                                std::map<int, std::string> joint_indices_to_names,
                                sensor_msgs::JointState& js_msg) {
-    	// resize fields of message
-    	js_msg.name.clear();
-    	js_msg.position.clear();
-    	js_msg.velocity.clear();
-    	js_msg.effort.clear();
+        // resize fields of message
+        js_msg.name.clear();
+        js_msg.position.clear();
+        js_msg.velocity.clear();
+        js_msg.effort.clear();
 
-    	// set fields of message based on input configuration
-    	for( auto const& j : joint_indices_to_names ) {
-    		// j.first is joint index, j.second is joint name
-    		js_msg.name.push_back(j.second);
-    		js_msg.position.push_back(q[j.first]);
-    		js_msg.velocity.push_back(0.0);
-    		js_msg.effort.push_back(0.0);
-    	}
+        // set fields of message based on input configuration
+        for( auto const& j : joint_indices_to_names ) {
+            // j.first is joint index, j.second is joint name
+            js_msg.name.push_back(j.second);
+            js_msg.position.push_back(q[j.first]);
+            js_msg.velocity.push_back(0.0);
+            js_msg.effort.push_back(0.0);
+        }
 
-    	return;
+        return;
     }
 
     // STD_MSGS
 
-	void makeHeaderMessage(std::string frame,
+    void makeHeaderMessage(std::string frame,
                            ros::Time stamp_time,
                            std_msgs::Header& header_msg) {
-		// set frame and stamp
-		header_msg.frame_id = frame;
-		header_msg.stamp = stamp_time;
+        // set frame and stamp
+        header_msg.frame_id = frame;
+        header_msg.stamp = stamp_time;
 
-		return;
-	}
+        return;
+    }
 
 } // end namespace ROSMsgUtils

@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+<!--***********************************************************
+	Pelvis Transform Broadcaster Node
+	(not needed when running on real robot)
+	Emily Sheetz, NSTGRO VTE 2021
+
+	run either:
+		$ roslaunch val_dynacore pelvis_transform_broadcaster.launch
+		OR
+		$ rosrun val_dynacore pelvis_transform_broadcaster_node
+************************************************************-->
+<launch>
+	<arg name="tf_prefix" default="val_controller/"/> <!-- default for testing in simulation with controllers -->
+	<arg name="managing_node" default="ControllerTestNode"/>
+
+	<arg name="debug" default="false"/>
+	<arg unless="$(arg debug)" name="launch_prefix" value="" />
+	<arg if="$(arg debug)" name="launch_prefix" value="gdb -ex run --args" />
+
+	<node launch-prefix="$(arg launch_prefix)" pkg="val_dynacore" type="pelvis_transform_broadcaster_node" name="PelvisTransformBroadcasterNode" output="screen">
+		<param name="tf_prefix" value="$(arg tf_prefix)"/>
+		<param name="managing_node" value="$(arg managing_node)"/>
+		<!--<param name="" type="" value=""/> -->
+	</node>
+</launch>

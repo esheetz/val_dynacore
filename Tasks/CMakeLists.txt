@@ -4,6 +4,8 @@ if (WIN32)
   add_library(dynacore_tasks SHARED
     task.h task.cpp
     task_6dpose.h task_6dpose.cpp
+    task_position.h task_position.cpp
+    task_orientation.h task_orientation.cpp
     task_joint_config.h task_joint_config.cpp
 )
 endif(WIN32)

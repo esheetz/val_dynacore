@@ -21,6 +21,7 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/Vector3Stamped.h>
+#include <nav_msgs/Odometry.h>
 #include <sensor_msgs/JointState.h>
 
 namespace ROSMsgUtils {
@@ -68,6 +69,16 @@ namespace ROSMsgUtils {
      */
     void makePoseMessage(dynacore::Vect3 pos,
                          dynacore::Quaternion quat,
+                         geometry_msgs::Pose& pose_msg);
+
+    /*
+     * makes a Pose message from the given transform
+     * @param tf, the desired transform
+     * @param pose_msg, the message to be populated
+     * @return none
+     * @post pose_msg populated based on the given transform pose
+     */
+    void makePoseMessage(tf::Transform tf,
                          geometry_msgs::Pose& pose_msg);
 
     /*
@@ -181,6 +192,18 @@ namespace ROSMsgUtils {
                                    std::string frame,
                                    ros::Time stamp_time,
                                    geometry_msgs::Vector3Stamped& vec_msg);
+
+    // NAV_MSGS
+
+    /*
+     * makes an Odometry message from the given transform
+     * @param tf, the desired transform
+     * @param odom_msg, the message to be populated
+     * @return none
+     * @post odom_msg populated based on the given transform
+     */
+    void makeOdometryMessage(tf::StampedTransform tf,
+                             nav_msgs::Odometry& odom_msg);
 
     // SENSOR_MSGS
 

@@ -5,7 +5,7 @@
   <param name="nstgro20_valkyrie_robot_description" textfile="$(find val_dynacore)/RobotSystems/Valkyrie/valkyrie_simple.urdf" />
 
   <node name="nstgro20_joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher">
-      <rosparam param="source_list">[ControllerTestNode/nstgro20/joint_commands]</rosparam>
+      <rosparam param="source_list">[ControllerTestNode/controllers/input/joint_states]</rosparam>
       <remap from="robot_description" to="nstgro20_valkyrie_robot_description" />
       <remap from="joint_states" to="/nstgro20_valkyrie/joint_states" />
   </node>

@@ -12,11 +12,8 @@ PoseController::PoseController() {
     kp_ = 0.5; // default gain
 
     // set topic names
-    ref_topic_ = std::string("nstgro20/reference_pose");
-    cmd_topic_ = std::string("nstgro20/joint_commands");
-
-    // setup IK module
-    // ik_.setDebug(false); // TODO do we need IK?!
+    ref_topic_ = std::string("controllers/input/reference_pose");
+    cmd_topic_ = std::string("controllers/output/commanded_joint_states");
 }
 
 PoseController::~PoseController() {
@@ -25,23 +22,18 @@ PoseController::~PoseController() {
 // CONTROLLER FUNCTIONS
 void PoseController::init(ros::NodeHandle& nh,
                           std::shared_ptr<RobotSystem> robot_model,
-                          // int num_virtual_joints,
-                          // std::vector<int> virtual_rotation_joints,
                           std::string robot_name,
                           std::vector<int> joint_indices,
                           std::vector<std::string> joint_names,
                           int frame_idx, std::string frame_name,
+                          bool update_robot_model_internally,
                           std::string ref_frame) {
     // initialize controller
     PotentialFieldController::init(nh, robot_model, robot_name,
                                    joint_indices, joint_names,
-                                   frame_idx, frame_name, ref_frame);
+                                   frame_idx, frame_name,
+                                   update_robot_model_internally, ref_frame);
 
-    // set task
-    // pose_task_ = std::make_shared<Task6DPose>(Task6DPose(robot_model_, frame_idx)); // TODO do we need IK?!
-    // ik_.addTaskToList(pose_task_); // TODO do we need IK?!
-    // ik_.setDefaultTaskGains(); // TODO do we need IK?!
-    // TODO HELPER FUNCTION FOR SETTING APPROPRIATE IK TASKS
     return;
 }
 
@@ -71,6 +63,12 @@ void PoseController::update() {
 
 // CONNECTIONS
 void PoseController::initializeConnections() {
+    // get name of node for references
+    std::string ref_node;
+    nh_.param("ref_node", ref_node, std::string("ControllerReferencePublisherNode"));
+    ref_node = std::string("/") + ref_node + std::string("/");
+    ref_topic_ = ref_node + ref_topic_;
+
     // reference subscriber
     ref_sub_ = nh_.subscribe(ref_topic_, 1, &PoseController::refCallback, this);
     // command publisher
@@ -137,9 +135,9 @@ void PoseController::updateReferencePose() {
         geometry_msgs::PoseStamped transformed_ref_pose_msg;
         try {
             // check if transform exists
-            if( !tf_.waitForTransform(msg_frame_name, ref_frame_name_, ros::Time(0), ros::Duration(1.0), // TODO these frames might need to be switched? (target, source)
+            if( !tf_.waitForTransform(ref_frame_name_, msg_frame_name, ros::Time(0), ros::Duration(1.0), // wait for transform from target frame to source frame
                                       ros::Duration(0.01), &err_msg) ) { // default polling sleep duration, pointer to error message
-                ROS_ERROR("%s::updateReferencePose() -- no transform from %s to %s; error: %s",
+                ROS_ERROR("%s::updateReferencePose() -- no transform from %s to %s, not updating reference pose; error: %s",
                           getName().c_str(), ref_frame_name_.c_str(), msg_frame_name.c_str(), err_msg.c_str());
                 return;
             }
@@ -151,7 +149,7 @@ void PoseController::updateReferencePose() {
             }
         }
         catch( tf::TransformException ex ) {
-            ROS_ERROR("%s::updateReferencePose() -- trouble getting transform from %s to %s; TransformException: %s",
+            ROS_ERROR("%s::updateReferencePose() -- trouble getting transform from %s to %s, not updating reference pose; TransformException: %s",
                       getName().c_str(), ref_frame_name_.c_str(), msg_frame_name.c_str(), ex.what());
             return;
         }
@@ -170,8 +168,6 @@ void PoseController::updateReferencePose() {
 
     // update reference pose in attractive potential field
     att_potential_.setGoal(ref_pos_, ref_quat_);
-    // update reference pose in 6dpose task
-    // pose_task_->setTarget(ref_pos_, ref_quat_); // TODO do we need IK?!
 
     return;
 }
@@ -240,14 +236,9 @@ void PoseController::getDx(Eigen::Vector3d& _dx_p, Eigen::Vector3d& _dx_r) {
 
 void PoseController::objectiveJacobian(dynacore::Matrix& _J, dynacore::Matrix& _Jinv) {
     // compute Jacobian
-    RobotUtils::getRobotModelJacobians(robot_model_, frame_idx_,
-                                       _J, _Jinv);
-
-    // compute Jacobian using pose task
-    // pose_task_->computeTaskJacobian(_J); // TODO do we need IK?!
-
-    // compute pseudoinverse of Jacobian
-    // dynacore::pInv(_J, _Jinv);
+    RobotUtils::getCommandedJointJacobians(robot_model_, frame_idx_,
+                                           commanded_joint_indices_,
+                                           _J, _Jinv);
 
     return;
 }
@@ -270,15 +261,11 @@ void PoseController::getDq(dynacore::Vector& _dq) {
     // compute change in configuration for commanded joints
     dynacore::Vector dq_commanded = Jinv_ * (kp_ * err_);
 
+    // update internal step vector
+    q_step_commanded_ = dq_commanded;
+
     // compute change in configuration for all joints
-    getFullDqFromCommanded(dq_commanded, commanded_joint_indices_, _dq);
-
-    // solve IK problem
-    // dynacore::Vector q_solution;
-    // ik_.solve(q_solution); // TODO do we need IK?!
-
-    // compute change in configuration
-    // _dq = kp_ * (q_solution - q_);
+    getFullDqFromCommanded(dq_commanded, _dq);
 
     return;
 }

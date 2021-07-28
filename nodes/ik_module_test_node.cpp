@@ -369,8 +369,6 @@ bool IKModuleTestNode::performIKTasks() {
 }
 
 int main(int argc, char **argv) {
-    std::cout << "TESTING IK MODULE TEST NODE!" << std::endl;
-
     // initialize node
     ros::init(argc, argv, "IKModuleTestNode");
 

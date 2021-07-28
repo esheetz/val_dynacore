@@ -24,7 +24,7 @@
 
 	<arg name="debug" default="false"/>
 	<arg unless="$(arg debug)" name="launch_prefix" value="" />
-	<arg if="$(arg debug)" name="launch_prefix" value="xterm -e gdb **args" />
+	<arg if="$(arg debug)" name="launch_prefix" value="gdb -ex run --args" />
 
 	<node launch-prefix="$(arg launch_prefix)" pkg="val_dynacore" type="ik_module_test_node" name="IKModuleTestNode" output="screen">
 		<param name="task_set" value="$(arg tasks)"/>

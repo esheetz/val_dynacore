@@ -38,12 +38,11 @@ PotentialFieldController::~PotentialFieldController() {
 // CONTROLLER FUNCTIONS
 void PotentialFieldController::init(ros::NodeHandle& nh,
                                     std::shared_ptr<RobotSystem> robot_model,
-                                    // int num_virtual_joints,
-                                    // std::vector<int> virtual_rotation_joints,
                                     std::string robot_name,
                                     std::vector<int> joint_indices,
                                     std::vector<std::string> joint_names,
                                     int frame_idx, std::string frame_name,
+                                    bool update_robot_model_internally,
                                     std::string ref_frame) {
     // set parameters
     nh_ = nh;
@@ -51,6 +50,7 @@ void PotentialFieldController::init(ros::NodeHandle& nh,
     // set robot parameters
     robot_model_ = robot_model;
     robot_name_ = robot_name;
+    update_robot_model_internally_ = update_robot_model_internally;
 
     // set commanded joint group parameters
     commanded_joint_indices_ = joint_indices;
@@ -65,13 +65,6 @@ void PotentialFieldController::init(ros::NodeHandle& nh,
     RobotUtils::zipJointIndicesNames(commanded_joint_indices_, commanded_joint_names_,
                                      commanded_joint_indices_to_names_);
 
-    // setup ik module
-    // ik_.setRobotModel(robot_model); // TODO do we need IK?!
-    // ik_.setVirtualRotationJoints(virtual_rotation_joints[0],
-    //                              virtual_rotation_joints[1],
-    //                              virtual_rotation_joints[2],
-    //                              virtual_rotation_joints[3]); // TODO do we need IK?!
-
     // initialize current robot information
     curr_pos_.setZero();
     curr_quat_.setIdentity();
@@ -83,6 +76,14 @@ void PotentialFieldController::init(ros::NodeHandle& nh,
     // initialize commanded configuration
     q_commanded_.resize(commanded_joint_indices_.size());
     q_commanded_.setZero();
+    q_posn_command_.resize(robot_model_->getDimQ());
+    q_posn_command_.setZero();
+    q_step_command_.resize(robot_model_->getDimQ());
+    q_step_command_.setZero();
+    q_posn_commanded_.resize(commanded_joint_indices_.size());
+    q_posn_commanded_.setZero();
+    q_step_commanded_.resize(commanded_joint_indices_.size());
+    q_step_commanded_.setZero();
 
     // initialize joint position and velocity limits
     q_min_.resize(robot_model_->getDimQ());
@@ -125,7 +126,7 @@ void PotentialFieldController::start() {
         ROS_INFO("%s::start() -- started controller", getName().c_str());
     }
     else {
-        ROS_WARN("%s::start() -- could not start controller; make sure controller is initialized and references are set", getName().c_str());
+        ROS_WARN("%s::start() -- could not start controller; make sure controller is initialized", getName().c_str());
     }
 
     return;
@@ -148,6 +149,14 @@ void PotentialFieldController::reset() {
     qdot_.setZero();
     q_commanded_.resize(robot_model_->getDimQ());
     q_commanded_.setZero();
+    q_posn_command_.resize(robot_model_->getDimQ());
+    q_posn_command_.setZero();
+    q_step_command_.resize(robot_model_->getDimQ());
+    q_step_command_.setZero();
+    q_posn_commanded_.resize(commanded_joint_indices_.size());
+    q_posn_commanded_.setZero();
+    q_step_commanded_.resize(commanded_joint_indices_.size());
+    q_step_commanded_.setZero();
 
     // clear joint position and velocity limits
     q_min_.resize(robot_model_->getDimQ());
@@ -192,6 +201,11 @@ void PotentialFieldController::update() {
     // check if update needed due to objective
     if( checkObjectiveConvergence() ) {
         ROS_INFO("%s::update() -- close enough to target, no update performed; potential=%f", getName().c_str(), potential());
+        // set internal position and step vectors
+        q_step_command_.setZero();
+        q_posn_command_ = q_ + q_step_command_;
+        q_step_commanded_.setZero();
+        q_posn_commanded_ = q_commanded_ + q_step_commanded_;
         return;
     }
 
@@ -207,11 +221,21 @@ void PotentialFieldController::update() {
         // ROS_INFO("%s::update() -- small commanded step size, no update performed; step size=%f, potential=%f", getName().c_str(), step_size_, potential());
         // step size will be so small, there is no point in printing it out
         ROS_INFO("%s::update() -- small commanded step size, no update performed; potential=%f", getName().c_str(), potential());
+        // set internal position and step vectors
+        q_step_command_.setZero();
+        q_posn_command_ = q_ + q_step_command_;
+        q_step_commanded_.setZero();
+        q_posn_commanded_ = q_commanded_ + q_step_commanded_;
         return;
     }
 
     // compute new joint position
     dynacore::Vector joint_command = q_ + dq;
+
+    // update internal position and step vectors
+    q_step_command_ = dq;
+    q_posn_command_ = joint_command;
+    q_posn_commanded_ = q_commanded_ + q_step_commanded_;
 
     // create joint state message and publish
     sensor_msgs::JointState js_msg;
@@ -219,7 +243,9 @@ void PotentialFieldController::update() {
     cmd_pub_.publish(js_msg);
 
     // update the robot model
-    robot_model_->UpdateSystem(joint_command, qdot_);
+    if( update_robot_model_internally_ ) {
+        robot_model_->UpdateSystem(joint_command, qdot_);
+    }
 
     ROS_INFO("%s::update() -- update performed! potential=%f", getName().c_str(), potential());
 
@@ -284,13 +310,14 @@ std::string PotentialFieldController::getCommandTopic() {
     return cmd_topic_;
 }
 
+int PotentialFieldController::getControlledDim() {
+    return commanded_joint_indices_.size();
+}
+
 // HELPER FUNCTIONS
 void PotentialFieldController::updateConfiguration() {
     // update current configuration based on robot model
     robot_model_->getCurrentQ(q_);
-
-    // update configuration in IK module
-    // ik_.setInitialRobotConfiguration(q_); // TODO do we need IK?!
 
     // update configuration of commanded joints
     for( int i = 0 ; i < commanded_joint_indices_.size() ; i++ ) {
@@ -377,16 +404,35 @@ double PotentialFieldController::clipVelocity(dynacore::Vector& _dq) {
     return _dq.norm();
 }
 
+void PotentialFieldController::getFullCommandedJointPosition(dynacore::Vector& joint_posn_out) {
+    joint_posn_out = q_posn_command_;
+    return;
+}
+
+void PotentialFieldController::getFullCommandedJointStep(dynacore::Vector& joint_step_out) {
+    joint_step_out = q_step_command_;
+    return;
+}
+
+void PotentialFieldController::getCommandedJointPosition(dynacore::Vector& joint_posn_out) {
+    joint_posn_out = q_posn_commanded_;
+    return;
+}
+
+void PotentialFieldController::getCommandedJointStep(dynacore::Vector& joint_step_out) {
+    joint_step_out = q_step_commanded_;
+    return;
+}
+
 void PotentialFieldController::getFullDqFromCommanded(dynacore::Vector _dq_commanded,
-                                                      std::vector<int> commanded_joint_indices,
                                                       dynacore::Vector& _dq) {
     // initialize robot configuration to be zero
     _dq.resize(robot_model_->getDimQ());
     _dq.setZero();
 
     // set change in configuration of commanded joints
-    for( int i = 0 ; i < commanded_joint_indices.size() ; i++ ) {
-        _dq[commanded_joint_indices[i]] = _dq_commanded[i];
+    for( int i = 0 ; i < commanded_joint_indices_.size() ; i++ ) {
+        _dq[commanded_joint_indices_[i]] = _dq_commanded[i];
     }
     // non-commanded joints are still 0
 
@@ -428,13 +474,16 @@ void PotentialFieldController::objectiveJacobian(dynacore::Matrix& _J, dynacore:
 
 void PotentialFieldController::objectiveNullspace(dynacore::Matrix& _N) {
     // resize and initialize matrices
-    N_.resize(robot_model_->getDimQdot(), robot_model_->getDimQdot());
-    I_.resize(robot_model_->getDimQdot(), robot_model_->getDimQdot());
-    I_.setIdentity();
     objectiveJacobian(J_, Jinv_);
+    N_.resize(J_.cols(), J_.cols());
+    I_.resize(J_.cols(), J_.cols());
+    I_.setIdentity();
 
     // compute nullspace
-    N_ = I_ - (Jinv_ * J_); // (nxn) = (nxn) - ((nx1) * (1xn))
+    N_ = I_ - (Jinv_ * J_); // (nxn) = (nxn) - ((nxm) * (mxn))
+
+    // set input nullspace
+    _N = N_;
 
     return;
 }

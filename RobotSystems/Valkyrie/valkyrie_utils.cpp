@@ -99,4 +99,47 @@ namespace ValUtils {
         return;
     }
 
+    void getPelvisPoseFromConfiguration(dynacore::Vector q, dynacore::Vect3& pelvis_pos, dynacore::Quaternion& pelvis_quat) {
+        // set position based on virtual joints
+        pelvis_pos << q[valkyrie_joint::virtual_X], q[valkyrie_joint::virtual_Y], q[valkyrie_joint::virtual_Z];
+
+        // set orientation based on virtual joints
+        pelvis_quat.x() = q[valkyrie_joint::virtual_Rx];
+        pelvis_quat.y() = q[valkyrie_joint::virtual_Ry];
+        pelvis_quat.z() = q[valkyrie_joint::virtual_Rz];
+        pelvis_quat.w() = q[valkyrie_joint::virtual_Rw];
+
+        return;
+    }
+
+    void getPelvisPoseFromConfiguration(dynacore::Vector q, tf::Vector3& pelvis_pos, tf::Quaternion& pelvis_quat) {
+        // set position based on virtual joints
+        tf::Vector3 tmp_pos(q[valkyrie_joint::virtual_X],
+                            q[valkyrie_joint::virtual_Y],
+                            q[valkyrie_joint::virtual_Z]);
+        pelvis_pos = tmp_pos;
+
+        // set orientation based on virtual joints
+        tf::Quaternion tmp_quat(q[valkyrie_joint::virtual_Rx],
+                                q[valkyrie_joint::virtual_Ry],
+                                q[valkyrie_joint::virtual_Rz],
+                                q[valkyrie_joint::virtual_Rw]);
+        pelvis_quat = tmp_quat;
+
+        return;
+    }
+
+    void getPelvisPoseFromConfiguration(dynacore::Vector q, tf::Transform& pelvis_tf) {
+        // get position and orientation
+        tf::Vector3 pelvis_pos;
+        tf::Quaternion pelvis_quat;
+        getPelvisPoseFromConfiguration(q, pelvis_pos, pelvis_quat);
+
+        // set transform
+        pelvis_tf.setOrigin(pelvis_pos);
+        pelvis_tf.setRotation(pelvis_quat);
+
+        return;
+    }
+
 } // end namespace ValUtils

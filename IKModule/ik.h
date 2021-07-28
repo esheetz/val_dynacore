@@ -212,10 +212,16 @@ private:
 	// TASKS
 	std::vector<std::shared_ptr<Task>> task_list_;
 	std::map<std::string, double> default_task_gains_ = {
-		{"Task6DPose", 0.85}
+		{"Task6DPose", 0.85},
+		{"TaskPosition", 0.85},
+		{"TaskOrientation", 0.85},
+		{"TaskJointConfig", 1.0}
 	}; // TODO update for more tasks
 	std::map<std::string, double> default_task_weights_ = {
-		{"Task6DPose", 1e-3}
+		{"Task6DPose", 1e-3},
+		{"TaskPosition", 1e-3},
+		{"TaskOrientation", 1e-3},
+		{"TaskJointConfig", 1e-6}
 	}; // TODO update for more tasks
 
 	// VIRTUAL ROTATION JOINTS

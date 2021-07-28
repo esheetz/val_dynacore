@@ -11,20 +11,20 @@
 #include <vector>
 #include <utility>
 #include <ros/ros.h>
+#include <tf/tf.h>
 #include <std_msgs/String.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/TransformStamped.h>
+#include <nav_msgs/Odometry.h>
 #include <sensor_msgs/JointState.h>
-#include <tf/transform_broadcaster.h>
 #include <RobotSystems/robot_utils.h>
 #include <Valkyrie/Valkyrie_Definition.h>
-#include <Valkyrie/Valkyrie_Model.hpp>
+//#include <Valkyrie/Valkyrie_Model.hpp>
 #include <Valkyrie/valkyrie_utils.hpp>
 #include <Utils/rosmsg_utils.hpp>
 #include <Controllers/potential_field_controller.h>
 #include <Controllers/pose_controller.h>
 #include <Controllers/position_controller.h>
 #include <Controllers/orientation_controller.h>
+#include <ControllersCore/controller_manager.h>
 
 class ControllerTestNode
 {
@@ -34,62 +34,38 @@ public:
     ~ControllerTestNode();
 
     // CONNECTIONS
-    bool initializePoseConnections();
-    bool initializePositionConnections();
-    bool initializeOrientationConnections();
     bool initializeConnections();
+
+    // CALLBACK
+    void statusCallback(const std_msgs::String& msg);
+
+    // GETTERS/SETTERS
+    double getLoopRate();
 
     // HELPER FUNCTIONS FOR CONTROLLER
     void startController();
-
-    // HELPER FUNCTIONS FOR BROADCASTING PELVIS POSE IN WORLD FRAME
-    void computePelvisPoseInWorld(dynacore::Vector q);
-    void broadcastPelvisPoseInWorld();
-
-    // PUBLISH POSE MESSAGE
-    void publishReferenceMessage();
-
-    // PUBLISH JOINT STATE MESSAGES AND BROADCAST APPROPRIATE WORLD TO PELVIS TRANSFORM
-    void publishStandingJoints();
-    void publishForIHMCMsgInterface();
-    
-    // PUBLISH STATUS MESSAGES
-    void publishStopStatusMessage();
-
-    // RUN CONTROLLER
     bool singleControllerStep();
+    void stopControllerManager();
+    void publishRobotStateForManager();
+    void publishPelvisTransformForBroadcaster();
 
 private:
     ros::NodeHandle nh_; // node handler
-    ros::Publisher joint_state_pub_; // joint state publisher for visualizing controller commands
-    ros::Publisher ref_pub_; // publisher for controller goal
+    controllers_core::ControllerManager cm_; // controller manager
+    ros::Subscriber robot_pose_status_sub_; // subscriber for status messages about initializing robot pose
+    ros::Publisher joint_state_pub_; // joint state publisher for visualizing controller commands and ControllerManager
+    ros::Publisher robot_pose_pub_; // robot pose publisher for ControllerManager
+    ros::Publisher pelvis_transform_pub_; // pelvis transform publisher for visualizing controller commands
 
-    bool publish_for_ihmc_; // flag indicating whether to publish messages to IHMCInterfaceNode
-    ros::Publisher pelvis_transform_pub_; // transform publisher for IHMCInterfaceNode
-    ros::Publisher joint_command_pub_; // joint state publisher for IHMCInterfaceNode
-    ros::Publisher status_pub_; // publisher for controller status
-
-    tf::TransformBroadcaster tf_bc_; // transform broadcaster for world to pelvis
-    tf::Transform tf_pelvis_wrt_world_; // transform of pelvis w.r.t. world frame
+    std::string tf_prefix_; // tf prefix
 
     dynacore::Vector q_current_; // current robot configuration
 
-    // target pose to achieve
-    dynacore::Vect3 target_pos_;
-    dynacore::Quaternion target_quat_;
-
     double loop_rate_; // loop rate for publishing
-    double publish_duration_; // seconds spent publishing messages
 
-    std::shared_ptr<Valkyrie_Model> robot_model_; // robot model
-    // controllers
-    std::string controller_type_;
-    std::shared_ptr<controllers::PotentialFieldController> run_controller_;
-    // controllers::PoseController pose_controller_;
-    // controllers::PositionController position_controller_;
-    // controllers::OrientationController orientation_controller_;
+    bool robot_pose_initialized_; // flag indicating if Valkyrie has been initialized
 
-    std::map<int, std::vector<std::pair<int, std::string>>> joint_group_map_; // joint group map
+    std::string controller_type_; // type of controller being run
 
 }; // end class ControllerTestNode
 

@@ -12,8 +12,8 @@ PositionController::PositionController() {
     kp_ = 0.5; // default gain
 
     // set topic names
-    ref_topic_ = std::string("nstgro20/reference_position");
-    cmd_topic_ = std::string("nstgro20/joint_commands");
+    ref_topic_ = std::string("controllers/input/reference_position");
+    cmd_topic_ = std::string("controllers/output/commanded_joint_states");
 }
 
 PositionController::~PositionController() {
@@ -22,17 +22,17 @@ PositionController::~PositionController() {
 // CONTROLLER FUNCTIONS
 void PositionController::init(ros::NodeHandle& nh,
                               std::shared_ptr<RobotSystem> robot_model,
-                              // int num_virtual_joints,
-                              // std::vector<int> virtual_rotation_joints,
                               std::string robot_name,
                               std::vector<int> joint_indices,
                               std::vector<std::string> joint_names,
                               int frame_idx, std::string frame_name,
+                              bool update_robot_model_internally,
                               std::string ref_frame) {
     // initialize controller
     PotentialFieldController::init(nh, robot_model, robot_name,
                                    joint_indices, joint_names,
-                                   frame_idx, frame_name, ref_frame);
+                                   frame_idx, frame_name,
+                                   update_robot_model_internally, ref_frame);
     return;
 }
 
@@ -62,6 +62,12 @@ void PositionController::update() {
 
 // CONNECTIONS
 void PositionController::initializeConnections() {
+    // get name of node for references
+    std::string ref_node;
+    nh_.param("ref_node", ref_node, std::string("ControllerReferencePublisherNode"));
+    ref_node = std::string("/") + ref_node + std::string("/");
+    ref_topic_ = ref_node + ref_topic_;
+
     // reference subscriber
     ref_sub_ = nh_.subscribe(ref_topic_, 1, &PositionController::refCallback, this);
     // command publisher
@@ -128,9 +134,9 @@ void PositionController::updateReferencePosition() {
         geometry_msgs::PointStamped transformed_ref_point_msg;
         try {
             // check if transform exists
-            if( !tf_.waitForTransform(msg_frame_name, ref_frame_name_, ros::Time(0), ros::Duration(1.0),
+            if( !tf_.waitForTransform(ref_frame_name_, msg_frame_name, ros::Time(0), ros::Duration(1.0), // wait for transform from target frame to source frame
                                       ros::Duration(0.01), &err_msg) ) { // default polling sleep duration, pointer to error message
-                ROS_ERROR("%s::updateReferencePosition() -- no transform from %s to %s; error: %s",
+                ROS_ERROR("%s::updateReferencePosition() -- no transform from %s to %s, not updating reference position; error: %s",
                           getName().c_str(), ref_frame_name_.c_str(), msg_frame_name.c_str(), err_msg.c_str());
                 return;
             }
@@ -142,7 +148,7 @@ void PositionController::updateReferencePosition() {
             }
         }
         catch( tf::TransformException ex ) {
-            ROS_ERROR("%s::updateReferencePosition() -- trouble getting transform from %s to %s; TransformException: %s",
+            ROS_ERROR("%s::updateReferencePosition() -- trouble getting transform from %s to %s, not updating reference position; TransformException: %s",
                       getName().c_str(), ref_frame_name_.c_str(), msg_frame_name.c_str(), ex.what());
             return;
         }
@@ -228,9 +234,10 @@ void PositionController::objectiveJacobian(dynacore::Matrix& _J, dynacore::Matri
     dynacore::Matrix Jang_tmp, Janginv_tmp;
 
     // compute linear Jacobian
-    RobotUtils::getRobotModelJacobians(robot_model_, frame_idx_,
-                                       _J, Jang_tmp,
-                                       _Jinv, Janginv_tmp);
+    RobotUtils::getCommandedJointJacobians(robot_model_, frame_idx_,
+                                           commanded_joint_indices_,
+                                           _J, Jang_tmp,
+                                           _Jinv, Janginv_tmp);
 
     return;
 }
@@ -253,8 +260,11 @@ void PositionController::getDq(dynacore::Vector& _dq) {
     // compute change in configuration for commanded joints
     dynacore::Vector dq_commanded = Jlininv_ * (kp_ * err_p);
 
+    // update internal step vector
+    q_step_commanded_ = dq_commanded;
+
     // compute change in configuration for all joints
-    getFullDqFromCommanded(dq_commanded, commanded_joint_indices_, _dq);
+    getFullDqFromCommanded(dq_commanded, _dq);
 
     return;
 }

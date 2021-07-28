@@ -34,12 +34,11 @@ public:
     // CONTROLLER FUNCTIONS
     void init(ros::NodeHandle& nh,
               std::shared_ptr<RobotSystem> robot_model,
-              // int num_virtual_joints,
-              // std::vector<int> virtual_rotation_joints,
               std::string robot_name,
               std::vector<int> joint_indices,
               std::vector<std::string> joint_names,
               int frame_idx, std::string frame_name,
+              bool update_robot_model_internally = true,
               std::string ref_frame = std::string("world")) override;
     void start() override;
     void stop() override;
@@ -122,9 +121,6 @@ public:
 protected:
     // attractive potential field
     potential_fields::AttractivePotentialFieldPose att_potential_; // potential field
-
-    // 6Dpose task
-    //std::shared_ptr<Task6DPose> pose_task_; // 6d pose task for ik module // TODO do we need IK?!
 
     // controller gains
     double kp_; // gain proportional to controller error

@@ -450,7 +450,7 @@ Visualization Manager:
       Shaft Length: 1
       Shaft Radius: 0.05000000074505806
       Shape: Axes
-      Topic: /ControllerTestNode/nstgro20/reference_pose
+      Topic: /ControllerReferencePublisherNode/controllers/input/reference_pose
       Unreliable: false
       Value: true
     - Class: rviz/TF
@@ -610,8 +610,6 @@ Visualization Manager:
           Value: false
         val_controller/upperNeckPitchLink:
           Value: false
-        world:
-          Value: false
       Marker Alpha: 1
       Marker Scale: 1
       Name: TF
@@ -619,106 +617,7 @@ Visualization Manager:
       Show Axes: true
       Show Names: false
       Tree:
-        world:
-          val_controller/pelvis:
-            val_controller/leftHipYawLink:
-              val_controller/leftHipRollLink:
-                val_controller/leftHipPitchLink:
-                  val_controller/leftKneePitchLink:
-                    val_controller/leftAnklePitchLink:
-                      val_controller/leftFoot:
-                        val_controller/leftCOP_Frame:
-                          {}
-            val_controller/pelvisMiddleImu_Frame:
-              {}
-            val_controller/pelvisRearImu_Frame:
-              {}
-            val_controller/rightHipYawLink:
-              val_controller/rightHipRollLink:
-                val_controller/rightHipPitchLink:
-                  val_controller/rightKneePitchLink:
-                    val_controller/rightAnklePitchLink:
-                      val_controller/rightFoot:
-                        val_controller/rightCOP_Frame:
-                          {}
-            val_controller/torsoYawLink:
-              val_controller/torsoPitchLink:
-                val_controller/torso:
-                  val_controller/leftHazardCamera_Frame:
-                    {}
-                  val_controller/leftShoulderPitchLink:
-                    val_controller/leftShoulderRollLink:
-                      val_controller/leftShoulderYawLink:
-                        val_controller/leftElbowPitchLink:
-                          val_controller/leftForearmLink:
-                            val_controller/leftWristRollLink:
-                              val_controller/leftPalm:
-                                val_controller/leftIndexFingerPitch1Link:
-                                  val_controller/leftIndexFingerPitch2Link:
-                                    val_controller/leftIndexFingerPitch3Link:
-                                      {}
-                                val_controller/leftMiddleFingerPitch1Link:
-                                  val_controller/leftMiddleFingerPitch2Link:
-                                    val_controller/leftMiddleFingerPitch3Link:
-                                      {}
-                                val_controller/leftPinkyPitch1Link:
-                                  val_controller/leftPinkyPitch2Link:
-                                    val_controller/leftPinkyPitch3Link:
-                                      {}
-                                val_controller/leftThumbRollLink:
-                                  val_controller/leftThumbPitch1Link:
-                                    val_controller/leftThumbPitch2Link:
-                                      val_controller/leftThumbPitch3Link:
-                                        {}
-                  val_controller/leftTorsoImu_Frame:
-                    {}
-                  val_controller/lowerNeckPitchLink:
-                    val_controller/neckYawLink:
-                      val_controller/upperNeckPitchLink:
-                        val_controller/head:
-                          val_controller/center_bottom_led_frame:
-                            {}
-                          val_controller/center_top_led_frame:
-                            {}
-                          val_controller/head_imu_link:
-                            {}
-                          val_controller/hokuyo_link:
-                            val_controller/head_hokuyo_frame:
-                              {}
-                          val_controller/left_camera_frame:
-                            {}
-                          val_controller/left_led_frame:
-                            {}
-                          val_controller/right_camera_frame:
-                            {}
-                          val_controller/right_led_frame:
-                            {}
-                  val_controller/rightHazardCamera_Frame:
-                    {}
-                  val_controller/rightShoulderPitchLink:
-                    val_controller/rightShoulderRollLink:
-                      val_controller/rightShoulderYawLink:
-                        val_controller/rightElbowPitchLink:
-                          val_controller/rightForearmLink:
-                            val_controller/rightWristRollLink:
-                              val_controller/rightPalm:
-                                val_controller/rightIndexFingerPitch1Link:
-                                  val_controller/rightIndexFingerPitch2Link:
-                                    val_controller/rightIndexFingerPitch3Link:
-                                      {}
-                                val_controller/rightMiddleFingerPitch1Link:
-                                  val_controller/rightMiddleFingerPitch2Link:
-                                    val_controller/rightMiddleFingerPitch3Link:
-                                      {}
-                                val_controller/rightPinkyPitch1Link:
-                                  val_controller/rightPinkyPitch2Link:
-                                    val_controller/rightPinkyPitch3Link:
-                                      {}
-                                val_controller/rightThumbRollLink:
-                                  val_controller/rightThumbPitch1Link:
-                                    val_controller/rightThumbPitch2Link:
-                                      val_controller/rightThumbPitch3Link:
-                                        {}
+        {}
       Update Interval: 0
       Value: true
   Enabled: true

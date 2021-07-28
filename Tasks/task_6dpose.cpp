@@ -9,8 +9,6 @@
 Task6DPose::Task6DPose() {
 	// initialize parameters for task
 	initializeTaskParameters();
-
-	// std::cout << "[Task6DPose] Constructed" << std::endl;
 }
 
 Task6DPose::Task6DPose(std::shared_ptr<RobotSystem> robot_model_in, int frame_idx_in) {
@@ -20,12 +18,9 @@ Task6DPose::Task6DPose(std::shared_ptr<RobotSystem> robot_model_in, int frame_id
 
 	// initialize parameters for task
 	initializeTaskParameters();
-	
-	// std::cout << "[Task6DPose] Constructed" << std::endl;
 }
 
 Task6DPose::~Task6DPose() {
-	// std::cout << "[Task6DPose] Destroyed" << std::endl;
 }
 
 // GETTERS/SETTERS
@@ -84,7 +79,7 @@ void Task6DPose::computeTaskResidual(dynacore::Vector& r_task) {
 	dynacore::Vect3 error_rot = axis_angle.angle() * axis_angle.axis(); // representation of rotation matrix (rotation vector) in exponential coordinates
 
 	// set 6x1 residual
-	residual_.resize(6);
+	residual_.resize(task_dim_);
 	residual_.head(3) = error_pos;
 	residual_.tail(3) = error_rot;
 

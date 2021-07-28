@@ -19,12 +19,13 @@ find_package(catkin REQUIRED COMPONENTS
 	roscpp
 	tf
 	geometry_msgs
+	nav_msgs
 	sensor_msgs
 	std_msgs
 )
 find_package(Eigen3 REQUIRED)
 catkin_package(
-	CATKIN_DEPENDS roscpp tf geometry_msgs sensor_msgs std_msgs 
+	CATKIN_DEPENDS roscpp tf geometry_msgs nav_msgs sensor_msgs std_msgs 
 	DEPENDS EIGEN3
 	INCLUDE_DIRS . RobotSystems ExternalSource
 	LIBRARIES dynacore_utils Valkyrie_model
@@ -50,6 +51,7 @@ include_directories ("${PROJECT_SOURCE_DIR}/IKModule")
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers")
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/PotentialFields")
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/Controllers")
+include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/ControllersCore")
 include_directories ("${PROJECT_SOURCE_DIR}/nodes")
 
 

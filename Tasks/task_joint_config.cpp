@@ -9,8 +9,6 @@
 TaskJointConfig::TaskJointConfig() {
     // initialize parameters for task
     initializeTaskParameters();
-
-    // std::cout << "[TaskJointConfig] Constructed" << std::endl;
 }
 
 TaskJointConfig::TaskJointConfig(std::shared_ptr<RobotSystem> robot_model_in, std::vector<int> joint_idxs_in, std::map<int, std::string> joint_indices_to_names_in) {
@@ -21,12 +19,9 @@ TaskJointConfig::TaskJointConfig(std::shared_ptr<RobotSystem> robot_model_in, st
 
     // initialize parameters for task
     initializeTaskParameters();
-
-    // std::cout << "[TaskJointConfig] Constructed" << std::endl;
 }
 
 TaskJointConfig::~TaskJointConfig() {
-    // std::cout << "[TaskJointConfig] Destroyed" << std::endl;
 }
 
 // GETTERS/SETTERS

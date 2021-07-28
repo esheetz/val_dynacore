@@ -1,0 +1,30 @@
+<?xml version="1.0"?>
+<!--***********************************************************
+	Controller Reference Publisher Node
+	Emily Sheetz, NSTGRO VTE 2021
+
+	run either:
+		$ roslaunch val_dynacore controller_reference_publisher.launch
+		OR
+		$ rosrun val_dynacore controller_reference_publisher_node
+************************************************************-->
+<launch>
+	<arg name="controller" default="pose"/>
+	<!-- supported controller types:
+			"pose": publishes reference pose
+			"position": publishes reference position
+			"orientation": publishes reference orientation
+			"multiobj": publishes reference position and orientation
+	-->
+	<arg name="tf_prefix" default="val_controller/"/> <!-- default for testing in simulation with controllers -->
+
+	<arg name="debug" default="false"/>
+	<arg unless="$(arg debug)" name="launch_prefix" value="" />
+	<arg if="$(arg debug)" name="launch_prefix" value="gdb -ex run --args" />
+
+	<node launch-prefix="$(arg launch_prefix)" pkg="val_dynacore" type="controller_reference_publisher_node" name="ControllerReferencePublisherNode" output="screen">
+		<param name="controller" value="$(arg controller)"/>
+		<param name="tf_prefix" value="$(arg tf_prefix)"/>
+		<!--<param name="" type="" value=""/> -->
+	</node>
+</launch>

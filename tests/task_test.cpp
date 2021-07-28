@@ -7,6 +7,8 @@
 #include <Utils/utilities.hpp>
 #include <Tasks/task.h>
 #include <Tasks/task_6dpose.h>
+#include <Tasks/task_position.h>
+#include <Tasks/task_orientation.h>
 #include <Tasks/task_joint_config.h>
 
 /*
@@ -21,6 +23,8 @@ int main(int argc, char **argv) {
 	std::cout << "[Test] Task Construction - default" << std::endl;
 	Task t;
 	Task6DPose tp;
+	TaskPosition tpos;
+	TaskOrientation tquat;
 	TaskJointConfig tj;
 
 	std::cout << "[Test] Robot Model Construction - pointer" << std::endl;
@@ -29,6 +33,8 @@ int main(int argc, char **argv) {
 	std::cout << "[Test] Task Construction - from robot model pointer" << std::endl;
 	Task t_pointer(robot_model_ptr);
 	Task6DPose t_pose(robot_model_ptr, valkyrie_link::rightPalm);
+	TaskPosition t_pos(robot_model_ptr, valkyrie_link::rightPalm);
+	TaskOrientation t_quat(robot_model_ptr, valkyrie_link::rightPalm);
 	std::vector<int> joint_idxs = {valkyrie_joint::leftHipPitch, valkyrie_joint::rightHipPitch};
 	TaskJointConfig t_joint(robot_model_ptr, joint_idxs, val::joint_indices_to_names);
 
@@ -79,6 +85,8 @@ int main(int argc, char **argv) {
 	target_quat.z() = 0.0;
 	target_quat.w() = 0.7071068;
 	t_pose.setTarget(target_pos, target_quat);
+	t_pos.setTarget(target_pos);
+	t_quat.setTarget(target_quat);
 
 	dynacore::pretty_print(target_pos, std::cout, "Target position:");
 	std::cout << "Expected: [0.025930, -0.543124, 0.900000]" << std::endl;
@@ -94,7 +102,7 @@ int main(int argc, char **argv) {
 	std::cout << "Expected: [-0.500000, -0.500000]" << std::endl;
 
 	// TASK RELATED COMPUTATIONS
-	std::cout << "[Test] Task Residual, Velocity Residual, Cost, and Jacobian" << std::endl;
+	std::cout << "[Test] Pose Task Residual, Velocity Residual, Cost, and Jacobian" << std::endl;
 
 	// compute residual
 	dynacore::Vector residual;
@@ -113,6 +121,42 @@ int main(int argc, char **argv) {
 	dynacore::Matrix J_rightPalm;
 	t_pose.computeTaskJacobian(J_rightPalm);
 	dynacore::pretty_print(J_rightPalm, std::cout, "Task Jacobian:");
+
+	std::cout << "[Test] Position Task Residual, Velocity Residual, Cost, and Jacobian" << std::endl;
+
+	// compute residual
+	t_pos.computeTaskResidual(residual);
+	dynacore::pretty_print(residual, std::cout, "Task residual:");
+
+	// compute velocity residual
+	t_pos.computeTaskVelocityResidual(velocity, 0.01);
+	dynacore::pretty_print(velocity, std::cout, "Task velocity:");
+
+	// compute task cost
+	std::cout << "Task cost: " << t_pos.computeTaskCost(0.01) << std::endl;
+
+	// compute Jacobian
+	t_pos.computeTaskJacobian(J_rightPalm);
+	dynacore::pretty_print(J_rightPalm, std::cout, "Task Jacobian:");
+
+	std::cout << "[Test] Orientation Task Residual, Velocity Residual, Cost, and Jacobian" << std::endl;
+
+	// compute residual
+	t_quat.computeTaskResidual(residual);
+	dynacore::pretty_print(residual, std::cout, "Task residual:");
+
+	// compute velocity residual
+	t_quat.computeTaskVelocityResidual(velocity, 0.01);
+	dynacore::pretty_print(velocity, std::cout, "Task velocity:");
+
+	// compute task cost
+	std::cout << "Task cost: " << t_quat.computeTaskCost(0.01) << std::endl;
+
+	// compute Jacobian
+	t_quat.computeTaskJacobian(J_rightPalm);
+	dynacore::pretty_print(J_rightPalm, std::cout, "Task Jacobian:");
+
+	std::cout << "[Test] Joint Task Residual, Velocity Residual, Cost, and Jacobian" << std::endl;
 
 	// compute residual
 	t_joint.computeTaskResidual(residual);

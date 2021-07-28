@@ -36,12 +36,11 @@ public:
     // CONTROLLER FUNCTIONS
     virtual void init(ros::NodeHandle& nh,
                       std::shared_ptr<RobotSystem> robot_model,
-                      // int num_virtual_joints,
-                      // std::vector<int> virtual_rotation_joints,
                       std::string robot_name,
                       std::vector<int> joint_indices,
                       std::vector<std::string> joint_names,
                       int frame_idx, std::string frame_name,
+                      bool update_robot_model_internally = true,
                       std::string ref_frame = std::string("world"));
     virtual void start();
     virtual void stop();
@@ -66,6 +65,7 @@ public:
     double nudgeEps();
     std::string getReferenceTopic();
     std::string getCommandTopic();
+    int getControlledDim();
 
     // HELPER FUNCTIONS
     /*
@@ -88,17 +88,20 @@ public:
     double clipVelocityUniformly(dynacore::Vector& _dq);
     double clipVelocity(dynacore::Vector& _dq);
 
+    void getFullCommandedJointPosition(dynacore::Vector& joint_posn_out);
+    void getFullCommandedJointStep(dynacore::Vector& joint_step_out);
+    void getCommandedJointPosition(dynacore::Vector& joint_posn_out);
+    void getCommandedJointStep(dynacore::Vector& joint_step_out);
+
     /*
      * computes the full change in configuration vector from the change in configuration for the commanded joints
      * all of the non-commanded joints will have dq = 0.0 (no change)
      * @param _dq_commanded, the vector containing the change in configuration for the commanded joints
-     * @param commanded_joint_indices, a vector of indices corresponding to the commanded joints
      * @param _dq, the vector that will be udpated to contain the full configuration of all robot joints
      * @return none
      * @post _dq updated to be change in configuration of full robot
      */
     void getFullDqFromCommanded(dynacore::Vector _dq_commanded,
-                                std::vector<int> commanded_joint_indices,
                                 dynacore::Vector& _dq);
 
     /*
@@ -181,9 +184,6 @@ protected:
     ros::NodeHandle nh_; // node handler
     tf::TransformListener tf_; // transforms between frames
 
-    // IK module
-    // IKModule ik_; // TODO we may not need this; hopefully we will not need this
-
     // for publishing/subscribing to commands/references
     ros::Subscriber ref_sub_; // subscriber to receive inputs from
     ros::Publisher cmd_pub_; // publisher to send outputs to
@@ -228,9 +228,20 @@ protected:
     bool reference_set_;
     bool active_;
 
+    // flag indicating whether to update robot model internally after command is computed
+    // when set to false:
+    //      this controller is being composed with other controllers
+    //      ControllerManager will compose controller commands and update robot model appropriately
+    //      by the next time update() is called, the ControllerManager will have updated the robot model, making the next controller update correctly
+    bool update_robot_model_internally_;
+
     // vectors/matrices for computing controller updates
     dynacore::Vector q_; // configuration (nx1)
     dynacore::Vector q_commanded_; // configuration of commanded joints
+    dynacore::Vector q_posn_command_; // commanded joint positions for all joints (nx1)
+    dynacore::Vector q_step_command_; // commanded joint step (delta q) for all joints (nx1)
+    dynacore::Vector q_posn_commanded_; // commanded joint positions for commanded joints
+    dynacore::Vector q_step_commanded_; // commanded joint step (delta q) for commanded joints
     dynacore::Vector qdot_; // change in configuration ((n-1)x1 if orientation of base expressed as quaternion, nx1 otherwise)
     dynacore::Vector err_; // pose error (6x1)
     dynacore::Vector q_min_; // minimum joint limit (nx1)
