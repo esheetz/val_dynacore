@@ -47,6 +47,9 @@ ControllerManager::ControllerManager() {
     // create joint group map
     ValUtils::constructJointGroupMap(joint_group_map_);
 
+    // make sure vector of controlled links is empty
+    controlled_links_.clear();
+
     // make sure map of controllers for joint groups is empty
     removeAllControllers();
 
@@ -68,6 +71,7 @@ bool ControllerManager::initializeConnections() {
 
     // publishers for IHMCMsgInterface
     ihmc_pelvis_transform_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("controllers/output/ihmc/pelvis_transform", 1);
+    ihmc_controlled_link_pub_ = nh_.advertise<std_msgs::Int32MultiArray>("controllers/output/ihmc/controlled_link_ids", 1);
     ihmc_joint_command_pub_ = nh_.advertise<sensor_msgs::JointState>("controllers/output/ihmc/joint_commands", 1);
     ihmc_controller_status_pub_ = nh_.advertise<std_msgs::String>("controllers/output/ihmc/controller_status", 1);
 
@@ -174,6 +178,13 @@ void ControllerManager::setNodeHandler(const ros::NodeHandle& nh) {
 }
 
 void ControllerManager::addControllerForGroup(int link_idx, std::shared_ptr<controllers::PotentialFieldController> controller) {
+    // add link_idx to controlled links, if not already in map
+    std::map<int, std::vector<std::shared_ptr<controllers::PotentialFieldController>>>::iterator it;
+    it = group_controllers_.find(link_idx);
+    if( it == group_controllers_.end() ) {
+        controlled_links_.push_back(link_idx);
+    }
+
     // add new controller to vector of controllers controlling link_idx
     group_controllers_[link_idx].push_back(controller);
 
@@ -181,6 +192,13 @@ void ControllerManager::addControllerForGroup(int link_idx, std::shared_ptr<cont
 }
 
 void ControllerManager::addControllersForGroup(int link_idx, std::vector<std::shared_ptr<controllers::PotentialFieldController>> prioritized_controllers) {
+    // add link_idx to controlled links, if not already in map
+    std::map<int, std::vector<std::shared_ptr<controllers::PotentialFieldController>>>::iterator it;
+    it = group_controllers_.find(link_idx);
+    if( it == group_controllers_.end() ) {
+        controlled_links_.push_back(link_idx);
+    }
+
     // add all controllers to vector of controllers controlling link_idx
     // assume that prioritized_controllers is organized from highest priority to lowest priority
     for( int i = 0 ; i < prioritized_controllers.size() ; i++ ) {
@@ -194,6 +212,16 @@ void ControllerManager::removeControllersForGroup(int link_idx) {
     // clear all controllers from vector of controllers controlling link_idx
     group_controllers_[link_idx].clear();
 
+    // remove link from controller map
+    group_controllers_.erase(link_idx);
+
+    // remove link from controlled links
+    std::vector<int>::iterator it;
+    it = std::find(controlled_links_.begin(), controlled_links_.end(), link_idx);
+    if( it != controlled_links_.end() ) {
+        controlled_links_.erase(it);
+    }
+
     return;
 }
 
@@ -206,6 +234,9 @@ void ControllerManager::removeAllControllers() {
 
     // clear map
     group_controllers_.clear();
+
+    // clear controlled links
+    controlled_links_.clear();
 
     return;
 }
@@ -377,6 +408,17 @@ void ControllerManager::publishCommandedPelvisPose() {
     return;
 }
 
+void ControllerManager::publishControlledLinkIds() {
+    // create int multi-array message
+    std_msgs::Int32MultiArray arr_msg;
+    ROSMsgUtils::makeIntMultiArrayMessage(controlled_links_, std::string("controlled_links"), arr_msg);
+
+    // publish controlled links for IHMCMsgInterface
+    ihmc_controlled_link_pub_.publish(arr_msg);
+
+    return;
+}
+
 void ControllerManager::publishCommandedJointStates() {
     // create commanded joint message
     sensor_msgs::JointState js_msg;
@@ -405,6 +447,9 @@ void ControllerManager::publishStopStatusMessage() {
 void ControllerManager::publishForIHMCMsgInterface() {
     // publish commanded pelvis pose
     publishCommandedPelvisPose();
+
+    // publish controlled link ids
+    publishControlledLinkIds();
 
     // publish commanded joint states
     publishCommandedJointStates();

@@ -11,6 +11,7 @@
 #include <ros/ros.h>
 
 #include <std_msgs/Header.h>
+#include <std_msgs/Int32MultiArray.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
 #include <geometry_msgs/Pose.h>
@@ -232,5 +233,15 @@ namespace ROSMsgUtils {
     void makeHeaderMessage(std::string frame,
                            ros::Time stamp_time,
                            std_msgs::Header& header_msg);
+    /*
+     * makes an Int32MultiArray message from the given vector
+     * @param vec, the vector of ints
+     * @param label, the label for the data
+     * @return none
+     * @post arr_msg populated based on given vector
+     */
+    void makeIntMultiArrayMessage(std::vector<int> vec,
+                                  std::string label,
+                                  std_msgs::Int32MultiArray& arr_msg);
 
 } // end namespace ROSMsgUtils

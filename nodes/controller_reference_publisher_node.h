@@ -30,6 +30,8 @@ public:
 	void setReferenceType();
 	std::string getReferenceType();
 	std::string getControllerType();
+	std::string getControllerName();
+	std::string getReferenceFrame();
 
 	// PUBLISH REFERENCE MESSAGE
 	void publishReferenceMessage();
@@ -46,6 +48,8 @@ private:
 
 	std::string reference_type_; // type of reference message being published
 	std::string controller_type_; // affects what type of reference is published
+	std::string controller_name_; // name of controller being run
+	std::string reference_frame_; // frame controller reference is being published in
 	std::string tf_prefix_; // tf prefix
 
 	double loop_rate_; // loop rate for publishing

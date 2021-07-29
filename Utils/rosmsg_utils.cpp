@@ -247,4 +247,24 @@ namespace ROSMsgUtils {
         return;
     }
 
+    void makeIntMultiArrayMessage(std::vector<int> vec,
+                                  std::string label,
+                                  std_msgs::Int32MultiArray& arr_msg) {
+        // set layout information
+        arr_msg.layout.dim.clear();
+        arr_msg.layout.dim.push_back(std_msgs::MultiArrayDimension());
+        arr_msg.layout.dim[0].label = label;
+        arr_msg.layout.dim[0].size = vec.size();
+        arr_msg.layout.dim[0].stride = 1;
+        arr_msg.layout.data_offset = 0;
+
+        // set vector
+        arr_msg.data.clear();
+        for( int i = 0 ; i < vec.size() ; i++ ) {
+            arr_msg.data.push_back(vec[i]);
+        }
+
+        return;
+    }
+
 } // end namespace ROSMsgUtils

@@ -14,6 +14,7 @@
 #include <vector>
 #include <ros/ros.h>
 #include <std_msgs/String.h>
+#include <std_msgs/Int32MultiArray.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/JointState.h>
@@ -75,6 +76,7 @@ public:
 
     // PUBLISH MESSAGES FOR IHMC INTERFACE
     void publishCommandedPelvisPose();
+    void publishControlledLinkIds();
     void publishCommandedJointStates();
     void publishStopStatusMessage();
     void publishForIHMCMsgInterface();
@@ -101,6 +103,7 @@ private:
     
     bool publish_for_ihmc_; // flag for indicating whether to publish messages to IHMCMsgInterface
     ros::Publisher ihmc_pelvis_transform_pub_; // pelvis transform publisher for IHMCMsgInterface
+    ros::Publisher ihmc_controlled_link_pub_; // controlled link id publisher for IHMCMsgInterface
     ros::Publisher ihmc_joint_command_pub_; // joint command publisher for IHMCMsgInterface
     ros::Publisher ihmc_controller_status_pub_; // controller status publisher for IHMCMsgInterface
 
@@ -119,6 +122,9 @@ private:
 
     // map from controlled link to vector of (joint_idx, joint_name) pairs
     std::map<int, std::vector<std::pair<int, std::string>>> joint_group_map_;
+
+    // controlled links
+    std::vector<int> controlled_links_;
 
     // controllers for joint groups
     std::map<int, std::vector<std::shared_ptr<controllers::PotentialFieldController>>> group_controllers_;

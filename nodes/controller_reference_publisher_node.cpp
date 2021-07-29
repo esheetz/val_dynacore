@@ -13,21 +13,27 @@ ControllerReferencePublisherNode::ControllerReferencePublisherNode(const ros::No
     nh_.param("controller", controller_type_, std::string("pose"));
     nh_.param("tf_prefix", tf_prefix_, std::string(""));
 
+    reference_frame_ = tf_prefix_ + std::string("pelvis");
+
 	loop_rate_ = 10.0; // Hz
 
 	// initialize connections depending on controller type
     if( controller_type_ == std::string("pose") ) {
         initializePoseConnections();
+        controller_name_ = std::string("controllers/PoseController");
     }
     else if( controller_type_ == std::string("position") ) {
         initializePositionConnections();
+        controller_name_ = std::string("controllers/PositionController");
     }
     else if( controller_type_ == std::string("orientation") ) {
         initializeOrientationConnections();
+        controller_name_ = std::string("controllers/OrientationController");
     }
     else if( controller_type_ == std::string("multiobj") ) {
         initializePositionConnections();
         initializeOrientationConnections();
+        controller_name_ = std::string("controllers/PositionController <| controllers/OrientationController");
     }
     else {
         ROS_WARN("[Controller Reference Publisher Node] Unrecognized controller type %s, setting to pose", controller_type_.c_str());
@@ -102,13 +108,21 @@ std::string ControllerReferencePublisherNode::getControllerType() {
     return controller_type_;
 }
 
+std::string ControllerReferencePublisherNode::getControllerName() {
+    return controller_name_;
+}
+
+std::string ControllerReferencePublisherNode::getReferenceFrame() {
+    return reference_frame_;
+}
+
 // PUBLISH REFERENCE MESSAGE
 void ControllerReferencePublisherNode::publishReferenceMessage() {
 	// create and publish reference message based on controller type
     if( controller_type_ == std::string("pose") ) {
         // create pose message
         geometry_msgs::PoseStamped ref_pose_msg;
-        ROSMsgUtils::makePoseStampedMessage(target_pos_, target_quat_, tf_prefix_ + std::string("pelvis"), ros::Time::now(), ref_pose_msg);
+        ROSMsgUtils::makePoseStampedMessage(target_pos_, target_quat_, reference_frame_, ros::Time::now(), ref_pose_msg);
 
         // publish message
         ref_pub_pose_.publish(ref_pose_msg);
@@ -116,7 +130,7 @@ void ControllerReferencePublisherNode::publishReferenceMessage() {
     else if( controller_type_ == std::string("position") ) {
         // create point message
         geometry_msgs::PointStamped ref_point_msg;
-        ROSMsgUtils::makePointStampedMessage(target_pos_, tf_prefix_ + std::string("pelvis"), ros::Time::now(), ref_point_msg);
+        ROSMsgUtils::makePointStampedMessage(target_pos_, reference_frame_, ros::Time::now(), ref_point_msg);
 
         // publish message
         ref_pub_position_.publish(ref_point_msg);
@@ -124,7 +138,7 @@ void ControllerReferencePublisherNode::publishReferenceMessage() {
     else if( controller_type_ == std::string("orientation") ) {
         // create quaternion message
         geometry_msgs::QuaternionStamped ref_quat_msg;
-        ROSMsgUtils::makeQuaternionStampedMessage(target_quat_, tf_prefix_ + std::string("pelvis"), ros::Time::now(), ref_quat_msg);
+        ROSMsgUtils::makeQuaternionStampedMessage(target_quat_, reference_frame_, ros::Time::now(), ref_quat_msg);
 
         // publish message
         ref_pub_orientation_.publish(ref_quat_msg);
@@ -132,14 +146,14 @@ void ControllerReferencePublisherNode::publishReferenceMessage() {
     else if( controller_type_ == std::string("multiobj") ) {
         // create point message
         geometry_msgs::PointStamped ref_point_msg;
-        ROSMsgUtils::makePointStampedMessage(target_pos_, tf_prefix_ + std::string("pelvis"), ros::Time::now(), ref_point_msg);
+        ROSMsgUtils::makePointStampedMessage(target_pos_, reference_frame_, ros::Time::now(), ref_point_msg);
 
         // publish message
         ref_pub_position_.publish(ref_point_msg);
 
         // create quaternion message
         geometry_msgs::QuaternionStamped ref_quat_msg;
-        ROSMsgUtils::makeQuaternionStampedMessage(target_quat_, tf_prefix_ + std::string("pelvis"), ros::Time::now(), ref_quat_msg);
+        ROSMsgUtils::makeQuaternionStampedMessage(target_quat_, reference_frame_, ros::Time::now(), ref_quat_msg);
 
         // publish message
         ref_pub_orientation_.publish(ref_quat_msg);
@@ -164,8 +178,8 @@ int main(int argc, char **argv) {
     ROS_INFO("[Controller Reference Publisher Node] Node started!");
 
     ros::Rate rate(crnode.getLoopRate());
-    ROS_INFO("[Controller Reference Publisher Node] Publishing reference messages of type %s for %s controller...",
-             crnode.getReferenceType().c_str(), crnode.getControllerType().c_str());
+    ROS_INFO("[Controller Reference Publisher Node] Publishing reference messages of type %s in frame %s for controller of type %s...",
+             crnode.getReferenceType().c_str(), crnode.getReferenceFrame().c_str(), crnode.getControllerType().c_str());
     while( ros::ok() ) {
         // publish reference message
         crnode.publishReferenceMessage();
