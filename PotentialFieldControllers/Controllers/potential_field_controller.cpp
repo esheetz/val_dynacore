@@ -15,7 +15,7 @@ PotentialFieldController::PotentialFieldController() {
     dt_ = 0.1;
 
     // set potential threshold
-    potential_threshold_ = 6.25e-3;//1e-5;
+    potential_threshold_ = 5e-3;//6.25e-3;//1e-5;
 
     // set potential to be large
     potential_ = 100;
