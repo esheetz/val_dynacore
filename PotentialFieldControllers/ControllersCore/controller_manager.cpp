@@ -17,6 +17,7 @@ ControllerManager::ControllerManager() {
     received_robot_pose_ = false;
     received_joint_state_ = false;
     received_robot_state_ = false;
+    initial_command_sent_ = false;
     controllers_converged_ = false;
     publish_for_ihmc_ = true;
     ihmc_stop_status_sent_ = false;
@@ -43,6 +44,10 @@ ControllerManager::ControllerManager() {
     tf_pelvis_robot_state_.setRotation(tf::Quaternion(0, 0, 0, 1));
     tf_pelvis_commanded_.setOrigin(tf::Vector3(0, 0, 0));
     tf_pelvis_commanded_.setRotation(tf::Quaternion(0, 0, 0, 1));
+
+    // initialize timekeeping
+    warmup_period_ = 3.0; // seconds
+    robot_state_timeout_ = 0.5; // seconds
 
     // create joint group map
     ValUtils::constructJointGroupMap(joint_group_map_);
@@ -119,6 +124,9 @@ void ControllerManager::robotPoseCallback(const nav_msgs::Odometry& msg) {
         updateRobotModelWithCurrentState();
     }
 
+    // set message received time
+    last_robot_pose_received_ = std::chrono::system_clock::now();
+
     return;
 }
 
@@ -152,6 +160,9 @@ void ControllerManager::jointStateCallback(const sensor_msgs::JointState& msg) {
     if( received_robot_state_ ) {
         updateRobotModelWithCurrentState();
     }
+
+    // set message received time
+    last_joint_state_received_ = std::chrono::system_clock::now();
 
     return;
 }
@@ -242,9 +253,225 @@ void ControllerManager::removeAllControllers() {
 }
 
 // HELPER FUNCTIONS
+bool ControllerManager::checkControllerConvergence() {
+    return controllers_converged_;
+}
+
+void ControllerManager::getRobotModelCurrentQ(dynacore::Vector& q) {
+    robot_model_->getCurrentQ(q);
+    return;
+}
+
+// CONTROLLER FUNCTIONS
+void ControllerManager::initControllers() {
+    // initialize all controllers for all controlled links
+    for( auto const& link_controllers : group_controllers_ ) {
+        // link_controllers.first is link_idx, link_controllers.second is vector of controllers
+        int link_idx = link_controllers.first;
+
+        // get joint indices and names that command this link
+        std::vector<int> commanded_joint_indices;
+        std::vector<std::string> commanded_joint_names;
+        RobotUtils::unzipJointIndicesNames(joint_group_map_[link_idx],
+                                           commanded_joint_indices, commanded_joint_names);
+
+        // if there is more than one controller for this link, do not have controllers update the robot model internally
+        bool update_model_internally = (link_controllers.second.size() == 1);
+
+        // initialize each controller for this link
+        for( int i = 0 ; i < link_controllers.second.size() ; i++ ) {
+            link_controllers.second[i]->init(nh_, robot_model_, "Valkyrie",
+                                             commanded_joint_indices, commanded_joint_names,
+                                             link_idx, val::link_indices_to_names[link_idx],
+                                             update_model_internally);
+        }
+    }
+
+    return;
+}
+
+void ControllerManager::startControllers() {
+    // start all controllers for all controlled links
+    for( auto const& link_controllers : group_controllers_ ) {
+        // link_controllers.first is link_idx, link_controllers.second is vector of controllers
+
+        // start each controller for this link
+        for( int i = 0 ; i < link_controllers.second.size() ; i++ ) {
+            link_controllers.second[i]->start();
+        }
+    }
+
+    // publish start message for IHMCMsgInterface
+    publishStartStatusMessage();
+
+    // set controller start time
+    controller_start_time_ = std::chrono::system_clock::now();
+
+    return;
+}
+
+void ControllerManager::stopControllers() {
+    // stop all controllers for all controlled links
+    for( auto const& link_controllers : group_controllers_ ) {
+        // link_controllers.first is link_idx, link_controllers.second is vector of controllers
+
+        // stop each controller for this link
+        for( int i = 0 ; i < link_controllers.second.size() ; i++ ) {
+            link_controllers.second[i]->stop();
+        }
+    }
+
+    // publish stop message for IHMCMsgInterface
+    publishStopStatusMessage();
+
+    return;
+}
+
+void ControllerManager::resetControllers() {
+    // reset all controllers for all controlled links
+    for( auto const& link_controllers : group_controllers_ ) {
+        // link_controllers.first is link_idx, link_controllers.second is vector of controllers
+
+        // reset each controller for this link
+        for( int i = 0 ; i < link_controllers.second.size() ; i++ ) {
+            link_controllers.second[i]->reset();
+        }
+    }
+
+    return;
+}
+
+void ControllerManager::updateControllers() {
+    // check if robot state has been received
+    if( !received_robot_state_ ) {
+        ROS_ERROR("ControllerManager::updateControllers() -- robot state has not been received, cannot update controllers");
+        return;
+    }
+
+    // check if warm-up phase has passed
+    if( !checkWarmedUp() ) {
+        ROS_WARN("ControllerManager::updateControllers() -- warming up controllers for %f seconds, cannot update controllers", warmup_period_);
+        return;
+    }
+
+    // check if robot state information is current
+    if( checkRobotStateTimeout() ) {
+        ROS_ERROR("ControllerManager::updateControllers() -- robot state (robot_pose and joint_states) are older than %f seconds, cannot update controllers using stale information", robot_state_timeout_);
+        return;
+    }
+
+    // check if initial controller command has been sent
+    if( !initial_command_sent_ ) {
+        ROS_INFO("ControllerManager::updateControllers() -- reasserting current position, sending initial joint command");
+        publishCurrentStateCommand();
+        initial_command_sent_ = true;
+        return;
+    }
+
+    // update robot state so controller update is performed with most up-to-date information
+    updateRobotModelWithCurrentState();
+
+    // reset controller convergence flag
+    resetControllersConvergedFlag();
+
+    // initialize boolean for controller convergence
+    bool converged;
+
+    // update (and compose, if necessary) all controllers for all controlled links
+    for( auto const& link_controllers : group_controllers_ ) {
+        // link_controllers.first is link_idx, link_controllers.second is vector of controllers
+        if( link_controllers.second.size() == 1 ) {
+            // only one controller, update controller (which will internally update robot model)
+            link_controllers.second[0]->update();
+
+            // get commanded joint positions
+            link_controllers.second[0]->getFullCommandedJointPosition(q_commanded_);
+
+            // check completion bounds
+            converged = link_controllers.second[0]->checkControllerConvergence();
+
+            // update controller convergence flag
+            updateControllersConvergedFlag(converged);
+        }
+        else {
+            // multiple controllers, composition and external robot model update needed
+            converged = updateComposedControllers(link_controllers.second, q_commanded_);
+
+            // update robot model based on composed command
+            updateRobotModelWithCommandedState();
+
+            // update controller convergence flag
+            updateControllersConvergedFlag(converged);
+        }
+    }
+
+    /*
+     * TODO TODO TODO
+     * for right now, we assume that one joint group is being controlled at a time
+     * for multiple joint groups, we'd need to coordinate the commands across all joint groups before sending to IHMCMsgInterface
+     * this would not be too difficult (create some coordinate command function that updates q_commanded_ based on the controlled joints for the correspondingn link),
+     * but we are skipping this step for right now, for the sake of testing single joint groups first
+     * note that we are accurately checking if all controllers are converged
+     * if controllers for one joint group are not converged, then we keep running controllers and sending info to IHMCMsgInterface
+     * TODO TODO TODO
+     */
+
+    // publish message required for IHMCMsgInterface
+    if( publish_for_ihmc_ ) {
+        publishForIHMCMsgInterface();
+    }
+
+    // check if controllers converged
+    if( controllers_converged_ ) {
+        // check if stop status has been sent
+        if( !ihmc_stop_status_sent_ ) {
+            // send stop status to IHMCMsgInterface
+            ROS_INFO("[Controller Manager] Controllers for all joint groups converged! Sending stop status to IHMCMsgInterface...");
+            publishStopStatusMessage();
+            ihmc_stop_status_sent_ = true;
+        }
+    }
+
+    return;
+}
+
+// PRIVATE HELPER FUNCTIONS
 void ControllerManager::updateReceivedRobotStateFlag() {
     received_robot_state_ = received_robot_pose_ && received_joint_state_;
     return;
+}
+
+bool ControllerManager::checkRobotStateTimeout() {
+    if( !received_robot_state_ ) {
+        // function is only called after checking if robot state is received
+        // we add additional check here to make sure
+        return true;
+    }
+
+    // get current time
+    std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
+
+    // compute duration since last robot state received
+    double time_since_robot_pose = std::chrono::duration_cast<std::chrono::seconds>(t - last_robot_pose_received_).count();
+    double time_since_joint_state = std::chrono::duration_cast<std::chrono::seconds>(t - last_joint_state_received_).count();
+
+    // check for timeout
+    bool timed_out = (time_since_robot_pose > robot_state_timeout_) || (time_since_joint_state > robot_state_timeout_);
+
+    return timed_out;
+}
+
+bool ControllerManager::checkWarmedUp() {
+    // get current time
+    std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
+
+    // compute duration since controller start
+    double time_since_controller_start = std::chrono::duration_cast<std::chrono::seconds>(t - controller_start_time_).count();
+
+    // check for warmed up and recent robot state received
+    bool warmed_up = (time_since_controller_start > warmup_period_) && (!checkRobotStateTimeout());
+
+    return warmed_up;
 }
 
 void ControllerManager::resetControllersConvergedFlag() {
@@ -255,10 +482,6 @@ void ControllerManager::resetControllersConvergedFlag() {
 void ControllerManager::updateControllersConvergedFlag(bool new_controller_convergence) {
     controllers_converged_ = controllers_converged_ && new_controller_convergence;
     return;
-}
-
-bool ControllerManager::checkControllerConvergence() {
-    return controllers_converged_;
 }
 
 void ControllerManager::prepareRobotStateConfigurationVector() {
@@ -325,11 +548,6 @@ void ControllerManager::updateRobotModelWithCommandedState() {
     return;
 }
 
-void ControllerManager::getRobotModelCurrentQ(dynacore::Vector& q) {
-    robot_model_->getCurrentQ(q);
-    return;
-}
-
 // CONTROLLER COMPOSITION
 bool ControllerManager::updateComposedControllers(std::vector<std::shared_ptr<controllers::PotentialFieldController>> prioritized_controllers,
                                                   dynacore::Vector& composed_controller_command) {
@@ -391,6 +609,24 @@ bool ControllerManager::updateComposedControllers(std::vector<std::shared_ptr<co
 }
 
 // PUBLISH MESSAGES FOR IHMC INTERFACE
+void ControllerManager::publishCurrentStateCommand() {
+    // update robot model and update internal current state
+    updateRobotModelWithCurrentState();
+
+    // set commanded configuration to be current state
+    q_commanded_ = q_robot_state_;
+
+    // update robot model with commanded state (will be the same)
+    updateRobotModelWithCommandedState();
+
+    // publish commanded state for IHMCMsgInterface
+    if( publish_for_ihmc_ ) {
+        publishForIHMCMsgInterface();
+    }
+
+    return;
+}
+
 void ControllerManager::publishCommandedPelvisPose() {
     // get pelvis pose based on commanded configuration
     ValUtils::getPelvisPoseFromConfiguration(q_commanded_, tf_pelvis_commanded_);
@@ -430,6 +666,15 @@ void ControllerManager::publishCommandedJointStates() {
     return;
 }
 
+void ControllerManager::publishStartStatusMessage() {
+    // create string message
+    std_msgs::String status_msg;
+    status_msg.data = std::string("START");
+
+    // publish status for IHMCMsgInterface
+    ihmc_controller_status_pub_.publish(status_msg);
+}
+
 void ControllerManager::publishStopStatusMessage() {
     // create string message
     std_msgs::String status_msg;
@@ -454,149 +699,5 @@ void ControllerManager::publishForIHMCMsgInterface() {
     // publish commanded joint states
     publishCommandedJointStates();
     
-    return;
-}
-
-// CONTROLLER FUNCTIONS
-void ControllerManager::initControllers() {
-    // initialize all controllers for all controlled links
-    for( auto const& link_controllers : group_controllers_ ) {
-        // link_controllers.first is link_idx, link_controllers.second is vector of controllers
-        int link_idx = link_controllers.first;
-
-        // get joint indices and names that command this link
-        std::vector<int> commanded_joint_indices;
-        std::vector<std::string> commanded_joint_names;
-        RobotUtils::unzipJointIndicesNames(joint_group_map_[link_idx],
-                                           commanded_joint_indices, commanded_joint_names);
-
-        // if there is more than one controller for this link, do not have controllers update the robot model internally
-        bool update_model_internally = (link_controllers.second.size() == 1);
-        
-        // initialize each controller for this link
-        for( int i = 0 ; i < link_controllers.second.size() ; i++ ) {
-            link_controllers.second[i]->init(nh_, robot_model_, "Valkyrie",
-                                             commanded_joint_indices, commanded_joint_names,
-                                             link_idx, val::link_indices_to_names[link_idx],
-                                             update_model_internally);
-        }
-    }
-
-    return;
-}
-
-void ControllerManager::startControllers() {
-    // start all controllers for all controlled links
-    for( auto const& link_controllers : group_controllers_ ) {
-        // link_controllers.first is link_idx, link_controllers.second is vector of controllers
-
-        // start each controller for this link
-        for( int i = 0 ; i < link_controllers.second.size() ; i++ ) {
-            link_controllers.second[i]->start();
-        }
-    }
-
-    return;
-}
-
-void ControllerManager::stopControllers() {
-    // stop all controllers for all controlled links
-    for( auto const& link_controllers : group_controllers_ ) {
-        // link_controllers.first is link_idx, link_controllers.second is vector of controllers
-
-        // stop each controller for this link
-        for( int i = 0 ; i < link_controllers.second.size() ; i++ ) {
-            link_controllers.second[i]->stop();
-        }
-    }
-
-    return;
-}
-
-void ControllerManager::resetControllers() {
-    // reset all controllers for all controlled links
-    for( auto const& link_controllers : group_controllers_ ) {
-        // link_controllers.first is link_idx, link_controllers.second is vector of controllers
-
-        // reset each controller for this link
-        for( int i = 0 ; i < link_controllers.second.size() ; i++ ) {
-            link_controllers.second[i]->reset();
-        }
-    }
-
-    return;
-}
-
-void ControllerManager::updateControllers() {
-    // check if robot state has been received
-    if( !received_robot_state_ ) {
-        ROS_ERROR("ControllerManager::updateControllers() -- robot state has not been received, cannot update controllers");
-        return;
-    }
-
-    // update robot state so controller update is performed with most up-to-date information
-    updateRobotModelWithCurrentState();
-
-    // reset controller convergence flag
-    resetControllersConvergedFlag();
-
-    // initialize boolean for controller convergence
-    bool converged;
-
-    // update (and compose, if necessary) all controllers for all controlled links
-    for( auto const& link_controllers : group_controllers_ ) {
-        // link_controllers.first is link_idx, link_controllers.second is vector of controllers
-        if( link_controllers.second.size() == 1 ) {
-            // only one controller, update controller (which will internally update robot model)
-            link_controllers.second[0]->update();
-            
-            // get commanded joint positions
-            link_controllers.second[0]->getFullCommandedJointPosition(q_commanded_);
-
-            // check completion bounds
-            converged = link_controllers.second[0]->checkControllerConvergence();
-
-            // update controller convergence flag
-            updateControllersConvergedFlag(converged);
-        }
-        else {
-            // multiple controllers, composition and external robot model update needed
-            converged = updateComposedControllers(link_controllers.second, q_commanded_);
-
-            // update robot model based on composed command
-            updateRobotModelWithCommandedState();
-
-            // update controller convergence flag
-            updateControllersConvergedFlag(converged);
-        }
-    }
-
-    /*
-     * TODO TODO TODO
-     * for right now, we assume that one joint group is being controlled at a time
-     * for multiple joint groups, we'd need to coordinate the commands across all joint groups before sending to IHMCMsgInterface
-     * this would not be too difficult (create some coordinate command function that updates q_commanded_ based on the controlled joints for the correspondingn link),
-     * but we are skipping this step for right now, for the sake of testing single joint groups first
-     * note that we are accurately checking if all controllers are converged
-     * if controllers for one joint group are not converged, then we keep running controllers and sending info to IHMCMsgInterface
-     * TODO TODO TODO
-     */
-
-    // publish message required for IHMCMsgInterface
-    if( publish_for_ihmc_ ) {
-        publishForIHMCMsgInterface();
-    }
-
-    // check if controllers converged
-    if( controllers_converged_ ) {
-        // check if stop status has been sent
-        if( !ihmc_stop_status_sent_ ) {
-            // send stop status to IHMCMsgInterface
-            ROS_INFO("[Controller Manager] Controllers for all joint groups converged! Sending stop status to IHMCMsgInterface...");
-            publishStopStatusMessage();
-            ihmc_stop_status_sent_ = true;
-        }
-    }
-
     return;
 }

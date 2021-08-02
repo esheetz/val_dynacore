@@ -9,6 +9,7 @@
 #ifndef _CONTROLLER_MANAGER_H_
 #define _CONTROLLER_MANAGER_H_
 
+#include <chrono>
 #include <map>
 #include <memory>
 #include <vector>
@@ -61,25 +62,8 @@ public:
     void removeAllControllers();
 
     // HELPER FUNCTIONS
-    void updateReceivedRobotStateFlag();
-    void resetControllersConvergedFlag();
-    void updateControllersConvergedFlag(bool new_controller_convergence);
     bool checkControllerConvergence();
-    void prepareRobotStateConfigurationVector();
-    void updateRobotModelWithCurrentState();
-    void updateRobotModelWithCommandedState();
     void getRobotModelCurrentQ(dynacore::Vector& q);
-
-    // CONTROLLER COMPOSITION
-    bool updateComposedControllers(std::vector<std::shared_ptr<controllers::PotentialFieldController>> prioritized_controllers,
-                                   dynacore::Vector& composed_controller_command);
-
-    // PUBLISH MESSAGES FOR IHMC INTERFACE
-    void publishCommandedPelvisPose();
-    void publishControlledLinkIds();
-    void publishCommandedJointStates();
-    void publishStopStatusMessage();
-    void publishForIHMCMsgInterface();
 
     // CONTROLLER FUNCTIONS
     void initControllers();
@@ -89,6 +73,29 @@ public:
     void updateControllers();
 
 private:
+    // PRIVATE HELPER FUNCTIONS
+    void updateReceivedRobotStateFlag();
+    bool checkRobotStateTimeout();
+    bool checkWarmedUp();
+    void resetControllersConvergedFlag();
+    void updateControllersConvergedFlag(bool new_controller_convergence);
+    void prepareRobotStateConfigurationVector();
+    void updateRobotModelWithCurrentState();
+    void updateRobotModelWithCommandedState();
+
+    // CONTROLLER COMPOSITION
+    bool updateComposedControllers(std::vector<std::shared_ptr<controllers::PotentialFieldController>> prioritized_controllers,
+                                   dynacore::Vector& composed_controller_command);
+
+    // PUBLISH MESSAGES FOR IHMC INTERFACE
+    void publishCurrentStateCommand();
+    void publishCommandedPelvisPose();
+    void publishControlledLinkIds();
+    void publishCommandedJointStates();
+    void publishStartStatusMessage();
+    void publishStopStatusMessage();
+    void publishForIHMCMsgInterface();
+
     ros::NodeHandle nh_; // node handler
 
     std::string robot_pose_topic_; // topic to subscribe to for robot pose
@@ -107,8 +114,15 @@ private:
     ros::Publisher ihmc_joint_command_pub_; // joint command publisher for IHMCMsgInterface
     ros::Publisher ihmc_controller_status_pub_; // controller status publisher for IHMCMsgInterface
 
+    bool initial_command_sent_; // flag for indicating whether initial controller command (same as current state) has been sent
     bool controllers_converged_; // flag for indicating whether all controllers for all groups have converged
     bool ihmc_stop_status_sent_; // flag for indicating whether stop status has been sent to IHMCMsgInterface
+
+    std::chrono::system_clock::time_point controller_start_time_; // controller start time
+    std::chrono::system_clock::time_point last_robot_pose_received_; // time last robot pose was received
+    std::chrono::system_clock::time_point last_joint_state_received_; // time last joint state was received
+    double warmup_period_; // warmup period in seconds
+    double robot_state_timeout_; // amount of time before robot state is no longer valid
 
     tf::Transform tf_pelvis_robot_state_; // transform of pelvis w.r.t. world frame based on received pelvis pose and joint state
     dynacore::Vector q_joint_state_; // current robot configuration based on received joint state
