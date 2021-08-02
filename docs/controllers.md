@@ -76,7 +76,7 @@ To send commands to the robot (in the SCS sim or on the real robot), the catkin 
 
 To test the controllers in simulation, follow the steps:
 
-1. Launch the SCS sim (see [instructions for starting SCS sim](SCS_sim.md)).
+1. Launch the SCS sim (see [instructions for running SCS sim](SCS_sim.md)).
 
 2. Launch the controller reference publisher:
 ```
