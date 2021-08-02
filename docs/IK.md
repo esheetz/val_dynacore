@@ -10,7 +10,7 @@ To visualize the IK solutions in RViz, a specific version of the robot state pub
 ```
 $ roslaunch val_dynacore nstgro20_val_ik_viz.launch
 ```
-Note that this launch file loads an RViz config that requires the world frame to be published.  The `IKModuleTestNode` broadcasts the transforms from the world frame to the Valkyrie pelvis frame, so the robot will not look right until the node is launched in the next step.  To change this and have the robot appear correctly upon launch, change which `.viz.rviz` file is launched in `val_dynacore/launch/nstgro20_val_ik_viz.launch`.
+Note that this launch file loads an RViz config that requires the world frame to be published.  The `IKModuleTestNode` broadcasts the transforms from the world frame to the Valkyrie pelvis frame, so the robot will not look right until the node is launched in the next step.  To change this and have the robot appear correctly upon launch, change which `.viz.rviz` file is launched in `launch/nstgro20_val_ik_viz.launch`.
 
 2. Launch the transform broadcaster, set Valkyrie to standing, and solve a pre-defined IK problem:
 ```
@@ -34,7 +34,7 @@ To send commands to the robot (in the SCS sim or on the real robot), the catkin 
 
 To visualize IK solutions in simulation, follow the steps:
 
-1. Launch the SCS sim (see [instructions for starting SCS sim](SCS_sim.md)).
+1. Launch the SCS sim (see [instructions for running SCS sim](SCS_sim.md)).
 
 2. Launch the IK Module test node:
 ```
