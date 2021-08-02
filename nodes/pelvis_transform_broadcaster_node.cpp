@@ -44,7 +44,7 @@ void PelvisTransformBroadcasterNode::tfCallback(const geometry_msgs::TransformSt
                            msg.transform.translation.y,
                            msg.transform.translation.z);
     tf_pelvis_.setOrigin(pelvis_pos);
-    
+
     // set pelvis orientation based on message
     tf::Quaternion pelvis_quat(msg.transform.rotation.x,
                                msg.transform.rotation.y,

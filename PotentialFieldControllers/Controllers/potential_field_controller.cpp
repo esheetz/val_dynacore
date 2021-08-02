@@ -308,7 +308,7 @@ bool PotentialFieldController::checkControllerConvergence() {
     if( !reference_set_ ) {
         return false;
     }
-    
+
     return (converged_objective_ || converged_step_);
 }
 

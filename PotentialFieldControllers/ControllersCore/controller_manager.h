@@ -107,7 +107,7 @@ private:
     bool received_joint_state_; // flag for indicating whether joint state has been received
 
     bool received_robot_state_; // flag for indicating whether robot model can be updated with current pelvis pose and joint states
-    
+
     bool publish_for_ihmc_; // flag for indicating whether to publish messages to IHMCMsgInterface
     ros::Publisher ihmc_pelvis_transform_pub_; // pelvis transform publisher for IHMCMsgInterface
     ros::Publisher ihmc_controlled_link_pub_; // controlled link id publisher for IHMCMsgInterface

@@ -51,7 +51,7 @@ public:
      * @post r_task is modified to contain the residual (scaled by the task gain)
      */
     virtual void computeTaskResidual(dynacore::Vector& r_task);
-    
+
     /*
      * computes the task Jacobian
      * @param J_task, the matrix for storing the Jacobian

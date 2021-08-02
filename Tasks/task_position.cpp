@@ -1,6 +1,6 @@
 /**
  * Position Task Class
- * Emily Sheetz, NSTGRO VTE 2021 
+ * Emily Sheetz, NSTGRO VTE 2021
  **/
 
 #include <Tasks/task_position.h>

@@ -34,7 +34,7 @@ public:
     ~ControllerManagerNode();
 
     // TODO
-    
+
     /*
      * TODO not currently implemented or used; most useful would probably be to have servers
      * that can handle requests to init/start/update/stop controllers

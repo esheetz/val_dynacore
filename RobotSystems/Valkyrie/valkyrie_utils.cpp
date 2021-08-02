@@ -71,7 +71,7 @@ namespace ValUtils {
         // virtual linear joints
         q[valkyrie_joint::virtual_X] = 0.0;
         q[valkyrie_joint::virtual_Y] = 0.0;
-        q[valkyrie_joint::virtual_Z] = 1.121277; 
+        q[valkyrie_joint::virtual_Z] = 1.121277;
         // virtual rotational joints; set pelvis quaternion to identity
         q[valkyrie_joint::virtual_Rx] = 0.0;
         q[valkyrie_joint::virtual_Ry] = 0.0;

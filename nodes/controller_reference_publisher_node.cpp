@@ -9,15 +9,15 @@
 ControllerReferencePublisherNode::ControllerReferencePublisherNode(const ros::NodeHandle& nh) {
     nh_ = nh;
 
-	// set up parameters
+    // set up parameters
     nh_.param("controller", controller_type_, std::string("pose"));
     nh_.param("tf_prefix", tf_prefix_, std::string(""));
 
     reference_frame_ = tf_prefix_ + std::string("pelvis");
 
-	loop_rate_ = 10.0; // Hz
+    loop_rate_ = 10.0; // Hz
 
-	// initialize connections depending on controller type
+    // initialize connections depending on controller type
     if( controller_type_ == std::string("pose") ) {
         initializePoseConnections();
         controller_name_ = std::string("controllers/PoseController");
@@ -50,11 +50,11 @@ ControllerReferencePublisherNode::ControllerReferencePublisherNode(const ros::No
     target_quat_.z() = 0.5;  // -0.7071068;
     target_quat_.w() = 0.5;  // 0.0;
 
-	std::cout << "[Controller Reference Publisher Node] Constructed" << std::endl;
+    std::cout << "[Controller Reference Publisher Node] Constructed" << std::endl;
 }
 
 ControllerReferencePublisherNode::~ControllerReferencePublisherNode() {
-	std::cout << "[Controller Reference Publisher Node] Destroyed" << std::endl;
+    std::cout << "[Controller Reference Publisher Node] Destroyed" << std::endl;
 }
 
 // CONNECTIONS
@@ -75,7 +75,7 @@ bool ControllerReferencePublisherNode::initializeOrientationConnections() {
 
 // GETTERS/SETTERS
 double ControllerReferencePublisherNode::getLoopRate() {
-	return loop_rate_;
+    return loop_rate_;
 }
 
 void ControllerReferencePublisherNode::setReferenceType() {
@@ -96,7 +96,7 @@ void ControllerReferencePublisherNode::setReferenceType() {
         // node has already checked and set controller type, so this should never execute
         ROS_WARN("[Controller Reference Publisher Node] Unrecognized controller type %s, no reference type set", controller_type_.c_str());
     }
-    
+
     return;
 }
 
@@ -118,7 +118,7 @@ std::string ControllerReferencePublisherNode::getReferenceFrame() {
 
 // PUBLISH REFERENCE MESSAGE
 void ControllerReferencePublisherNode::publishReferenceMessage() {
-	// create and publish reference message based on controller type
+    // create and publish reference message based on controller type
     if( controller_type_ == std::string("pose") ) {
         // create pose message
         geometry_msgs::PoseStamped ref_pose_msg;
@@ -163,7 +163,7 @@ void ControllerReferencePublisherNode::publishReferenceMessage() {
         ROS_WARN("[Controller Reference Publisher Node] Unrecognized controller type %s, no reference message sent", controller_type_.c_str());
     }
 
-	return;
+    return;
 }
 
 int main(int argc, char **argv) {

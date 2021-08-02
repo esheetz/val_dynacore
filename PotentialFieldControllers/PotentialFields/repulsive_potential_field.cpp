@@ -71,7 +71,7 @@ void RepulsivePotentialField::gradient(dynacore::Vect3 curr_pos, dynacore::Vect3
     grad.resize(6);
     grad.setZero();
     if( dist <= OBST_INFLUENCE_ ) {
-        grad.head(3) = -scaling_factor_ * 
+        grad.head(3) = -scaling_factor_ *
                         std::min(((1 / dist) - (1 / OBST_INFLUENCE_)), MAX_POTENTIAL_) *
                         (1 / dist) * (1 / (dist * dist)) *
                         -error_pos;

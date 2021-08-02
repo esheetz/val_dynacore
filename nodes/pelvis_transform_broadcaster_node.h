@@ -17,34 +17,34 @@
 class PelvisTransformBroadcasterNode
 {
 public:
-	// CONSTRUCTORS/DESTRUCTORS
-	PelvisTransformBroadcasterNode(const ros::NodeHandle& nh);
-	~PelvisTransformBroadcasterNode();
+    // CONSTRUCTORS/DESTRUCTORS
+    PelvisTransformBroadcasterNode(const ros::NodeHandle& nh);
+    ~PelvisTransformBroadcasterNode();
 
-	// CONNECTIONS
-	bool initializeConnections();
+    // CONNECTIONS
+    bool initializeConnections();
 
-	// CALLBACK
-	void tfCallback(const geometry_msgs::TransformStamped& msg);
+    // CALLBACK
+    void tfCallback(const geometry_msgs::TransformStamped& msg);
 
-	// GETTERS/SETTERS
-	double getLoopRate();
-	std::string getWorldFrame();
-	std::string getPelvisFrame();
+    // GETTERS/SETTERS
+    double getLoopRate();
+    std::string getWorldFrame();
+    std::string getPelvisFrame();
 
-	// BROADCAST PELVIS POSE
-	void broadcastPelvisPose();
+    // BROADCAST PELVIS POSE
+    void broadcastPelvisPose();
 
 private:
-	ros::NodeHandle nh_; // node handler
-	ros::Subscriber pelvis_transform_sub_; // pelvis transform subscriber
+    ros::NodeHandle nh_; // node handler
+    ros::Subscriber pelvis_transform_sub_; // pelvis transform subscriber
 
-	tf::TransformBroadcaster tf_bc_; // transform broadcaster for world to pelvis
-	tf::Transform tf_pelvis_;
-	std::string tf_prefix_;
-	bool received_pelvis_tf_;
+    tf::TransformBroadcaster tf_bc_; // transform broadcaster for world to pelvis
+    tf::Transform tf_pelvis_;
+    std::string tf_prefix_;
+    bool received_pelvis_tf_;
 
-	double loop_rate_; // loop rate for publishing
+    double loop_rate_; // loop rate for publishing
 
 }; // end class PelvisTransformBroadcasterNode
 

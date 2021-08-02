@@ -5,7 +5,7 @@
 
 #ifndef _IK_MODULE_TEST_NODE_H_
 #define _IK_MODULE_TEST_NODE_H_
- 
+
 #include <math.h>
 #include <ros/ros.h>
 #include <geometry_msgs/PoseStamped.h>
@@ -45,7 +45,7 @@ public:
     // HELPER FUNCTIONS FOR BROADCASTING PELVIS POSE IN WORLD FRAME
     void computePelvisPoseInWorld(dynacore::Vector q);
     void broadcastPelvisPoseInWorld();
-    
+
     // PUBLISH POSE MESSAGE
     void publishTaskPoseMessage();
 

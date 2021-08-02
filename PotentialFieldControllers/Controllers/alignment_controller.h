@@ -43,7 +43,7 @@ public:
 
     // CONNECTIONS
     void initializeConnections() override;
-    
+
     // GET CONTROLLER INFO
     std::string getReferenceType() override;
     std::string getCommandType() override;

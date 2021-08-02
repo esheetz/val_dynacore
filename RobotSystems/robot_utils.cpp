@@ -153,7 +153,7 @@ namespace RobotUtils {
             joint_indices.push_back(joint_indices_to_names[i].first);
             joint_names.push_back(joint_indices_to_names[i].second);
         }
-        
+
         return true;
     }
 

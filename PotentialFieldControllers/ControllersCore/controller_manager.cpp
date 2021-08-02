@@ -698,6 +698,6 @@ void ControllerManager::publishForIHMCMsgInterface() {
 
     // publish commanded joint states
     publishCommandedJointStates();
-    
+
     return;
 }

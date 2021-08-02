@@ -37,7 +37,7 @@ namespace ROSMsgUtils {
 
         // set header
         makeHeaderMessage(frame, stamp_time, point_msg.header);
-        
+
         return;
     }
 
@@ -130,7 +130,7 @@ namespace ROSMsgUtils {
 
         // set header
         makeHeaderMessage(frame, stamp_time, quat_msg.header);
-        
+
         return;
     }
 
@@ -192,7 +192,7 @@ namespace ROSMsgUtils {
 
         // set header
         makeHeaderMessage(frame, stamp_time, vec_msg.header);
-        
+
         return;
     }
 

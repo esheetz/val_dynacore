@@ -84,7 +84,7 @@ void IKModuleTestNode::setHardCodedIKProblemTasks() {
     else { // task_set_ == std::string("wholebody-posture")
         setHardCodedWholeBodyPostureIKProblemTasks();
     }
-        
+
     // set default gains/weights
     ik_.setDefaultTaskGains();
     // ik_.setDefaultTaskWeights(); // task weights set explicitly
@@ -303,7 +303,7 @@ void IKModuleTestNode::publishStandingJoints() {
 
         // broadcast pelvis at origin with identity orientation in world frame
         broadcastPelvisPoseInWorld();
-        
+
         // spin and sleep
         ros::spinOnce();
         rate.sleep();
@@ -382,7 +382,7 @@ int main(int argc, char **argv) {
     ros::Duration pause_duration(5);
 
     ROS_INFO("[IK Module Test Node] Node started!");
-    
+
     // set to standing; will publish messages for several seconds to ensure robot is standing
     ik_test_node.publishStandingJoints();
 
@@ -400,7 +400,7 @@ int main(int argc, char **argv) {
             std::cout << "========================================" << std::endl;
             // perform IK task
             bool ik_result = ik_test_node.performIKTasks();
-        
+
             // broadcast transform of pelvis w.r.t. world
             // ik_test_node.broadcastPelvisPoseInWorld(); // not needed if publishing joint states (below)
 
