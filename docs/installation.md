@@ -17,11 +17,6 @@ To compile the `val_dynacore` package as a stand-alone package, run the followin
 $ mkdir build && cd build
 $ cmake ..
 $ make		# optional: -j4
-$ ./robot_model_test		# Test obtaining end-effector state and Jacobians
-$ ./quadprog_test			# Test QuadProg++ library
-$ ./task_test				# Test IK tasks; computing residuals, velocities, costs, and Jacobians
-$ ./ik_test 				# Test IK module; computing joint solutions for predefined tasks
-$ ./potential_field_test	# Test potential fields; computing potential, gradient, and change in pose
 ```
 
 To compile the `val_dynacore` package as part of a catkin workspace, run the following commands in the workspace directory after cloning this package:
