@@ -61,6 +61,23 @@ Overall, the process for starting the robot involves starting core processes, st
 
 
 
+## Communicating with the Robot
+NASA's Johnson Space Center (JSC) uses the IHMC Kinematics Toolbox to send commands in the form of whole-body messages to the robot.  There are several scripts that send whole-body messages to home or move certain parts of the robot.  To run these scripts from the command line, run the command:
+```
+roslaunch valkyrie_wholebody_msgs_tests <whole_body_test_name>.launch
+```
+
+The [`IHMCMsgInterface`](https://github.com/esheetz/IHMCMsgInterface) also provides a stand-alone interface for sending whole-body messages to the robot from joint commands.  Once the robot is started, you can start the interface:
+```
+$ roslaunch IHMCMsgInterface ihmc_interface_node.launch
+```
+This launch file has the following optional arguments:
+- `controllers`, which indicates whether the interface node is listening for commands from controllers.  If `true`, the node listens for commands on topic names from the `ControllerManager`.  If `false`, the node listens for commands on topic names corresponding to the IK Module test node.  The default is `true`.
+
+At this point, the `IHMCMsgInterface` is listening for messages and will construct and send the appropriate whole-body to the IHMC controllers.  Once the message is sent, the robot will execute the command.
+
+
+
 ## E-Stop
 In the event that the e-stop is pressed, unplunge the e-stop and clear the faults using the button in the UI.  Stop the Valkyrie core to bring everything down, and restart the robot using the [instructions above](#starting-the-robot).
 

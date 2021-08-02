@@ -8,8 +8,8 @@ Library for performing kinematics and dynamics on NASA's Valkyrie robot.
 - [Installation](docs/installation.md)
 - [IK Module](docs/IK.md)
 - [Controllers](docs/controllers.md)
-- [Testing in SCS sim](docs/SCS_sim.md)
-- [Running on JSC's Valkyrie robot](robot_testing.md)
+- [Testing in SCS Sim](docs/SCS_sim.md)
+- [Running on JSC's Valkyrie Robot](robot_ops.md)
 
 
 

@@ -95,7 +95,7 @@ Note that you can add the optional argument `sim:=false`, but this is the defaul
 ## Test Controllers on the Valkyrie Robot
 To test the controllers on JSC's Valkyrie robot, follow the steps:
 
-1. Start the robot and send Valkyrie to walking (see [instructions for running the Valkyrie robot](robot_testing.md)).
+1. Start the robot and send Valkyrie to walking (see [instructions for running the Valkyrie robot](robot_ops.md)).
 
 2. Launch the `IHMCMsgInterface` node:
 ```
