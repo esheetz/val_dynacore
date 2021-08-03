@@ -304,6 +304,7 @@ void ControllerManager::startControllers() {
 
     // publish start message for IHMCMsgInterface
     publishStartStatusMessage();
+    ihmc_start_status_sent_ = true;
 
     // set controller start time
     controller_start_time_ = std::chrono::system_clock::now();
@@ -324,6 +325,7 @@ void ControllerManager::stopControllers() {
 
     // publish stop message for IHMCMsgInterface
     publishStopStatusMessage();
+    ihmc_stop_status_sent_ = true;
 
     return;
 }
@@ -429,6 +431,7 @@ void ControllerManager::updateControllers() {
             // send stop status to IHMCMsgInterface
             ROS_INFO("[Controller Manager] Controllers for all joint groups converged! Sending stop status to IHMCMsgInterface...");
             publishStopStatusMessage();
+            ihmc_stop_status_sent_ = true;
         }
     }
 
@@ -674,9 +677,6 @@ void ControllerManager::publishStartStatusMessage() {
     // publish status for IHMCMsgInterface
     ihmc_controller_status_pub_.publish(status_msg);
 
-    // set flag indicating start status sent
-    ihmc_start_status_sent_ = true;
-
     return;
 }
 
@@ -687,9 +687,6 @@ void ControllerManager::publishStopStatusMessage() {
 
     // publish status for IHMCMsgInterface
     ihmc_controller_status_pub_.publish(status_msg);
-
-    // set flag indicating stop status sent
-    ihmc_stop_status_sent_ = true;
 
     // set flag to stop publishing messages for IHMCMsgInterface
     publish_for_ihmc_ = false;
