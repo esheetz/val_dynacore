@@ -673,6 +673,8 @@ void ControllerManager::publishStartStatusMessage() {
 
     // publish status for IHMCMsgInterface
     ihmc_controller_status_pub_.publish(status_msg);
+
+    return;
 }
 
 void ControllerManager::publishStopStatusMessage() {

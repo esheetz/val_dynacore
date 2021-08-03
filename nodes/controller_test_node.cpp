@@ -99,6 +99,9 @@ void ControllerTestNode::startController() {
 
     // start controllers
     cm_.startControllers();
+    // spin to make sure status for IHMCMsgInterface gets sent
+    ros::spinOnce();
+    ros::Rate(loop_rate_).sleep();
 
     return;
 }
@@ -129,6 +132,9 @@ bool ControllerTestNode::singleControllerStep() {
 void ControllerTestNode::stopControllerManager() {
     // stop controllers
     cm_.stopControllers();
+    // spin to make sure status for IHMCMsgInterface gets sent
+    ros::spinOnce();
+    ros::Rate(loop_rate_).sleep();
 
     // remove controllers from manager
     cm_.removeAllControllers();
