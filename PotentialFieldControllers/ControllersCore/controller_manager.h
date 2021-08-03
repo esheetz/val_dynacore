@@ -116,6 +116,7 @@ private:
 
     bool initial_command_sent_; // flag for indicating whether initial controller command (same as current state) has been sent
     bool controllers_converged_; // flag for indicating whether all controllers for all groups have converged
+    bool ihmc_start_status_sent_; // flag for indicating whether start status has been sent to IHMCMsgInterface
     bool ihmc_stop_status_sent_; // flag for indicating whether stop status has been sent to IHMCMsgInterface
 
     std::chrono::system_clock::time_point controller_start_time_; // controller start time
