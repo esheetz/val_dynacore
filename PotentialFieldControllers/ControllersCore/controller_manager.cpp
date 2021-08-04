@@ -302,10 +302,6 @@ void ControllerManager::startControllers() {
         }
     }
 
-    // publish start message for IHMCMsgInterface
-    publishStartStatusMessage();
-    ihmc_start_status_sent_ = true;
-
     // set controller start time
     controller_start_time_ = std::chrono::system_clock::now();
 
@@ -322,10 +318,6 @@ void ControllerManager::stopControllers() {
             link_controllers.second[i]->stop();
         }
     }
-
-    // publish stop message for IHMCMsgInterface
-    publishStopStatusMessage();
-    ihmc_stop_status_sent_ = true;
 
     return;
 }
@@ -354,6 +346,15 @@ void ControllerManager::updateControllers() {
     // check if warm-up phase has passed
     if( !checkWarmedUp() ) {
         ROS_WARN("ControllerManager::updateControllers() -- warming up controllers for %f seconds, cannot update controllers", warmup_period_);
+        return;
+    }
+
+    // check if start status has been sent
+    if( !ihmc_start_status_sent_ ) {
+        // publish start message for IHMCMsgInterface
+        ROS_INFO("[Controller Manager] Controllers warming up! Sending start status to IHMCMsgInterface...");
+        publishStartStatusMessage();
+        ihmc_start_status_sent_ = true;
         return;
     }
 
@@ -672,7 +673,7 @@ void ControllerManager::publishCommandedJointStates() {
 void ControllerManager::publishStartStatusMessage() {
     // create string message
     std_msgs::String status_msg;
-    status_msg.data = std::string("START");
+    status_msg.data = std::string("START-LISTENING");
 
     // publish status for IHMCMsgInterface
     ihmc_controller_status_pub_.publish(status_msg);
@@ -683,7 +684,7 @@ void ControllerManager::publishStartStatusMessage() {
 void ControllerManager::publishStopStatusMessage() {
     // create string message
     std_msgs::String status_msg;
-    status_msg.data = std::string("STOP");
+    status_msg.data = std::string("STOP-LISTENING");
 
     // publish status for IHMCMsgInterface
     ihmc_controller_status_pub_.publish(status_msg);
