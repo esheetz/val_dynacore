@@ -4,11 +4,12 @@
 #---------------------------------------------------------------------
 add_executable(robot_model_test robot_model_test.cpp)
 target_link_libraries(robot_model_test dynacore_rbdl
-                                dynacore_urdf                                
-                                dynacore_utils
-                                Valkyrie_model
-                                dynacore_tasks
-                                dynacore_ik)
+                                       dynacore_urdf
+                                       dynacore_utils
+                                       Valkyrie_model
+                                       dynacore_tasks
+                                       dynacore_ik
+                                       ${catkin_LIBRARIES})
 
 #---------------------------------------------------------------------
 # IK Test:
@@ -21,7 +22,8 @@ target_link_libraries(ik_test dynacore_rbdl
                               dynacore_robot
                               Valkyrie_model
                               dynacore_tasks
-                              dynacore_ik)
+                              dynacore_ik
+                              ${catkin_LIBRARIES})
 
 #---------------------------------------------------------------------
 # Task Test:
@@ -33,7 +35,8 @@ target_link_libraries(task_test dynacore_rbdl
                                 dynacore_utils
                                 dynacore_robot
                                 Valkyrie_model
-                                dynacore_tasks)
+                                dynacore_tasks
+                                ${catkin_LIBRARIES})
 
 #---------------------------------------------------------------------
 # QuadProg++ Test:
@@ -48,4 +51,5 @@ target_link_libraries(quadprog_test quadprog)
 #---------------------------------------------------------------------
 add_executable(potential_field_test potential_field_test.cpp)
 target_link_libraries(potential_field_test potential_fields
-                                           dynacore_utils)
+                                           dynacore_utils
+                                           ${catkin_LIBRARIES})

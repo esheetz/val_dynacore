@@ -11,7 +11,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 #------------------------------------------------------------------------
 #     Build Setup
 #------------------------------------------------------------------------
-#set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib )
+set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib)
 #set(INSTALL_BIN_DIR ${CMAKE_INSTALL_PREFIX}/bin )
 set(INSTALL_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include/${PROJECT_NAME})
 
