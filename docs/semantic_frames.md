@@ -4,7 +4,7 @@ Nodes for giving Valkyrie verbal commands to enact certain controllers and actio
 
 
 ## Semantic Frames
-Commanding Valkyrie verbally builds on work involving semantic frames, which serve as an intermediate step between a verbal command and the execution of that action.  A pipeline for processing semantic frames has been implemented for a separate research project, and implemented within the `val_dynacore` package.
+Commanding Valkyrie verbally builds on work involving semantic frames, which serve as an intermediate step between a verbal command and the execution of that action.  A pipeline for processing semantic frames has been implemented for a separate research project, and replicated within the `val_dynacore` package.
 <!-- [Semantic Frame Pipeline](https://github.com/mattshan/pipeline) -->
 
 
@@ -59,6 +59,7 @@ rosrun val_dynacore valkyrie_semantic_frame_commands_node.py
 There will be some output to the terminal as the speech recognizer and parser are started, and then you will be prompted with to give Valkyrie a command: `What is your command?`  Supported commands are:
 - `raise left hand` or equivalently `lift left hand`
 - `raise right hand` or equivalently `lift right hand`
+
 The node will confirm what it heard and ask if it heard you correctly, to which you can respond `y` for yes or `n` for no.  If it heard your command correctly, the node will send the command to the `SemanticFrameControllerNode` and the `ControllerManagers` will start the appropriate controllers and execute the action.
 
 
@@ -89,6 +90,7 @@ rosrun val_dynacore valkyrie_semantic_frame_commands_node.py
 There will be some output to the terminal as the speech recognizer and parser are started, and then you will be prompted with to give Valkyrie a command: `What is your command?`  Supported commands are:
 - `raise left hand` or equivalently `lift left hand`
 - `raise right hand` or equivalently `lift right hand`
+
 The node will confirm what it heard and ask if it heard you correctly, to which you can respond `y` for yes or `n` for no.  If it heard your command correctly, the node will send the command to the `SemanticFrameControllerNode` and the `ControllerManager` will start the appropriate controllers and execute the action.
 
-The `ControllerManager` have a 3 second warm-up period before it performs controller updates.  To demonstrate that the robot heard the command and and accurately performed the action, it would be best to home the arms (and stop the `SemanticFrameControllerNode`) in between verbal commands.  This means that steps 3 and 4 above need to be repeated every time a new verbal command is given.
+The `ControllerManager` have a 3 second warm-up period before it performs controller updates.  To demonstrate that the robot heard the command and and accurately performed the action, it would be best to home the arms and stop the `SemanticFrameControllerNode` in between verbal commands.  This means that steps 3 and 4 above need to be repeated every time a new verbal command is given.
