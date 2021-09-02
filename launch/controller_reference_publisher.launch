@@ -23,6 +23,12 @@
 	<!-- if testing in sim, set tf prefix to be same as in ControllerTestNode -->
 	<arg if="$(arg sim)" name="tf_prefix" value="val_controller/"/>
 
+	<arg name="recv_ref" default="false"/>
+	<!-- if not receiving reference poses, no target pose node -->
+	<arg unless="$(arg recv_ref)" name="target_pose_node" value=""/>
+	<!-- if receiving reference poses, set target pose node to come from SemanticFrameControllerNode -->
+	<arg if="$(arg recv_ref)" name="target_pose_node" value="SemanticFrameControllerNode"/>
+
 	<arg name="debug" default="false"/>
 	<arg unless="$(arg debug)" name="launch_prefix" value="" />
 	<arg if="$(arg debug)" name="launch_prefix" value="gdb -ex run --args" />
@@ -30,6 +36,8 @@
 	<node launch-prefix="$(arg launch_prefix)" pkg="val_dynacore" type="controller_reference_publisher_node" name="ControllerReferencePublisherNode" output="screen">
 		<param name="controller" value="$(arg controller)"/>
 		<param name="tf_prefix" value="$(arg tf_prefix)"/>
+		<param name="receive_target" value="$(arg recv_ref)"/>
+		<param name="target_pose_node" value="$(arg target_pose_node)"/>
 		<!--<param name="" type="" value=""/> -->
 	</node>
 </launch>

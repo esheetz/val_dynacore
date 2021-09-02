@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<!--***********************************************************
+	Semantic Frame Controller Node
+	Emily Sheetz, Fall 2021
+
+	run either:
+		$ roslaunch val_dynacore semantic_frame_controller.launch
+		OR
+		$ rosrun val_dynacore semantic_frame_controller_node
+************************************************************-->
+<launch>
+	<arg name="controller" default="pose"/>
+	<!-- supported controller types:
+			"pose": runs pose controller
+	-->
+	<arg name="ref_node" default="ControllerReferencePublisherNode"/> <!-- for publishing controller references -->
+
+	<arg name="sim" default="false"/>
+	<!-- if not testing in sim, robot pose and joint states will come from IHMC -->
+	<arg unless="$(arg sim)" name="robot_pose_topic" value="/ihmc_ros/valkyrie/output/robot_pose"/>
+	<arg unless="$(arg sim)" name="joint_state_topic" value="/ihmc_ros/valkyrie/output/joint_states"/>
+	<arg unless="$(arg sim)" name="robot_pose_init" value="true"/>
+	<arg unless="$(arg sim)" name="tf_prefix" value=""/>
+	<!-- if testing in sim, robot pose and joint states will come from SemanticFrameControllerNode -->
+	<arg if="$(arg sim)" name="robot_pose_topic" value="/SemanticFrameControllerNode/controllers/input/robot_pose"/>
+	<arg if="$(arg sim)" name="joint_state_topic" value="/SemanticFrameControllerNode/controllers/input/joint_states"/>
+	<arg if="$(arg sim)" name="robot_pose_init" value="false"/>
+	<arg if="$(arg sim)" name="tf_prefix" value="val_controller/"/>
+
+	<arg name="debug" default="false"/>
+	<arg unless="$(arg debug)" name="launch_prefix" value="" />
+	<arg if="$(arg debug)" name="launch_prefix" value="gdb -ex run --args" />
+
+	<node launch-prefix="$(arg launch_prefix)" pkg="val_dynacore" type="semantic_frame_controller_node" name="SemanticFrameControllerNode" output="screen">
+		<param name="controller" value="$(arg controller)"/>
+		<param name="ref_node" value="$(arg ref_node)"/>
+		<param name="tf_prefix" value="$(arg tf_prefix)"/>
+		<param name="robot_pose_topic" value="$(arg robot_pose_topic)"/>
+		<param name="joint_state_topic" value="$(arg joint_state_topic)"/>
+		<param name="robot_pose_init" value="$(arg robot_pose_init)"/>
+		<!--<param name="" type="" value=""/> -->
+	</node>
+</launch>

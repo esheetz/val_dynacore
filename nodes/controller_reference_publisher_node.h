@@ -21,9 +21,13 @@ public:
     ~ControllerReferencePublisherNode();
 
     // CONNECTIONS
+    bool initializeConnections();
     bool initializePoseConnections();
     bool initializePositionConnections();
     bool initializeOrientationConnections();
+
+    // CALLBACK
+    void poseCallback(const geometry_msgs::PoseStamped& msg);
 
     // GETTERS/SETTERS
     double getLoopRate();
@@ -38,6 +42,7 @@ public:
 
 private:
     ros::NodeHandle nh_; // node handler
+    ros::Subscriber target_pose_sub_; // subscriber for reference poses
     ros::Publisher ref_pub_pose_; // controller reference publisher
     ros::Publisher ref_pub_position_; // controller reference publisher
     ros::Publisher ref_pub_orientation_; // controller reference publisher

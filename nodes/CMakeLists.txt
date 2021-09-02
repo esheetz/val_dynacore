@@ -73,3 +73,20 @@ target_link_libraries(set_valkyrie_standing_node dynacore_rbdl
 add_executable(pelvis_transform_broadcaster_node pelvis_transform_broadcaster_node.cpp)
 target_link_libraries(pelvis_transform_broadcaster_node dynacore_utils
                                                         ${catkin_LIBRARIES})
+
+#-----------------------------------------------------------------------
+# Semantic Frame Controller Node:
+# for teting integration of controllers with semantic frames
+#-----------------------------------------------------------------------
+add_executable(semantic_frame_controller_node semantic_frame_controller_node.cpp)
+target_link_libraries(semantic_frame_controller_node dynacore_rbdl
+                                                     dynacore_urdf
+                                                     dynacore_utils
+                                                     dynacore_robot
+                                                     Valkyrie_model
+                                                     dynacore_tasks
+                                                     dynacore_ik
+                                                     potential_fields
+                                                     controllers
+                                                     controllers_core
+                                                     ${catkin_LIBRARIES})

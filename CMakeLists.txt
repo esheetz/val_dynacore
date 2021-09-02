@@ -12,11 +12,12 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
 #     Build Setup
 #------------------------------------------------------------------------
 set(INSTALL_LIB_DIR ${CMAKE_INSTALL_PREFIX}/lib)
-#set(INSTALL_BIN_DIR ${CMAKE_INSTALL_PREFIX}/bin )
+set(INSTALL_BIN_DIR ${CMAKE_INSTALL_PREFIX}/bin )
 set(INSTALL_INCLUDE_DIR ${CMAKE_INSTALL_PREFIX}/include/${PROJECT_NAME})
 
 find_package(catkin REQUIRED COMPONENTS
 	roscpp
+	rospy
 	tf
 	geometry_msgs
 	nav_msgs
@@ -25,7 +26,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(Eigen3 REQUIRED)
 catkin_package(
-	CATKIN_DEPENDS roscpp tf geometry_msgs nav_msgs sensor_msgs std_msgs 
+	CATKIN_DEPENDS roscpp rospy tf geometry_msgs nav_msgs sensor_msgs std_msgs
 	DEPENDS EIGEN3
 	INCLUDE_DIRS . RobotSystems ExternalSource
 	LIBRARIES dynacore_utils Valkyrie_model
@@ -53,6 +54,7 @@ include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/PotentialF
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/Controllers")
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/ControllersCore")
 include_directories ("${PROJECT_SOURCE_DIR}/nodes")
+include_directories ("${PROJECT_SOURCE_DIR}/SemanticFramePipeline")
 
 
 #set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -68,6 +70,7 @@ add_subdirectory (IKModule)
 add_subdirectory (PotentialFieldControllers)
 add_subdirectory (nodes)
 add_subdirectory (tests)
+add_subdirectory (SemanticFramePipeline)
 
 #------------------------------------------------------------------------
 # Configuration

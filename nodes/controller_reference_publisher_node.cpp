@@ -41,6 +41,12 @@ ControllerReferencePublisherNode::ControllerReferencePublisherNode(const ros::No
         initializePoseConnections();
     }
 
+    bool receive_target;
+    nh_.param("receive_target", receive_target, false);
+    if( receive_target ) {
+        initializeConnections();
+    }
+
     setReferenceType();
 
     // initialize target position and orientation
@@ -58,6 +64,15 @@ ControllerReferencePublisherNode::~ControllerReferencePublisherNode() {
 }
 
 // CONNECTIONS
+bool ControllerReferencePublisherNode::initializeConnections() {
+    std::string target_pose_node;
+    nh_.param("target_pose_node", target_pose_node, std::string("SemanticFrameControllerNode"));
+    target_pose_node = std::string("/") + target_pose_node + std::string("/");
+
+    target_pose_sub_ = nh_.subscribe(target_pose_node + "target_pose", 1, &ControllerReferencePublisherNode::poseCallback, this);
+    return true;
+}
+
 bool ControllerReferencePublisherNode::initializePoseConnections() {
     ref_pub_pose_ = nh_.advertise<geometry_msgs::PoseStamped>("controllers/input/reference_pose", 1);
     return true;
@@ -71,6 +86,25 @@ bool ControllerReferencePublisherNode::initializePositionConnections() {
 bool ControllerReferencePublisherNode::initializeOrientationConnections() {
     ref_pub_orientation_ = nh_.advertise<geometry_msgs::QuaternionStamped>("controllers/input/reference_orientation", 1);
     return true;
+}
+
+// CALLBACK
+void ControllerReferencePublisherNode::poseCallback(const geometry_msgs::PoseStamped& msg) {
+    // check for valid reference frame
+    if( msg.header.frame_id != reference_frame_ ) {
+        ROS_WARN("[Controller Reference Publisher Node] Invalid frame id for target pose; expected %s frame, but got %s frame",
+                 reference_frame_.c_str(), msg.header.frame_id.c_str());
+        return;
+    }
+
+    // update target pose from message pose
+    target_pos_ << msg.pose.position.x, msg.pose.position.y, msg.pose.position.z;
+    target_quat_.x() = msg.pose.orientation.x;
+    target_quat_.y() = msg.pose.orientation.y;
+    target_quat_.z() = msg.pose.orientation.z;
+    target_quat_.w() = msg.pose.orientation.w;
+
+    return;
 }
 
 // GETTERS/SETTERS

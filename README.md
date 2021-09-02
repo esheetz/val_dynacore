@@ -10,6 +10,7 @@ Library for performing kinematics and dynamics on NASA's Valkyrie robot.
 - [Controllers](docs/controllers.md)
 - [Testing in SCS Sim](docs/SCS_sim.md)
 - [Running on JSC's Valkyrie Robot](docs/robot_ops.md)
+- [Verbal Commands for Valkyrie](docs/semantic_frames.md)
 
 
 
