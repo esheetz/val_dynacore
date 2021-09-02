@@ -1,0 +1,30 @@
+# semantic frame
+# assemble_table_frame.yaml
+
+name: assemble_table
+description: puts together some parts to assemble a table
+frame_elements:
+  - name: unassembled_object
+    is_core: True
+  - name: unassembled_object_compound_modifier
+    is_core: False
+  - name: unassembled_object_adj_modifier
+    is_core: False
+children:
+  - name: assemble_lack_table
+    frame_element_relations:
+      - parent_name: unassembled_object
+        child_value: table
+      - parent_name: unassembled_object_compound_modifier
+        child_value: lack
+components:
+  - name: leg1
+  - name: leg2
+  - name: leg3
+  - name: leg4
+  - name: base
+actions:
+  - step1: attach leg1
+  - step2: attach leg2
+  - step3: attach leg3
+  - step4: attach leg4

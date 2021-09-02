@@ -1,0 +1,21 @@
+# semantic frame
+# assemble_frame.yaml
+
+name: assemble
+description: puts together some parts to assemble a composite object
+frame_elements:
+  - name: unassembled_object
+    is_core: True
+  - name: unassembled_object_compound_modifier
+    is_core: False
+  - name: unassembled_object_adj_modifier
+    is_core: False 
+children:
+  - name: assemble_chair
+    frame_element_relations:
+      - parent_name: unassembled_object
+        child_value: chair
+  - name: assemble_table
+    frame_element_relations:
+      - parent_name: unassembled_object
+        child_value: table

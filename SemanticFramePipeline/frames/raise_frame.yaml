@@ -1,0 +1,23 @@
+# semantic frame
+# raise_frame.yaml
+
+name: raise
+description: raise a robot hand
+frame_elements:
+  - name: hand_to_raise
+    is_core: True
+  - name: hand_to_raise_adj_modifier
+    is_core: False
+children:
+  - name: raise_left_hand
+    frame_element_relations:
+      - parent_name: hand_to_raise
+        child_value: hand
+      - parent_name: hand_to_raise_adj_modifier
+        child_value: left
+  - name: raise_right_hand
+    frame_element_relations:
+      - parent_name: hand_to_raise
+        child_value: hand
+      - parent_name: hand_to_raise_adj_modifier
+        child_value: right

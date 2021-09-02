@@ -1,0 +1,21 @@
+# semantic frame
+# assemble_swivel_chair_frame.yaml
+
+name: assemble_swivel_chair
+description: puts together some parts to assemble a swivel chair
+frame_elements:
+  - name: unassembled_object
+    is_core: True
+  - name: unassembled_object_compound_modifier
+    is_core: True
+  - name: unassembled_object_adj_modifier
+    is_core: False
+components:
+  - name: base
+  - name: column
+  - name: seat
+actions:
+  - step1: grasp column
+  - step2: insert column-screw base-hole
+  - step3: grasp seat
+  - step4: insert seat-connect column-connector

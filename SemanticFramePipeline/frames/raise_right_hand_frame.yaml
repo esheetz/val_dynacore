@@ -1,0 +1,12 @@
+# semantic frame
+# raise_right_hand_frame.yaml
+
+name: raise_right_hand
+description: raise the robot's right hand
+frame_elements:
+  - name: hand_to_raise
+    is_core: True
+  - name: hand_to_raise_adj_modifier
+    is_core: False
+actions:
+  - step1: raise right hand
