@@ -48,6 +48,7 @@ private:
     ros::Publisher ref_pub_orientation_; // controller reference publisher
 
     // targets
+    bool received_target_;
     dynacore::Vect3 target_pos_;
     dynacore::Quaternion target_quat_;
 

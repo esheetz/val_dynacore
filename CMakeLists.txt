@@ -54,7 +54,6 @@ include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/PotentialF
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/Controllers")
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/ControllersCore")
 include_directories ("${PROJECT_SOURCE_DIR}/nodes")
-include_directories ("${PROJECT_SOURCE_DIR}/SemanticFramePipeline")
 
 
 #set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -70,7 +69,6 @@ add_subdirectory (IKModule)
 add_subdirectory (PotentialFieldControllers)
 add_subdirectory (nodes)
 add_subdirectory (tests)
-add_subdirectory (SemanticFramePipeline)
 
 #------------------------------------------------------------------------
 # Configuration

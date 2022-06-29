@@ -45,16 +45,21 @@ ControllerReferencePublisherNode::ControllerReferencePublisherNode(const ros::No
     nh_.param("receive_target", receive_target, false);
     if( receive_target ) {
         initializeConnections();
+        received_target_ = false;
     }
 
     setReferenceType();
 
-    // initialize target position and orientation
-    target_pos_ << 0.47, -0.3, 0.04; //1.16, standing pelvis z: 1.121277;  // 0.3, -0.1, 1.1;
-    target_quat_.x() = -0.5; // 0.7071068;
-    target_quat_.y() = 0.5;  // 0.0;
-    target_quat_.z() = 0.5;  // -0.7071068;
-    target_quat_.w() = 0.5;  // 0.0;
+    if( !receive_target ) {
+        // not waiting to receive target
+        received_target_ = true;
+        // initialize target position and orientation
+        target_pos_ << 0.47, -0.3, 0.04; //1.16, standing pelvis z: 1.121277;  // 0.3, -0.1, 1.1;
+        target_quat_.x() = -0.5; // 0.7071068;
+        target_quat_.y() = 0.5;  // 0.0;
+        target_quat_.z() = 0.5;  // -0.7071068;
+        target_quat_.w() = 0.5;  // 0.0;
+    }
 
     std::cout << "[Controller Reference Publisher Node] Constructed" << std::endl;
 }
@@ -96,6 +101,9 @@ void ControllerReferencePublisherNode::poseCallback(const geometry_msgs::PoseSta
                  reference_frame_.c_str(), msg.header.frame_id.c_str());
         return;
     }
+
+    // mark target as received
+    received_target_ = true;
 
     // update target pose from message pose
     target_pos_ << msg.pose.position.x, msg.pose.position.y, msg.pose.position.z;
@@ -152,6 +160,12 @@ std::string ControllerReferencePublisherNode::getReferenceFrame() {
 
 // PUBLISH REFERENCE MESSAGE
 void ControllerReferencePublisherNode::publishReferenceMessage() {
+    if( !received_target_ )
+    {
+        // no target to publish
+        return;
+    }
+
     // create and publish reference message based on controller type
     if( controller_type_ == std::string("pose") ) {
         // create pose message

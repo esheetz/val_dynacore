@@ -4,8 +4,12 @@ Nodes for giving Valkyrie verbal commands to enact certain controllers and actio
 
 
 ## Semantic Frames
-Commanding Valkyrie verbally builds on work involving semantic frames, which serve as an intermediate step between a verbal command and the execution of that action.  A pipeline for processing semantic frames has been implemented for a separate research project, and replicated within the `val_dynacore` package.
-<!-- [Semantic Frame Pipeline](https://github.com/mattshan/pipeline) -->
+Commanding Valkyrie verbally builds on work involving semantic frames, which serve as an intermediate step between a verbal command and the execution of that action.  A pipeline for processing semantic frames has been implemented for a separate research project, which can be cloned from the [Semantic Frame Pipeline Project](https://github.com/mattshan/pipeline).  Run the following commands in the same workspace as the `val_dynacore` package:
+```
+git clone https://github.com/mattshan/pipeline.git semantic_frame_pipeline
+cd semantic_frame_pipeline
+git checkout command_valkyrie
+```
 
 
 

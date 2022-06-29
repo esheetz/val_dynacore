@@ -57,7 +57,7 @@ bool SemanticFrameControllerNode::initializeConnections() {
     joint_state_pub_ = nh_.advertise<sensor_msgs::JointState>("controllers/input/joint_states", 1);
 
     // subscribe to semantic frame command
-    semantic_frame_sub_ = nh_.subscribe("/valkyrie_semantic_frame_command", 1, &SemanticFrameControllerNode::semanticFrameCallback, this);
+    semantic_frame_sub_ = nh_.subscribe("/valkyrie/semantic_frame/execute_action", 1, &SemanticFrameControllerNode::semanticFrameCallback, this);
     
     // publish target pose based on semantic frame command
     target_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("target_pose", 1);
