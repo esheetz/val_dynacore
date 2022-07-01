@@ -18,6 +18,7 @@ SemanticFrameControllerNode::SemanticFrameControllerNode(const ros::NodeHandle& 
     loop_rate_ = 10.0; // Hz
 
     command_received_ = false;
+    homing_command_received_ = false;
     frame_command_ = std::string("");
 
     std::string controller_name;
@@ -36,6 +37,9 @@ SemanticFrameControllerNode::SemanticFrameControllerNode(const ros::NodeHandle& 
     ROS_INFO("[Semantic Frame Controller Node] Constructed controller of type %s", controller_name.c_str());
 
     initializeConnections();
+
+    // initialize timekeeping
+    convergence_period_ = 1.0; // seconds
 
     std::cout << "[Semantic Frame Controller Node] Constructed" << std::endl;
 }
@@ -61,6 +65,9 @@ bool SemanticFrameControllerNode::initializeConnections() {
     
     // publish target pose based on semantic frame command
     target_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("target_pose", 1);
+
+    // publish status messages about homing robot body parts
+    home_robot_pub_ = nh_.advertise<std_msgs::String>("controllers/output/ihmc/controller_status", 20);
     
     return true;
 }
@@ -107,6 +114,15 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
         ROS_INFO("[Semantic Frame Controller Node] Started controller!");
     }
 
+    if( (msg.data == std::string("home all")) ) {
+        // set frame command
+        frame_command_ = msg.data;
+        command_received_ = true;
+        homing_command_received_ = true;
+
+        ROS_INFO("[Semantic Frame Controller Node] Command received to %s", frame_command_.c_str());
+    }
+
     return;
 }
 
@@ -123,6 +139,17 @@ bool SemanticFrameControllerNode::getCommandReceivedFlag() {
     return command_received_;
 }
 
+bool SemanticFrameControllerNode::getHomingCommandReceivedFlag() {
+    return homing_command_received_;
+}
+
+void SemanticFrameControllerNode::resetCommandReceivedFlag() {
+    command_received_ = false;
+    homing_command_received_ = false;
+    frame_command_ = std::string("");
+    return;
+}
+
 // HELPER FUNCTIONS FOR CONTROLLER
 void SemanticFrameControllerNode::startController() {
     // initialize controller
@@ -136,6 +163,8 @@ void SemanticFrameControllerNode::startController() {
 
 // RUN CONTROLLER
 bool SemanticFrameControllerNode::singleControllerStep() {
+    bool converged_before_update = cm_.checkControllerConvergence();
+
     if( robot_pose_initialized_ ) {
         // perform controller update
         cm_.updateControllers();
@@ -148,7 +177,19 @@ bool SemanticFrameControllerNode::singleControllerStep() {
     cm_.getRobotModelCurrentQ(q_current_);
 
     // check completion bounds
-    return cm_.checkControllerConvergence();
+    bool converged_after_update = cm_.checkControllerConvergence();
+
+    // check if controller converged
+    if( converged_after_update ) {
+        // check if controller just converged
+        if( !converged_before_update ) {
+            // set controller convergence time
+            controller_convergence_start_time_ = std::chrono::system_clock::now();
+        }
+    }
+
+    // check completion bounds
+    return converged_after_update;
 }
 
 void SemanticFrameControllerNode::stopControllerManager() {
@@ -206,6 +247,25 @@ void SemanticFrameControllerNode::publishPelvisTransformForBroadcaster() {
     return;
 }
 
+bool SemanticFrameControllerNode::checkControllerConvergedPeriod() {
+    // initialize converged flag
+    bool converged = false;
+
+    // make sure controllers are currently converged
+    if( cm_.checkControllerConvergence() ) {
+        // get current time
+        std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
+
+        // compute duration since convergence start
+        double time_since_convergence = std::chrono::duration_cast<std::chrono::seconds>(t - controller_convergence_start_time_).count();
+
+        // check for converged
+        converged = (time_since_convergence > convergence_period_);
+    }
+
+    return converged;
+}
+
 // HELPER FUNCTIONS FOR TARGET POSE
 void SemanticFrameControllerNode::publishTargetPose() {
     // create pose message
@@ -214,6 +274,87 @@ void SemanticFrameControllerNode::publishTargetPose() {
 
     // publish message
     target_pose_pub_.publish(pose_msg);
+
+    return;
+}
+
+// HELPER FUNCTIONS FOR GO HOME MESSAGES
+void SemanticFrameControllerNode::publishHomingMessages() {
+    // home left arm status
+    publishLeftArmHomingMessage();
+
+    // home right arm status
+    publishRightArmHomingMessage();
+
+    // home chest status
+    publishChestHomingMessage();
+
+    // home pelvis status
+    publishPelvisHomingMessage();
+
+    return;
+}
+
+void SemanticFrameControllerNode::publishLeftArmHomingMessage() {
+    // initialize string message
+    std_msgs::String str_msg;
+
+    // set status message
+    str_msg.data = std::string("HOME-LEFTARM");
+
+    // publish status message
+    home_robot_pub_.publish(str_msg);
+    ROS_INFO("[Semantic Frame Controller Node] Commanded to home left arm");
+
+    ros::spinOnce(); // spin once to make sure all homing messages go through
+
+    return;
+}
+
+void SemanticFrameControllerNode::publishRightArmHomingMessage() {
+    // initialize string message
+    std_msgs::String str_msg;
+
+    // set status message
+    str_msg.data = std::string("HOME-RIGHTARM");
+
+    // publish status message
+    home_robot_pub_.publish(str_msg);
+    ROS_INFO("[Semantic Frame Controller Node] Commanded to home right arm");
+
+    ros::spinOnce(); // spin once to make sure all homing messages go through
+
+    return;
+}
+
+void SemanticFrameControllerNode::publishChestHomingMessage() {
+    // initialize string message
+    std_msgs::String str_msg;
+
+    // set status message
+    str_msg.data = std::string("HOME-CHEST");
+
+    // publish status message
+    home_robot_pub_.publish(str_msg);
+    ROS_INFO("[Semantic Frame Controller Node] Commanded to home chest");
+
+    ros::spinOnce(); // spin once to make sure all homing messages go through
+
+    return;
+}
+
+void SemanticFrameControllerNode::publishPelvisHomingMessage() {
+    // initialize string message
+    std_msgs::String str_msg;
+
+    // set status message
+    str_msg.data = std::string("HOME-PELVIS");
+
+    // publish status message
+    home_robot_pub_.publish(str_msg);
+    ROS_INFO("[Semantic Frame Controller Node] Commanded to home pelvis");
+
+    ros::spinOnce(); // spin once to make sure all homing messages go through
 
     return;
 }
@@ -241,17 +382,31 @@ int main(int argc, char **argv) {
             ROS_INFO("[Semantic Frame Controller Node] Waiting for command...");
         }
         else {
-            // perform controller update
-            controller_converged = sfnode.singleControllerStep();
+            // check if received command is homing command
+            if( sfnode.getHomingCommandReceivedFlag() ) {
+                // publish homing messages
+                sfnode.publishHomingMessages();
+                // reset flags
+                sfnode.resetCommandReceivedFlag();
+                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+            }
+            else { // otherwise, commands involve controllers
+                // perform controller update
+                controller_converged = sfnode.singleControllerStep();
 
-            // publish pelvis transform and joint states for controller manager
-            sfnode.publishRobotStateForManager();
+                // publish pelvis transform and joint states for controller manager
+                sfnode.publishRobotStateForManager();
 
-            // publish pelvis transform for broadcaster
-            sfnode.publishPelvisTransformForBroadcaster();
+                // publish pelvis transform for broadcaster
+                sfnode.publishPelvisTransformForBroadcaster();
 
-            if( controller_converged ) {
-                ROS_INFO("[Semantic Frame Controller Node] Controller converged!");
+                if( controller_converged ) {
+                    ROS_INFO("[Semantic Frame Controller Node] Controller converged!");
+                    if( sfnode.checkControllerConvergedPeriod() ) {
+                        sfnode.resetCommandReceivedFlag();
+                        ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+                    }
+                }
             }
         }
 

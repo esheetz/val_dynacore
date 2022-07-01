@@ -6,6 +6,7 @@
 #ifndef _SEMANTIC_FRAME_CONTROLLER_NODE_H_
 #define _SEMANTIC_FRAME_CONTROLLER_NODE_H_
 
+#include <chrono>
 #include <map>
 #include <memory>
 #include <vector>
@@ -41,6 +42,8 @@ public:
     double getLoopRate();
     bool getRobotStateInitializedFlag();
     bool getCommandReceivedFlag();
+    bool getHomingCommandReceivedFlag();
+    void resetCommandReceivedFlag();
 
     // HELPER FUNCTIONS FOR CONTROLLER
     void startController();
@@ -48,9 +51,17 @@ public:
     void stopControllerManager();
     void publishRobotStateForManager();
     void publishPelvisTransformForBroadcaster();
+    bool checkControllerConvergedPeriod();
 
     // HELPER FUNCTIONS FOR TARGET POSE
     void publishTargetPose();
+
+    // HELPER FUNCTIONS FOR GO HOME MESSAGES
+    void publishHomingMessages();
+    void publishLeftArmHomingMessage();
+    void publishRightArmHomingMessage();
+    void publishChestHomingMessage();
+    void publishPelvisHomingMessage();
 
 private:
     ros::NodeHandle nh_; // node handler
@@ -60,8 +71,13 @@ private:
     ros::Publisher robot_pose_pub_; // robot pose publisher for ControllerManager
     ros::Publisher pelvis_transform_pub_; // pelvis transform publisher for visualizing controller commands
 
+    std::chrono::system_clock::time_point controller_convergence_start_time_; // time when controllers converged
+    double convergence_period_; // amount of time controllers need to be converged before node waits for next command
+
     ros::Subscriber semantic_frame_sub_; // subscriber for semantic frame command
     ros::Publisher target_pose_pub_; // publisher for target pose
+
+    ros::Publisher home_robot_pub_; // publisher for homing robot
 
     std::string tf_prefix_; // tf prefix
 
@@ -76,6 +92,7 @@ private:
     std::shared_ptr<controllers::PotentialFieldController> run_controller_; // controller being run
     
     bool command_received_; // flag indicating if command has been received
+    bool homing_command_received_; // flag indicating if command involves sending homing message(s)
     std::string frame_command_; // semantic frame command
 
     // targets
