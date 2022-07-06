@@ -18,7 +18,11 @@ SemanticFrameControllerNode::SemanticFrameControllerNode(const ros::NodeHandle& 
     loop_rate_ = 10.0; // Hz
 
     command_received_ = false;
+    controller_command_received_ = false;
     homing_command_received_ = false;
+    waypoint_command_received_ = false;
+    planning_command_received_ = false;
+    execute_plan_command_received_ = false;
     frame_command_ = std::string("");
 
     std::string controller_name;
@@ -69,6 +73,9 @@ bool SemanticFrameControllerNode::initializeConnections() {
 
     // publish status messages about homing robot body parts
     home_robot_pub_ = nh_.advertise<std_msgs::String>("controllers/output/ihmc/controller_status", 20);
+
+    // subscribe to waypoints
+    waypoint_sub_ = nh_.subscribe("/valkyrie/semantic_frame/waypoints", 1, &SemanticFrameControllerNode::waypointCallback, this);
     
     return true;
 }
@@ -91,6 +98,7 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
         // set frame command
         frame_command_ = msg.data;
         command_received_ = true;
+        controller_command_received_ = true;
 
         // set target pose based on command
         if( msg.data == std::string("raise left hand") ) {
@@ -159,6 +167,43 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
         ROS_INFO("[Semantic Frame Controller Node] Command received to %s", frame_command_.c_str());
     }
 
+    if( (msg.data.find(std::string("set waypoint at ")) != std::string::npos) ) {
+        // set frame command
+        frame_command_ = msg.data;
+        command_received_ = true;
+        waypoint_command_received_ = true;
+
+        // try setting current waypoint from waypoints
+        bool success = setCurrentWaypointFromStoredWaypoints();
+
+        // store time command received
+        if( success ) {
+            last_command_received_time_ = std::chrono::system_clock::now();
+            ROS_INFO("[Semantic Frame Controller Node] Command received to %s", frame_command_.c_str());
+        }
+    }
+
+    return;
+}
+
+void SemanticFrameControllerNode::waypointCallback(const geometry_msgs::TransformStamped& msg) {
+    // create pose message from transform message
+    geometry_msgs::Pose waypoint_pose;
+    waypoint_pose.position.x = msg.transform.translation.x;
+    waypoint_pose.position.y = msg.transform.translation.y;
+    waypoint_pose.position.z = msg.transform.translation.z;
+    waypoint_pose.orientation.x = msg.transform.rotation.x;
+    waypoint_pose.orientation.y = msg.transform.rotation.y;
+    waypoint_pose.orientation.z = msg.transform.rotation.z;
+    waypoint_pose.orientation.w = msg.transform.rotation.w;
+
+    // get waypoint name
+    std::string waypoint_name = msg.child_frame_id;
+
+    // add waypoint to map or update stored waypoint
+    waypoints_[waypoint_name] = waypoint_pose;
+    ROS_INFO("[Semantic Frame Controller Node] Received waypoint for %s", waypoint_name.c_str());
+
     return;
 }
 
@@ -175,13 +220,33 @@ bool SemanticFrameControllerNode::getCommandReceivedFlag() {
     return command_received_;
 }
 
+bool SemanticFrameControllerNode::getControllerCommandReceivedFlag() {
+    return controller_command_received_;
+}
+
 bool SemanticFrameControllerNode::getHomingCommandReceivedFlag() {
     return homing_command_received_;
 }
 
+bool SemanticFrameControllerNode::getWaypointCommandReceivedFlag() {
+    return waypoint_command_received_;
+}
+
+bool SemanticFrameControllerNode::getPlanningCommandReceivedFlag() {
+    return planning_command_received_;
+}
+
+bool SemanticFrameControllerNode::getExecutePlanCommandReceivedFlag() {
+    return execute_plan_command_received_;
+}
+
 void SemanticFrameControllerNode::resetCommandReceivedFlag() {
     command_received_ = false;
+    controller_command_received_ = false;
     homing_command_received_ = false;
+    waypoint_command_received_ = false;
+    planning_command_received_ = false;
+    execute_plan_command_received_ = false;
     frame_command_ = std::string("");
     return;
 }
@@ -190,6 +255,8 @@ void SemanticFrameControllerNode::resetCommandReceivedFlag() {
 void SemanticFrameControllerNode::stopPreviousCommand() {
     // check if a command has already been received
     if( command_received_ && checkCommandCooldownPeriod()) {
+        // reset all flags
+        resetCommandReceivedFlag();
         // stop controller manager for safety
         stopControllerManager();
         ROS_INFO("[Semantic Frame Controller Node] New command interrupting execution. Stopping controller manager for safety!");
@@ -327,7 +394,7 @@ bool SemanticFrameControllerNode::checkControllerConvergedPeriod() {
     return converged;
 }
 
-// HELPER FUNCTIONS FOR TARGET POSE
+// HELPER FUNCTIONS FOR TARGET POSE AND WAYPOINTS
 void SemanticFrameControllerNode::publishTargetPose() {
     // create pose message
     geometry_msgs::PoseStamped pose_msg;
@@ -337,6 +404,27 @@ void SemanticFrameControllerNode::publishTargetPose() {
     target_pose_pub_.publish(pose_msg);
 
     return;
+}
+
+bool SemanticFrameControllerNode::setCurrentWaypointFromStoredWaypoints() {
+    // get waypoint name; waypoint name is everything after command name
+    std::string command_name("set waypoint at ");
+    std::size_t index_found = frame_command_.find(command_name);
+    std::string waypoint_name = frame_command_.substr(index_found + command_name.size());
+
+    // check if waypoint name exists in map
+    std::map<std::string, geometry_msgs::Pose>::iterator it;
+    it = waypoints_.find(waypoint_name);
+    if( it != waypoints_.end() ) {
+        ROS_INFO("[Semantic Frame Controller Node] Setting %s as current waypoint", waypoint_name.c_str());
+        current_waypoint_ = it->second;
+        return true;
+    }
+    else { // it == waypoints_.end()
+        ROS_WARN("[Semantic Frame Controller Node] Waypoint for %s does not exist; ignoring command", waypoint_name.c_str());
+        resetCommandReceivedFlag();
+        return false;
+    }
 }
 
 // HELPER FUNCTIONS FOR GO HOME MESSAGES
@@ -451,7 +539,9 @@ int main(int argc, char **argv) {
                 sfnode.resetCommandReceivedFlag();
                 ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
             }
-            else { // otherwise, commands involve controllers
+
+            // check if received command is controller command
+            if( sfnode.getControllerCommandReceivedFlag() ) {
                 // perform controller update
                 controller_converged = sfnode.singleControllerStep();
 
@@ -469,6 +559,12 @@ int main(int argc, char **argv) {
                         ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
                     }
                 }
+            }
+
+            // check if received command is waypoint command
+            if( sfnode.getWaypointCommandReceivedFlag() ) {
+                // nothing to do yet
+                ROS_INFO("[Semantic Frame Controller Node] Set waypoint, waiting for planning command...");
             }
         }
 

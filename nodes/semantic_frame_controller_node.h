@@ -13,6 +13,7 @@
 #include <utility>
 #include <ros/ros.h>
 #include <tf/tf.h>
+#include <geometry_msgs/TransformStamped.h>
 #include <std_msgs/String.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/JointState.h>
@@ -37,12 +38,17 @@ public:
     // CALLBACK
     void statusCallback(const std_msgs::String& msg);
     void semanticFrameCallback(const std_msgs::String& msg);
+    void waypointCallback(const geometry_msgs::TransformStamped& msg);
 
     // GETTERS/SETTERS
     double getLoopRate();
     bool getRobotStateInitializedFlag();
     bool getCommandReceivedFlag();
+    bool getControllerCommandReceivedFlag();
     bool getHomingCommandReceivedFlag();
+    bool getWaypointCommandReceivedFlag();
+    bool getPlanningCommandReceivedFlag();
+    bool getExecutePlanCommandReceivedFlag();
     void resetCommandReceivedFlag();
 
     // HELPER FUNCTIONS
@@ -57,8 +63,9 @@ public:
     void publishPelvisTransformForBroadcaster();
     bool checkControllerConvergedPeriod();
 
-    // HELPER FUNCTIONS FOR TARGET POSE
+    // HELPER FUNCTIONS FOR TARGET POSE AND WAYPOINTS
     void publishTargetPose();
+    bool setCurrentWaypointFromStoredWaypoints();
 
     // HELPER FUNCTIONS FOR GO HOME MESSAGES
     void publishHomingMessages();
@@ -85,6 +92,8 @@ private:
 
     ros::Publisher home_robot_pub_; // publisher for homing robot
 
+    ros::Subscriber waypoint_sub_; // subscriber for waypoints
+
     std::string tf_prefix_; // tf prefix
 
     dynacore::Vector q_current_; // current robot configuration
@@ -98,12 +107,18 @@ private:
     std::shared_ptr<controllers::PotentialFieldController> run_controller_; // controller being run
     
     bool command_received_; // flag indicating if command has been received
+    bool controller_command_received_; // flag indicating if command involves running controllers
     bool homing_command_received_; // flag indicating if command involves sending homing message(s)
+    bool waypoint_command_received_; // flag indicating if command involves setting a waypoint
+    bool planning_command_received_; // flag indicating if command involves requesting a plan
+    bool execute_plan_command_received_; // flag indicating if command involves executing a planned footstep list
     std::string frame_command_; // semantic frame command
 
     // targets
     dynacore::Vect3 target_pos_;
     dynacore::Quaternion target_quat_;
+    geometry_msgs::Pose current_waypoint_;
+    std::map<std::string, geometry_msgs::Pose> waypoints_;
 
 }; // end class SemanticFrameControllerNode
 
