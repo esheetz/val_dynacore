@@ -82,6 +82,7 @@ private:
     void prepareRobotStateConfigurationVector();
     void updateRobotModelWithCurrentState();
     void updateRobotModelWithCommandedState();
+    void resetAllFlags();
 
     // CONTROLLER COMPOSITION
     bool updateComposedControllers(std::vector<std::shared_ptr<controllers::PotentialFieldController>> prioritized_controllers,

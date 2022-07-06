@@ -45,6 +45,10 @@ public:
     bool getHomingCommandReceivedFlag();
     void resetCommandReceivedFlag();
 
+    // HELPER FUNCTIONS
+    void stopPreviousCommand();
+    bool checkCommandCooldownPeriod();
+
     // HELPER FUNCTIONS FOR CONTROLLER
     void startController();
     bool singleControllerStep();
@@ -73,6 +77,8 @@ private:
 
     std::chrono::system_clock::time_point controller_convergence_start_time_; // time when controllers converged
     double convergence_period_; // amount of time controllers need to be converged before node waits for next command
+    std::chrono::system_clock::time_point last_command_received_time_; // time when most recent command received
+    double command_cooldown_period_; // amount of time between commands before node will accept another command
 
     ros::Subscriber semantic_frame_sub_; // subscriber for semantic frame command
     ros::Publisher target_pose_pub_; // publisher for target pose

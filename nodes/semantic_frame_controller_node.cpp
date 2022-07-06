@@ -39,7 +39,8 @@ SemanticFrameControllerNode::SemanticFrameControllerNode(const ros::NodeHandle& 
     initializeConnections();
 
     // initialize timekeeping
-    convergence_period_ = 1.0; // seconds
+    convergence_period_ = 0.3; // seconds
+    command_cooldown_period_ = 1.0; // seconds
 
     std::cout << "[Semantic Frame Controller Node] Constructed" << std::endl;
 }
@@ -82,6 +83,10 @@ void SemanticFrameControllerNode::statusCallback(const std_msgs::String& msg) {
 }
 
 void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& msg) {
+    // stop any previously running commands
+    stopPreviousCommand();
+
+    // process current command
     if( (msg.data == std::string("raise left hand")) || (msg.data == std::string("raise right hand")) ) {
         // set frame command
         frame_command_ = msg.data;
@@ -89,24 +94,53 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
 
         // set target pose based on command
         if( msg.data == std::string("raise left hand") ) {
+            // high five pose; far enough away from robot, but may not converge
+            target_pos_ << 0.25, 0.7, 0.4;
+            target_quat_.x() = 0.592105;
+            target_quat_.y() = 0.017506;
+            target_quat_.z() = -0.016812;
+            target_quat_.w() = 0.805495;
+            /*
+            // high five pose; too close to robot
             target_pos_ << 0.4, 0.4, 0.28;
             target_quat_.x() = 0.630493;
             target_quat_.y() = 0.228295;
             target_quat_.z() = -0.105274;
             target_quat_.w() = 0.734355;
+            */
             cm_.addControllerForGroup(valkyrie_link::leftPalm, run_controller_);
         }
         else { // msg.data == std::string("raise right hand")
-            target_pos_ << 0.4, -0.4, 0.28; //0.25, -0.6, 0.4; (more upright)
-            target_quat_.x() = -0.630493; //-0.592105; (more upright)
-            target_quat_.y() = 0.228295; //0.017506; (more upright)
-            target_quat_.z() = 0.105274; //0.016812; (more upright)
-            target_quat_.w() = 0.734355; //0.805495; (more upright)
+            // high five pose; far enough away from robot, but may not converge
+            target_pos_ << 0.25, -0.7, 0.4;
+            target_quat_.x() = -0.592105;
+            target_quat_.y() = 0.017506;
+            target_quat_.z() = 0.016812;
+            target_quat_.w() = 0.805495;
+            /*
+            // high five pose; too close to robot
+            target_pos_ << 0.4, -0.4, 0.28;
+            target_quat_.x() = -0.630493;
+            target_quat_.y() = 0.228295;
+            target_quat_.z() = 0.105274;
+            target_quat_.w() = 0.734355;
+            */
+            /*
+            // high five pose; more upright, but still too close to robot
+            target_pos_ << 0.25, -0.6, 0.4;
+            target_quat_.x() = -0.592105;
+            target_quat_.y() = 0.017506;
+            target_quat_.z() = 0.016812;
+            target_quat_.w() = 0.805495;
+            */
             cm_.addControllerForGroup(valkyrie_link::rightPalm, run_controller_);
         }
 
         // publish target pose
         publishTargetPose();
+
+        // store time command received
+        last_command_received_time_ = std::chrono::system_clock::now();
         ROS_INFO("[Semantic Frame Controller Node] Command received to %s", frame_command_.c_str());
 
         // start controller
@@ -120,6 +154,8 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
         command_received_ = true;
         homing_command_received_ = true;
 
+        // store time command received
+        last_command_received_time_ = std::chrono::system_clock::now();
         ROS_INFO("[Semantic Frame Controller Node] Command received to %s", frame_command_.c_str());
     }
 
@@ -148,6 +184,31 @@ void SemanticFrameControllerNode::resetCommandReceivedFlag() {
     homing_command_received_ = false;
     frame_command_ = std::string("");
     return;
+}
+
+// HELPER FUNCTIONS
+void SemanticFrameControllerNode::stopPreviousCommand() {
+    // check if a command has already been received
+    if( command_received_ && checkCommandCooldownPeriod()) {
+        // stop controller manager for safety
+        stopControllerManager();
+        ROS_INFO("[Semantic Frame Controller Node] New command interrupting execution. Stopping controller manager for safety!");
+    }
+
+    return;
+}
+
+bool SemanticFrameControllerNode::checkCommandCooldownPeriod() {
+    // get current time
+    std::chrono::system_clock::time_point t = std::chrono::system_clock::now();
+
+    // compute duration since last command received
+    double time_since_command_received = std::chrono::duration_cast<std::chrono::seconds>(t - last_command_received_time_).count();
+
+    // check for cooled down
+    bool cooled_down = (time_since_command_received > command_cooldown_period_);
+
+    return cooled_down;
 }
 
 // HELPER FUNCTIONS FOR CONTROLLER
@@ -404,6 +465,7 @@ int main(int argc, char **argv) {
                     ROS_INFO("[Semantic Frame Controller Node] Controller converged!");
                     if( sfnode.checkControllerConvergedPeriod() ) {
                         sfnode.resetCommandReceivedFlag();
+                        sfnode.stopControllerManager();
                         ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
                     }
                 }

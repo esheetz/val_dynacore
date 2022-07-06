@@ -319,6 +319,12 @@ void ControllerManager::stopControllers() {
         }
     }
 
+    // publish stop status message for IHMC
+    publishStopStatusMessage();
+
+    // reset flags
+    resetAllFlags();
+
     return;
 }
 
@@ -332,6 +338,9 @@ void ControllerManager::resetControllers() {
             link_controllers.second[i]->reset();
         }
     }
+
+    // reset flags
+    resetAllFlags();
 
     return;
 }
@@ -552,6 +561,19 @@ void ControllerManager::updateRobotModelWithCommandedState() {
     return;
 }
 
+void ControllerManager::resetAllFlags() {
+    received_robot_pose_ = false;
+    received_joint_state_ = false;
+    received_robot_state_ = false;
+    initial_command_sent_ = false;
+    controllers_converged_ = false;
+    publish_for_ihmc_ = true;
+    ihmc_start_status_sent_ = false;
+    ihmc_stop_status_sent_ = false;
+
+    return;
+}
+
 // CONTROLLER COMPOSITION
 bool ControllerManager::updateComposedControllers(std::vector<std::shared_ptr<controllers::PotentialFieldController>> prioritized_controllers,
                                                   dynacore::Vector& composed_controller_command) {
@@ -677,6 +699,9 @@ void ControllerManager::publishStartStatusMessage() {
 
     // publish status for IHMCMsgInterface
     ihmc_controller_status_pub_.publish(status_msg);
+
+    // set flag to start publishing messages for IHMCMsgInterface
+    publish_for_ihmc_ = true;
 
     return;
 }
