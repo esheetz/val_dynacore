@@ -37,5 +37,5 @@ Supported commands are:
 
 ## Testing with Valkyrie
 See the following pages for more information on using semantic frames to command Valkyrie:
-- [Testing in RViz](docs/semantic_frames_RViz.md)
-- [Testing on Robot](docs/semantic_frames_robot.md)
+- [Testing in RViz](semantic_frames_RViz.md)
+- [Testing on Robot](semantic_frames_robot.md)
