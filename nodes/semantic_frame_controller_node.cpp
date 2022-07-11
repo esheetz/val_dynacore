@@ -86,12 +86,12 @@ bool SemanticFrameControllerNode::initializeClients() {
     plan_to_waypoint_client_ = nh_.serviceClient<val_footstep_planner_executor::PlanToWaypoint>("/plan_to_waypoint");
     plan_to_waypoint_client_.waitForExistence(); // blocks until service exists
     ROS_INFO("[Semantic Frame Controller Node] Service plan_to_waypoint is ready!");
-    
+
     ROS_INFO("[Semantic Frame Controller Node] Waiting for service execute_to_waypoint...");
     execute_to_waypoint_client_ = nh_.serviceClient<val_footstep_planner_executor::ExecuteToWaypoint>("/execute_to_waypoint");
     execute_to_waypoint_client_.waitForExistence(); // blocks until service exists
     ROS_INFO("[Semantic Frame Controller Node] Service execute_to_waypoint is ready!");
-    
+
     ROS_INFO("[Semantic Frame Controller Node] Waiting for service plan_to_stance...");
     plan_to_stance_client_ = nh_.serviceClient<val_footstep_planner_executor::PlanToStance>("/plan_to_stance");
     plan_to_stance_client_.waitForExistence(); // blocks until service exists
