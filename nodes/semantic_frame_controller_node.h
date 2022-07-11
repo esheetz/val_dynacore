@@ -24,6 +24,10 @@
 #include <Controllers/potential_field_controller.h>
 #include <Controllers/pose_controller.h>
 #include <ControllersCore/controller_manager.h>
+#include <val_footstep_planner_executor/PlanToWaypoint.h>
+#include <val_footstep_planner_executor/ExecuteToWaypoint.h>
+#include <val_footstep_planner_executor/PlanToStance.h>
+#include <val_footstep_planner_executor/ExecuteToStance.h>
 
 class SemanticFrameControllerNode
 {
@@ -34,6 +38,7 @@ public:
 
     // CONNECTIONS
     bool initializeConnections();
+    bool initializeClients();
 
     // CALLBACK
     void statusCallback(const std_msgs::String& msg);
@@ -74,6 +79,10 @@ public:
     void publishChestHomingMessage();
     void publishPelvisHomingMessage();
 
+    // HELPER FUNCTIONS FOR PLANNING/EXECUTING
+    void requestFootstepPlan();
+    void requestFootstepExecution();
+
 private:
     ros::NodeHandle nh_; // node handler
     controllers_core::ControllerManager cm_; // controller manager
@@ -93,6 +102,12 @@ private:
     ros::Publisher home_robot_pub_; // publisher for homing robot
 
     ros::Subscriber waypoint_sub_; // subscriber for waypoints
+
+    // service clients
+    ros::ServiceClient plan_to_waypoint_client_;
+    ros::ServiceClient execute_to_waypoint_client_;
+    ros::ServiceClient plan_to_stance_client_;
+    ros::ServiceClient execute_to_stance_client_;
 
     std::string tf_prefix_; // tf prefix
 

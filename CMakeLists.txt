@@ -23,10 +23,11 @@ find_package(catkin REQUIRED COMPONENTS
 	nav_msgs
 	sensor_msgs
 	std_msgs
+	val_footstep_planner_executor
 )
 find_package(Eigen3 REQUIRED)
 catkin_package(
-	CATKIN_DEPENDS roscpp rospy tf geometry_msgs nav_msgs sensor_msgs std_msgs
+	CATKIN_DEPENDS roscpp rospy tf geometry_msgs nav_msgs sensor_msgs std_msgs val_footstep_planner_executor
 	DEPENDS EIGEN3
 	INCLUDE_DIRS . RobotSystems ExternalSource
 	LIBRARIES dynacore_utils Valkyrie_model
@@ -43,6 +44,21 @@ set(CMAKE_CXX_FLAGS "-std=c++11")
 include_directories ("/usr/local/include")
 include_directories ("${PROJECT_SOURCE_DIR}/")
 
+#------------------------------------------------------------------------
+#     Find ROS Services
+#     Note:
+#         ${CATKIN_DEVEL_PREFIX} is devel/.private/${PROJECT_NAME}
+#         services are in devel/include
+#------------------------------------------------------------------------
+set(SERVICE_DIR ${CATKIN_DEVEL_PREFIX}/../../${CATKIN_GLOBAL_INCLUDE_DESTINATION})
+message("")
+message("Service directory: ${SERVICE_DIR}")
+message("")
+include_directories ("${SERVICE_DIR}")
+
+#------------------------------------------------------------------------
+#     Include Directories
+#------------------------------------------------------------------------
 include_directories ("${PROJECT_SOURCE_DIR}/RobotSystems")
 include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource")
 include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource/QuadProgpp")

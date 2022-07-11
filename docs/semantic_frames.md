@@ -32,6 +32,15 @@ Supported commands are:
 - `raise right hand` or equivalently `lift right hand`
 - `give me a high five` or equivalently `give me five`
 - `give <name> a high five`
+- `go to <name>s desk`
+
+
+
+## Valkyrie Footstep Planner and Executor
+When commanding Valkyrie to plan or execute a walk to either waypoints or stances, it will be helpful to use the [`val_footstep_planner_executor`](https://github.com/esheetz/val_footstep_planner_executor) package, which provides services for requesting plans and executing walks for waypoints and stances.  Install the `val_footstep_planner_executor` package in the same workspace as the `val_dynacore` package by running:
+```
+git clone https://github.com/esheetz/val_footstep_planner_executor.git
+```
 
 
 

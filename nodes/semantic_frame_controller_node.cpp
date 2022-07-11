@@ -1,6 +1,6 @@
 /**
  * Semantic Frame Controller Node
- * Emily Sheetz, Fall 2021
+ * Emily Sheetz, Fall 2021, Summer 2022
  **/
 
 #include <nodes/semantic_frame_controller_node.h>
@@ -41,6 +41,7 @@ SemanticFrameControllerNode::SemanticFrameControllerNode(const ros::NodeHandle& 
     ROS_INFO("[Semantic Frame Controller Node] Constructed controller of type %s", controller_name.c_str());
 
     initializeConnections();
+    initializeClients();
 
     // initialize timekeeping
     convergence_period_ = 0.3; // seconds
@@ -77,6 +78,30 @@ bool SemanticFrameControllerNode::initializeConnections() {
     // subscribe to waypoints
     waypoint_sub_ = nh_.subscribe("/valkyrie/semantic_frame/waypoints", 1, &SemanticFrameControllerNode::waypointCallback, this);
     
+    return true;
+}
+
+bool SemanticFrameControllerNode::initializeClients() {
+    ROS_INFO("[Semantic Frame Controller Node] Waiting for service plan_to_waypoint...");
+    plan_to_waypoint_client_ = nh_.serviceClient<val_footstep_planner_executor::PlanToWaypoint>("/plan_to_waypoint");
+    plan_to_waypoint_client_.waitForExistence(); // blocks until service exists
+    ROS_INFO("[Semantic Frame Controller Node] Service plan_to_waypoint is ready!");
+    
+    ROS_INFO("[Semantic Frame Controller Node] Waiting for service execute_to_waypoint...");
+    execute_to_waypoint_client_ = nh_.serviceClient<val_footstep_planner_executor::ExecuteToWaypoint>("/execute_to_waypoint");
+    execute_to_waypoint_client_.waitForExistence(); // blocks until service exists
+    ROS_INFO("[Semantic Frame Controller Node] Service execute_to_waypoint is ready!");
+    
+    ROS_INFO("[Semantic Frame Controller Node] Waiting for service plan_to_stance...");
+    plan_to_stance_client_ = nh_.serviceClient<val_footstep_planner_executor::PlanToStance>("/plan_to_stance");
+    plan_to_stance_client_.waitForExistence(); // blocks until service exists
+    ROS_INFO("[Semantic Frame Controller Node] Service plan_to_stance is ready!");
+
+    ROS_INFO("[Semantic Frame Controller Node] Waiting for service execute_to_stance...");
+    execute_to_stance_client_ = nh_.serviceClient<val_footstep_planner_executor::ExecuteToStance>("/execute_to_stance");
+    execute_to_stance_client_.waitForExistence(); // blocks until service exists
+    ROS_INFO("[Semantic Frame Controller Node] Service execute_to_stance is ready!");
+
     return true;
 }
 
@@ -181,6 +206,28 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
             last_command_received_time_ = std::chrono::system_clock::now();
             ROS_INFO("[Semantic Frame Controller Node] Command received to %s", frame_command_.c_str());
         }
+    }
+
+    if( (msg.data.find(std::string("plan to ")) != std::string::npos) ) {
+        // set frame command
+        frame_command_ = msg.data;
+        command_received_ = true;
+        planning_command_received_ = true;
+
+        // store time command received
+        last_command_received_time_ = std::chrono::system_clock::now();
+        ROS_INFO("[Semantic Frame Controller Node] Command received to %s", frame_command_.c_str());
+    }
+
+    if( (msg.data.find(std::string("execute to ")) != std::string::npos) ) {
+        // set frame command
+        frame_command_ = msg.data;
+        command_received_ = true;
+        execute_plan_command_received_ = true;
+
+        // store time command received
+        last_command_received_time_ = std::chrono::system_clock::now();
+        ROS_INFO("[Semantic Frame Controller Node] Command received to %s", frame_command_.c_str());
     }
 
     return;
@@ -508,6 +555,115 @@ void SemanticFrameControllerNode::publishPelvisHomingMessage() {
     return;
 }
 
+// HELPER FUNCTIONS FOR PLANNING/EXECUTING
+void SemanticFrameControllerNode::requestFootstepPlan() {
+    // check if planning for waypoint
+    if( (frame_command_.find(std::string("waypoint")) != std::string::npos) ) {
+        // create request and response
+        val_footstep_planner_executor::PlanToWaypoint::Request req;
+        val_footstep_planner_executor::PlanToWaypoint::Response res;
+
+        // set request
+        req.waypoint_pose = current_waypoint_;
+
+        // call service
+        if( plan_to_waypoint_client_.call(req, res) ) {
+            // call successful! check result
+            if( res.success ) {
+                // successfully planned
+                ROS_INFO("[Semantic Frame Controller Node] Successfully planned to waypoint!");
+            }
+            else { // !res.success
+                ROS_WARN("[Semantic Frame Controller Node] Could not plan to waypoint");
+            }
+        }
+        else {
+            ROS_ERROR("[Semantic Frame Controller Node] Failed to call service plan_to_waypoint");
+        }
+    }
+
+    // check if planning for stance
+    if( (frame_command_.find(std::string("stance")) != std::string::npos) ) {
+        // create request and response
+        val_footstep_planner_executor::PlanToStance::Request req;
+        val_footstep_planner_executor::PlanToStance::Response res;
+
+        // set request
+        req.request = true;
+
+        // call service
+        if( plan_to_stance_client_.call(req, res) ) {
+            // call successful! check result
+            if( res.success ) {
+                // successfully planned
+                ROS_INFO("[Semantic Frame Controller Node] Successfully planned to stance!");
+            }
+            else { // !res.success
+                ROS_WARN("[Semantic Frame Controller Node] Could not plan to stance");
+            }
+        }
+        else {
+            ROS_ERROR("[Semantic Frame Controller Node] Failed to call service plan_to_stance");
+        }
+    }
+
+    return;
+}
+
+void SemanticFrameControllerNode::requestFootstepExecution() {
+    // check if executing to waypoint
+    if( (frame_command_.find(std::string("waypoint")) != std::string::npos) ) {
+        // create request and response
+        val_footstep_planner_executor::ExecuteToWaypoint::Request req;
+        val_footstep_planner_executor::ExecuteToWaypoint::Response res;
+
+        // set request
+        req.use_stored_footstep_plan = true;
+
+        // call service
+        if( execute_to_waypoint_client_.call(req, res) ) {
+            // call successful! check result
+            if( res.success ) {
+                // successfully executed
+                ROS_INFO("[Semantic Frame Controller Node] Successfully executed to waypoint!");
+            }
+            else { // !res.success
+                ROS_WARN("[Semantic Frame Controller Node] Could not execute to waypoint");
+            }
+        }
+        else {
+            ROS_ERROR("[Semantic Frame Controller Node] Failed to call service execute_to_waypoint");
+        }
+    }
+
+    // check if executing to stance
+    if( (frame_command_.find(std::string("stance")) != std::string::npos) ) {
+        // create request and response
+        val_footstep_planner_executor::ExecuteToStance::Request req;
+        val_footstep_planner_executor::ExecuteToStance::Response res;
+
+        // set request
+        req.use_stored_footstep_plan = true;
+
+        // call service
+        if( execute_to_stance_client_.call(req, res) ) {
+            // call successful! check result
+            if( res.success ) {
+                // successfully executed
+                ROS_INFO("[Semantic Frame Controller Node] Successfully executed to stance!");
+            }
+            else { // !res.success
+                ROS_WARN("[Semantic Frame Controller Node] Could not execute to stance");
+            }
+        }
+        else {
+            ROS_ERROR("[Semantic Frame Controller Node] Failed to call service execute_to_stance");
+        }
+    }
+
+    return;
+}
+
 int main(int argc, char **argv) {
     // initialize node
     ros::init(argc, argv, "SemanticFrameControllerNode");
@@ -565,6 +721,24 @@ int main(int argc, char **argv) {
             if( sfnode.getWaypointCommandReceivedFlag() ) {
                 // nothing to do yet
                 ROS_INFO("[Semantic Frame Controller Node] Set waypoint, waiting for planning command...");
+            }
+
+            // check if received command is planning command
+            if( sfnode.getPlanningCommandReceivedFlag() ) {
+                // request plan
+                sfnode.requestFootstepPlan();
+                // reset flags
+                sfnode.resetCommandReceivedFlag();
+                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+            }
+
+            // check if received command is execute command
+            if( sfnode.getExecutePlanCommandReceivedFlag() ) {
+                // request execution
+                sfnode.requestFootstepExecution();
+                // reset flags
+                sfnode.resetCommandReceivedFlag();
+                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
             }
         }
 

@@ -76,7 +76,7 @@ target_link_libraries(pelvis_transform_broadcaster_node dynacore_utils
 
 #-----------------------------------------------------------------------
 # Semantic Frame Controller Node:
-# for teting integration of controllers with semantic frames
+# for testing integration of controllers with semantic frames
 #-----------------------------------------------------------------------
 add_executable(semantic_frame_controller_node semantic_frame_controller_node.cpp)
 target_link_libraries(semantic_frame_controller_node dynacore_rbdl
