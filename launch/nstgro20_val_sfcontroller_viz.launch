@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <launch>
 	<arg name="user_names" default="[emily,steven,mark]"/>
-  	<arg name="launch_footstep_services" default="false"/> <!-- indicates if planning and executing services should be launched -->
-  	<arg name="vis" default="true"/>
+	<arg name="launch_footstep_services" default="false"/> <!-- indicates if planning and executing services should be launched -->
+	<arg name="vis" default="true"/>
 
-  	<rosparam param="user_names" subst_value="True">$(arg user_names)</rosparam>
+	<rosparam param="user_names" subst_value="True">$(arg user_names)</rosparam>
 
 	<arg name="waypoints" default="true"/>
 	<arg name="stances" default="true"/>
