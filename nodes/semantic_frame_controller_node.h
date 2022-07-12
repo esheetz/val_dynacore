@@ -13,6 +13,7 @@
 #include <utility>
 #include <ros/ros.h>
 #include <tf/tf.h>
+#include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <std_msgs/String.h>
 #include <nav_msgs/Odometry.h>
@@ -44,6 +45,7 @@ public:
     void statusCallback(const std_msgs::String& msg);
     void semanticFrameCallback(const std_msgs::String& msg);
     void waypointCallback(const geometry_msgs::TransformStamped& msg);
+    void targetPoseCallback(const geometry_msgs::PoseStamped& msg);
 
     // GETTERS/SETTERS
     double getLoopRate();
@@ -54,11 +56,14 @@ public:
     bool getWaypointCommandReceivedFlag();
     bool getPlanningCommandReceivedFlag();
     bool getExecutePlanCommandReceivedFlag();
+    bool getHandCommandReceivedFlag();
     void resetCommandReceivedFlag();
 
     // HELPER FUNCTIONS
     void stopPreviousCommand();
     bool checkCommandCooldownPeriod();
+    void setFrameCommand(std::string command, bool& command_flag);
+    void storeTimeCommandReceived(std::string command);
 
     // HELPER FUNCTIONS FOR CONTROLLER
     void startController();
@@ -81,7 +86,18 @@ public:
 
     // HELPER FUNCTIONS FOR PLANNING/EXECUTING
     void requestFootstepPlan();
+    void requestFootstepPlanToWaypoint();
+    void requestFootstepPlanToStance();
     void requestFootstepExecution();
+    void requestFootstepExecutionToWaypoint();
+    void requestFootstepExecutionToStance();
+
+    // HELPER FUNCTIONS FOR HAND MESSAGES
+    void publishHandMessages();
+    void publishOpenLeftHandMessage();
+    void publishCloseLeftHandMessage();
+    void publishOpenRightHandMessage();
+    void publishCloseRightHandMessage();
 
 private:
     ros::NodeHandle nh_; // node handler
@@ -98,6 +114,7 @@ private:
 
     ros::Subscriber semantic_frame_sub_; // subscriber for semantic frame command
     ros::Publisher target_pose_pub_; // publisher for target pose
+    ros::Subscriber target_pose_sub_; // subscriber for target pose
 
     ros::Publisher home_robot_pub_; // publisher for homing robot
 
@@ -127,6 +144,7 @@ private:
     bool waypoint_command_received_; // flag indicating if command involves setting a waypoint
     bool planning_command_received_; // flag indicating if command involves requesting a plan
     bool execute_plan_command_received_; // flag indicating if command involves executing a planned footstep list
+    bool hand_command_received_; // flag indicating if command involves opening/closing hand
     std::string frame_command_; // semantic frame command
 
     // targets

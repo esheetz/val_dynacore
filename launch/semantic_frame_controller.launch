@@ -15,6 +15,10 @@
 	-->
 	<arg name="ref_node" default="ControllerReferencePublisherNode"/> <!-- for publishing controller references -->
 
+	<!-- flags for what services to wait for -->
+	<arg name="waypoints" default="true"/>
+	<arg name="stances" default="true"/>
+
 	<arg name="sim" default="false"/>
 	<!-- if not testing in sim, robot pose and joint states will come from IHMC -->
 	<arg unless="$(arg sim)" name="robot_pose_topic" value="/ihmc_ros/valkyrie/output/robot_pose"/>
@@ -38,6 +42,8 @@
 		<param name="robot_pose_topic" value="$(arg robot_pose_topic)"/>
 		<param name="joint_state_topic" value="$(arg joint_state_topic)"/>
 		<param name="robot_pose_init" value="$(arg robot_pose_init)"/>
+		<param name="waypoints" value="$(arg waypoints)"/>
+		<param name="stances" value="$(arg stances)"/>
 		<!--<param name="" type="" value=""/> -->
 	</node>
 </launch>

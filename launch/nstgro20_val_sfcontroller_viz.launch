@@ -1,5 +1,14 @@
 <?xml version="1.0"?>
 <launch>
+	<arg name="user_names" default="[emily,steven,mark]"/>
+  	<arg name="launch_footstep_services" default="false"/> <!-- indicates if planning and executing services should be launched -->
+  	<arg name="vis" default="true"/>
+
+  	<rosparam param="user_names" subst_value="True">$(arg user_names)</rosparam>
+
+	<arg name="waypoints" default="true"/>
+	<arg name="stances" default="true"/>
+
 	<!-- Nice Reference at: http://answers.gazebosim.org/question/9403/multi-robot-controller-manager-for-different-robot_descripion/ -->
 
 	<param name="nstgro20_valkyrie_robot_description" textfile="$(find val_dynacore)/RobotSystems/Valkyrie/valkyrie_simple.urdf" />
@@ -17,6 +26,17 @@
 		<param name="tf_prefix" type="string" value="val_controller" />	<!-- we use kinetic_robot_state_publisher so we can use tf_prefix-->
 	</node>
 
-	<node name="rviz_ik" pkg="rviz" type="rviz" args="-d $(find val_dynacore)/launch/sf-controllers.viz.rviz" required="true" /> <!-- controller visualization with visualizations of 6d task pose(s); when launched this way, robot model WILL NOT show up correctly until tf broadcaster is started between world and pelvis -->
+	<group if="$(arg vis)">
+		<node name="rviz_ik" pkg="rviz" type="rviz" args="-d $(find val_dynacore)/launch/sf-controllers.viz.rviz" required="true" /> <!-- controller visualization with visualizations of 6d task pose(s); when launched this way, robot model WILL NOT show up correctly until tf broadcaster is started between world and pelvis -->
+	</group>
+
+	<include file="$(find semantic_frame_pipeline)/launch/sf_waypoint_node.launch"/>
+
+	<group if="$(arg launch_footstep_services)">
+		<include file="$(find val_footstep_planner_executor)/launch/footstep_planner_executor_server_node.launch">
+			<arg name="waypoints" value="$(arg waypoints)"/>
+			<arg name="stances" value="$(arg stances)"/>
+		</include>
+	</group>
 
 </launch>
