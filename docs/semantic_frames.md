@@ -33,6 +33,7 @@ Supported commands are:
 - `give me a high five` or equivalently `give me five`
 - `give <name> a high five`
 - `go to <name>s desk`
+- `give <name> the <object>` (object must be supported by AT registration)
 
 
 
@@ -41,6 +42,15 @@ When commanding Valkyrie to plan or execute a walk to either waypoints or stance
 ```
 git clone https://github.com/esheetz/val_footstep_planner_executor.git
 ```
+
+
+
+## Other Dependencies
+There are several other internal NASA packages that may be required to execute or visualize certain commands.  These packages include:
+- `valkyrie_gui`: visualization
+- `valkyrie_navigation`: planning and executing footsteps
+- `val_vr_ros`: AT registration
+- `useit_core`, `useit_server`, `useit_shell`, `useit_msgs`, `useit_model_examples`: AT registration
 
 
 

@@ -11,6 +11,10 @@ roslaunch val_dynacore nstgro20_val_sfcontroller_viz.launch
 ```
 Note that this launch file loads an RViz config that requires the world frame to be published.  The robot will not look right until pelvis transforms are published in the next steps.
 
+This launch file launches two helpful nodes:
+- `SemanticFrameWaypointNode` that allows users to interactively set waypoints for the robot to navigate to later.  To change the names of the users whose desk Valkyrie may want to navigate to, add the optional argument `user_names:=[<name1>,<name2>,...]`.
+- If argument `launch_footstep_services:=true`, launches the `ValkyrieFootstepPlannerExecutorServerNode` that provides services for planning and executing to waypoints or stances.  Use arguments `waypoints:=false` and/or `stances:=false` to control what destination types the node will support.
+
 2. Launch the pelvis transform broadcaster, which listens for pelvis transforms and broadcasts them to the tf tree:
 ```
 roslaunch val_dynacore pelvis_transform_broadcaster.launch managing_node:=SemanticFrameControllerNode
@@ -25,7 +29,7 @@ roslaunch val_dynacore controller_reference_publisher.launch sim:=true recv_ref:
 ```
 roslaunch val_dynacore semantic_frame_controller.launch sim:=true
 ```
-At this point, the controllers are initialized and ready, but the node will wait until the robot state has been initialized in the next step.
+At this point, the controllers are initialized and ready, but the node will wait until the robot state has been initialized in the next step.  Use arguments `waypoints:=false` and/or `stances:=false` to control what services the node will wait for.  The arguments used here should match those used when launching RViz above.
 
 5. Launch the node to set Valkyrie to standing:
 ```

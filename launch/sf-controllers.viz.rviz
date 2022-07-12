@@ -9,6 +9,7 @@ Panels:
         - /RobotModel1
         - /Pose1
         - /TF1
+        - /InteractiveMarkers1
       Splitter Ratio: 0.5
     Tree Height: 839
   - Class: rviz/Selection
@@ -619,6 +620,15 @@ Visualization Manager:
       Tree:
         {}
       Update Interval: 0
+      Value: true
+    - Class: rviz/InteractiveMarkers
+      Enable Transparency: true
+      Enabled: true
+      Name: InteractiveMarkers
+      Show Axes: false
+      Show Descriptions: true
+      Show Visual Aids: false
+      Update Topic: /semantic_frame_waypoints/update
       Value: true
   Enabled: true
   Global Options:
