@@ -53,11 +53,25 @@ roslaunch semantic_frame_pipeline sf_status_node.launch
 8. (Optional) Set waypoints for Valkyrie to navigate to when commanded.  In the `valkyrie_gui`, move the interactive marker called Semantic Frame Waypoint to the desired position.  When ready, right click on the marker and click "Set Waypoint for \<name\>'s Desk".  This step could be done with mapping or vision, but since the focus of this project is on the understanding and execution of the semantic frames, setting the waypoints manually suffices.
 
 9. (Optional) Perform affordance template (AT) registration and set a waypoint for a relevant object.  When running AT registration, launch the following nodes:
-```
-roslaunch useit_server useit_server.launch
-rosrun useit_shell useit_interaction_node
-roslaunch val_vr_ros at_registration_node.launch interactive:=true interactive_model_name:=disruptor
-```
+    1. Set up point cloud for AT registration.
+    ```
+    ssh zelda01
+    ./stream
+    ```
+
+    ```
+    source ~/val_ws/install/setup.bash
+    roslaunch zed_wrapper zedm.launch stream:=10.185.0.11:30000 base_frame:=zedm_mount
+    roslaunch val_vr_ros voxelize_zedm_pointcloud.launch
+    ```
+
+    2. Set up AT registration.
+    ```
+    roslaunch useit_server useit_server.launch
+    rosrun useit_shell useit_interaction_node
+    roslaunch val_vr_ros at_registration_node.launch interactive:=true interactive_model_name:=disruptor
+    ```
+
 Objects can be registered using the interactive marker displayed in RViz.  This interactive marker will allow you to register objects and request waypoints for registered objects.  The waypoints will allow you to set a target pose for the controllers.
 
 10. Provide a command to Valkyrie.  A good simple test is to ask her to give you a high five.  Be sure to check the output from the feedback node, as some actions will request confirmation from the user to continue performing the task.
