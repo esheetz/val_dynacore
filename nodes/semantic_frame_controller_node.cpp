@@ -155,12 +155,20 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
             cm_.addControllerForGroup(valkyrie_link::leftPalm, run_controller_);
         }
         else { // msg.data == std::string("raise right hand")
+            // high five pose; further forward to try to smooth out trajectory, but still very choppy
+            target_pos_ << 0.45, -0.6, 0.4;
+            target_quat_.x() = -0.592105;
+            target_quat_.y() = 0.017506;
+            target_quat_.z() = 0.016812;
+            target_quat_.w() = 0.805495;
+            /*
             // high five pose; far enough away from robot, but may not converge
             target_pos_ << 0.25, -0.7, 0.4;
             target_quat_.x() = -0.592105;
             target_quat_.y() = 0.017506;
             target_quat_.z() = 0.016812;
             target_quat_.w() = 0.805495;
+            */
             /*
             // high five pose; too close to robot
             target_pos_ << 0.4, -0.4, 0.28;
@@ -321,6 +329,10 @@ void SemanticFrameControllerNode::targetPoseCallback(const geometry_msgs::PoseSt
     target_quat_.y() = msg.pose.orientation.y;
     target_quat_.z() = msg.pose.orientation.z;
     target_quat_.w() = msg.pose.orientation.w;
+    // DEBUGGING
+    std::cout << "***** DEBUG frame id: " << msg.header.frame_id << std::endl;
+    dynacore::pretty_print(target_pos_, std::cout, "Target position in pelvis frame:");
+    dynacore::pretty_print(target_quat_, std::cout, "Target quaternion in pelvis frame:");
     ROS_INFO("[Semantic Frame Controller Node] Received target pose for controller");
 
     return;
