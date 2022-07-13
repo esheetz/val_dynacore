@@ -242,7 +242,7 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
         ROS_INFO("[Semantic Frame Controller Node] Started controller!");
     }
 
-    if( (msg.data == std::string("home all")) ) {
+    if( (msg.data.find(std::string("home")) != std::string::npos) ) {
         // set frame command
         setFrameCommand(msg.data, homing_command_received_);
 
@@ -582,18 +582,77 @@ bool SemanticFrameControllerNode::setCurrentWaypointFromStoredWaypoints() {
 }
 
 // HELPER FUNCTIONS FOR GO HOME MESSAGES
+bool SemanticFrameControllerNode::checkHomingGroups(bool& home_left_arm_flag,
+                                                    bool& home_right_arm_flag,
+                                                    bool& home_chest_flag,
+                                                    bool& home_pelvis_flag) {
+    // initialize flags
+    home_left_arm_flag = false;
+    home_right_arm_flag = false;
+    home_chest_flag = false;
+    home_pelvis_flag = false;
+
+    // check homing command
+    if( (frame_command_.compare(std::string("home all")) == 0) ) {
+        home_left_arm_flag = true;
+        home_right_arm_flag = true;
+        home_chest_flag = true;
+        home_pelvis_flag = true;
+    }
+    else if( (frame_command_.compare(std::string("home left arm")) == 0) ) {
+        home_left_arm_flag = true;
+    }
+    else if( (frame_command_.compare(std::string("home right arm")) == 0) ) {
+        home_right_arm_flag = true;
+    }
+    else if( (frame_command_.compare(std::string("home chest")) == 0) ) {
+        home_chest_flag = true;
+    }
+    else if( (frame_command_.compare(std::string("home pelvis")) == 0) ) {
+        home_pelvis_flag = true;
+    }
+    else {
+        ROS_WARN("[Semantic Frame Controller Node] Unrecognized homing command %s; ignoring command", frame_command_.c_str());
+        return false;
+    }
+
+    // if function has not returned by now, valid homing command received
+    return true;
+}
+
 void SemanticFrameControllerNode::publishHomingMessages() {
-    // home left arm status
-    publishLeftArmHomingMessage();
+    // initialize flags
+    bool home_left_arm;
+    bool home_right_arm;
+    bool home_chest;
+    bool home_pelvis;
 
-    // home right arm status
-    publishRightArmHomingMessage();
+    // check homing groups and verify valid command
+    bool valid_homing_command = checkHomingGroups(home_left_arm, home_right_arm, home_chest, home_pelvis);
+    if( !valid_homing_command ) {
+        return;
+    }
 
-    // home chest status
-    publishChestHomingMessage();
+    // publish homing messages
+    if( home_left_arm ) {
+        // home left arm status
+        publishLeftArmHomingMessage();
+    }
 
-    // home pelvis status
-    publishPelvisHomingMessage();
+    if( home_right_arm ) {
+        // home right arm status
+        publishRightArmHomingMessage();
+    }
+
+    if( home_chest ) {
+        // home chest status
+        publishChestHomingMessage();
+    }
+
+    if( home_pelvis ) {
+        // home pelvis status
+        publishPelvisHomingMessage();
+    }
 
     return;
 }

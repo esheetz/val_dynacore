@@ -78,6 +78,10 @@ public:
     bool setCurrentWaypointFromStoredWaypoints();
 
     // HELPER FUNCTIONS FOR GO HOME MESSAGES
+    bool checkHomingGroups(bool& home_left_arm_flag,
+                           bool& home_right_arm_flag,
+                           bool& home_chest_flag,
+                           bool& home_pelvis_flag);
     void publishHomingMessages();
     void publishLeftArmHomingMessage();
     void publishRightArmHomingMessage();
