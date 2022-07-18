@@ -154,6 +154,18 @@ namespace ROSMsgUtils {
                               geometry_msgs::Transform& tf_msg);
 
     /*
+     * makes a Transform message from the given position and orientation
+     * @param pos, the desired position
+     * @param quat, the desired orientation
+     * @param tf_msg, the message to be populated
+     * @return none
+     * @post tf_msg populated based on the given pose
+     */
+    void makeTransformMessage(dynacore::Vect3 pos,
+                              dynacore::Quaternion quat,
+                              geometry_msgs::Transform& tf_msg);
+
+    /*
      * makes a TransformStamped message from the given transform
      * @param tf, the desired transform
      * @param tf_msg, the message to be populated
@@ -161,6 +173,24 @@ namespace ROSMsgUtils {
      * @post tf_msg populated based on the given transform
      */
     void makeTransformStampedMessage(tf::StampedTransform tf,
+                                     geometry_msgs::TransformStamped& tf_msg);
+
+    /*
+     * makes a TransformStamped message from the given position and orientation
+     * @param pos, the desired position
+     * @param quat, the desired orientation
+     * @param frame, the frame name
+     * @param child_frame, the child frame name
+     * @param stamp_time, the time
+     * @param tf_msg, the message to be populated
+     * @return none
+     * @post tf_msg populated based on the given pose
+     */
+    void makeTransformStampedMessage(dynacore::Vect3 pos,
+                                     dynacore::Quaternion quat,
+                                     std::string frame,
+                                     std::string child_frame,
+                                     ros::Time stamp_time,
                                      geometry_msgs::TransformStamped& tf_msg);
 
     /*

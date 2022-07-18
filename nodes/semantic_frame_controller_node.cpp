@@ -14,11 +14,16 @@ SemanticFrameControllerNode::SemanticFrameControllerNode(const ros::NodeHandle& 
     nh_.param("controller", controller_type_, std::string("pose"));
     nh_.param("tf_prefix", tf_prefix_, std::string(""));
     nh_.param("robot_pose_init", robot_pose_initialized_, true);
+    nh_.param("use_ihmc_controllers", use_ihmc_controllers_, true);
+
+    use_ihmc_controllers_msg_published_ = false;
+    use_ihmc_controllers_msg_counter_ = 5;
 
     loop_rate_ = 10.0; // Hz
 
     command_received_ = false;
     controller_command_received_ = false;
+    cartesian_hand_command_received_ = false;
     homing_command_received_ = false;
     waypoint_command_received_ = false;
     planning_command_received_ = false;
@@ -81,6 +86,10 @@ bool SemanticFrameControllerNode::initializeConnections() {
 
     // subscribe to target poses
     target_pose_sub_ = nh_.subscribe("/affordance_template_waypoint_target", 1, &SemanticFrameControllerNode::targetPoseCallback, this);
+
+    // publish Cartesian hand goals and status of Cartesian hand goals
+    cartesian_hand_goal_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("controllers/output/ihmc/cartesian_hand_targets", 1);
+    use_cartesian_hand_goals_pub_ = nh_.advertise<std_msgs::Bool>("controllers/output/ihmc/receive_cartesian_goals", 1);
     
     return true;
 }
@@ -134,7 +143,17 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
     // process current command
     if( (msg.data == std::string("raise left hand")) || (msg.data == std::string("raise right hand")) ) {
         // set frame command
-        setFrameCommand(msg.data, controller_command_received_);
+        if( use_ihmc_controllers_ ) {
+            // using IHMC controllers, send Cartesian target
+            setFrameCommand(msg.data, cartesian_hand_command_received_);
+        }
+        else {
+            // using PotentialFieldControllers, run controllers
+            setFrameCommand(msg.data, controller_command_received_);
+        }
+
+        // initialize hand string
+        std::string hand;
 
         // set target pose based on command
         if( msg.data == std::string("raise left hand") ) {
@@ -152,7 +171,10 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
             target_quat_.z() = -0.105274;
             target_quat_.w() = 0.734355;
             */
-            cm_.addControllerForGroup(valkyrie_link::leftPalm, run_controller_);
+            if( !use_ihmc_controllers_ ) {
+                cm_.addControllerForGroup(valkyrie_link::leftPalm, run_controller_);
+            }
+            hand = std::string("left");
         }
         else { // msg.data == std::string("raise right hand")
             // high five pose; further forward to try to smooth out trajectory, but still very choppy
@@ -185,44 +207,69 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
             target_quat_.z() = 0.016812;
             target_quat_.w() = 0.805495;
             */
-            cm_.addControllerForGroup(valkyrie_link::rightPalm, run_controller_);
+            if( !use_ihmc_controllers_ ) {
+                cm_.addControllerForGroup(valkyrie_link::rightPalm, run_controller_);
+            }
+            hand = std::string("right");
         }
 
-        // publish target pose
-        publishTargetPose();
+        // publish target
+        publishTarget(hand);
 
         // store time command received
         storeTimeCommandReceived(frame_command_);
 
-        // start controller
-        startController();
-        ROS_INFO("[Semantic Frame Controller Node] Started controller!");
+        if( !use_ihmc_controllers_ ) {
+            // start controller
+            startController();
+            ROS_INFO("[Semantic Frame Controller Node] Started controller!");
+        }
     }
 
     if( (msg.data == std::string("move to target pose")) ) {
         // set frame command
-        setFrameCommand(msg.data, controller_command_received_);
+        if( use_ihmc_controllers_ ) {
+            // using IHMC controllers, send Cartesian target
+            setFrameCommand(msg.data, cartesian_hand_command_received_);
+        }
+        else {
+            // using PotentialFieldControllers, run controllers
+            setFrameCommand(msg.data, controller_command_received_);
+        }
 
-        // assume right arm; add controller
-        cm_.addControllerForGroup(valkyrie_link::rightPalm, run_controller_);
+        if( !use_ihmc_controllers_ ) {
+            // assume right arm; add controller
+            cm_.addControllerForGroup(valkyrie_link::rightPalm, run_controller_);
+        }
 
-        // target pose is already set; publish target pose
-        publishTargetPose();
+        // target pose is already set; publish target
+        publishTarget(std::string("right"));
 
         // store time command received
         storeTimeCommandReceived(frame_command_);
 
-        // start controller
-        startController();
-        ROS_INFO("[Semantic Frame Controller Node] Started controller!");
+        if( !use_ihmc_controllers_ ) {
+            // start controller
+            startController();
+            ROS_INFO("[Semantic Frame Controller Node] Started controller!");
+        }
     }
 
     if( (msg.data == std::string("move to give pose")) ) {
         // set frame command
-        setFrameCommand(msg.data, controller_command_received_);
+        if( use_ihmc_controllers_ ) {
+            // using IHMC controllers, send Cartesian target
+            setFrameCommand(msg.data, cartesian_hand_command_received_);
+        }
+        else {
+            // using PotentialFieldControllers, run controllers
+            setFrameCommand(msg.data, controller_command_received_);
+        }
 
-        // assume right arm; add controller
-        cm_.addControllerForGroup(valkyrie_link::rightPalm, run_controller_);
+        if( !use_ihmc_controllers_ ) {
+            // assume right arm; add controller
+            cm_.addControllerForGroup(valkyrie_link::rightPalm, run_controller_);
+        }
 
         // set give pose
         target_pos_ << 0.68, -0.5, 0.18;
@@ -232,14 +279,16 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
         target_quat_.w() = 0.7071069;
 
         // publish target pose
-        publishTargetPose();
+        publishTarget(std::string("right"));
 
         // store time command received
         storeTimeCommandReceived(frame_command_);
 
-        // start controller
-        startController();
-        ROS_INFO("[Semantic Frame Controller Node] Started controller!");
+        if( !use_ihmc_controllers_ ) {
+            // start controller
+            startController();
+            ROS_INFO("[Semantic Frame Controller Node] Started controller!");
+        }
     }
 
     if( (msg.data.find(std::string("home")) != std::string::npos) ) {
@@ -343,6 +392,23 @@ double SemanticFrameControllerNode::getLoopRate() {
     return loop_rate_;
 }
 
+bool SemanticFrameControllerNode::getUseIHMCControllersMessagePublishedFlag() {
+    return use_ihmc_controllers_msg_published_;
+}
+
+void SemanticFrameControllerNode::updateUseIHMCControllersMessagePublishedFlag() {
+    use_ihmc_controllers_msg_published_ = (use_ihmc_controllers_msg_counter_ == 0);
+    return;
+}
+
+void SemanticFrameControllerNode::decrementUseIHMCControllersMessageCounter() {
+    if( use_ihmc_controllers_msg_counter_ > 0 ) {
+        use_ihmc_controllers_msg_counter_--;
+    }
+
+    return;
+}
+
 bool SemanticFrameControllerNode::getRobotStateInitializedFlag() {
     return robot_pose_initialized_;
 }
@@ -353,6 +419,10 @@ bool SemanticFrameControllerNode::getCommandReceivedFlag() {
 
 bool SemanticFrameControllerNode::getControllerCommandReceivedFlag() {
     return controller_command_received_;
+}
+
+bool SemanticFrameControllerNode::getCartesianHandCommandReceivedFlag() {
+    return cartesian_hand_command_received_;
 }
 
 bool SemanticFrameControllerNode::getHomingCommandReceivedFlag() {
@@ -378,6 +448,7 @@ bool SemanticFrameControllerNode::getHandCommandReceivedFlag() {
 void SemanticFrameControllerNode::resetCommandReceivedFlag() {
     command_received_ = false;
     controller_command_received_ = false;
+    cartesian_hand_command_received_ = false;
     homing_command_received_ = false;
     waypoint_command_received_ = false;
     planning_command_received_ = false;
@@ -548,7 +619,56 @@ bool SemanticFrameControllerNode::checkControllerConvergedPeriod() {
     return converged;
 }
 
+// HELPER FUNCTIONS FOR CARTESIAN HAND GOALS
+void SemanticFrameControllerNode::pulblishUseCartesianHandGoalsMessage() {
+    // initialize boolean message
+    std_msgs::Bool bool_msg;
+
+    // set boolean message
+    bool_msg.data = use_ihmc_controllers_;
+
+    // publish message
+    use_cartesian_hand_goals_pub_.publish(bool_msg);
+
+    if( use_ihmc_controllers_ ) {
+        ROS_INFO("[Semantic Frame Controller Node] Will send Cartesian goals to IHMC Controllers!");
+    }
+    else {
+        ROS_INFO("[Semantic Frame Controller Node] Will send target end-effector poses to PotentialFieldControllers!");
+    }
+
+    return;
+}
+
+void SemanticFrameControllerNode::publishCartesianHandMessages() {
+    // message already created and stored internally
+    // publish message
+    cartesian_hand_goal_pub_.publish(cartesian_hand_goal_);
+
+    return;
+}
+
 // HELPER FUNCTIONS FOR TARGET POSE AND WAYPOINTS
+void SemanticFrameControllerNode::publishTarget(std::string hand) {
+    if( use_ihmc_controllers_ ) {
+        // using IHMC controllers, set transform (will be published later)
+
+        // check hand
+        if( (hand.compare(std::string("left")) == 0) ) {
+            setLeftHandTargetTransform();
+        }
+        else {
+            setRightHandTargetTransform();
+        }
+    }
+    else {
+        // using PotentialFieldControllers, publish controller reference
+        publishTargetPose();
+    }
+
+    return;
+}
+
 void SemanticFrameControllerNode::publishTargetPose() {
     // create pose message
     geometry_msgs::PoseStamped pose_msg;
@@ -556,6 +676,24 @@ void SemanticFrameControllerNode::publishTargetPose() {
 
     // publish message
     target_pose_pub_.publish(pose_msg);
+
+    return;
+}
+
+void SemanticFrameControllerNode::setLeftHandTargetTransform() {
+    // create transform message
+    ROSMsgUtils::makeTransformStampedMessage(target_pos_, target_quat_,
+                                             std::string("pelvis"), std::string("left"),
+                                             ros::Time::now(), cartesian_hand_goal_);
+
+    return;
+}
+
+void SemanticFrameControllerNode::setRightHandTargetTransform() {
+    // create transform message
+    ROSMsgUtils::makeTransformStampedMessage(target_pos_, target_quat_,
+                                             std::string("pelvis"), std::string("right"),
+                                             ros::Time::now(), cartesian_hand_goal_);
 
     return;
 }
@@ -967,7 +1105,15 @@ int main(int argc, char **argv) {
     bool controller_converged;
     ros::Rate rate(sfnode.getLoopRate());
     while( ros::ok() ) {
-        if( !sfnode.getRobotStateInitializedFlag() ) {
+        if( !sfnode.getUseIHMCControllersMessagePublishedFlag() ) {
+            // publish flag for Cartesian hand goals
+            sfnode.pulblishUseCartesianHandGoalsMessage();
+            // decrement counter for how many times message gets published
+            sfnode.decrementUseIHMCControllersMessageCounter();
+            // udpate flag for publishing message
+            sfnode.updateUseIHMCControllersMessagePublishedFlag();
+        }
+        else if( !sfnode.getRobotStateInitializedFlag() ) {
             // waiting for robot state to be initialized
             ROS_INFO("[Semantic Frame Controller Node] Waiting for robot state...");
         }
@@ -995,6 +1141,15 @@ int main(int argc, char **argv) {
                         ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
                     }
                 }
+            }
+
+            // check if received command is Cartesian hand command
+            if( sfnode.getCartesianHandCommandReceivedFlag() ) {
+                // publish hand messages
+                sfnode.publishCartesianHandMessages();
+                // reset flags
+                sfnode.resetCommandReceivedFlag();
+                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
             }
 
             // check if received command is homing command

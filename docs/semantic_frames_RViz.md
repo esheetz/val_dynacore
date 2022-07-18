@@ -27,7 +27,7 @@ roslaunch val_dynacore controller_reference_publisher.launch sim:=true recv_ref:
 
 4. Launch the semantic frame controller node, which starts the `ControllerManager` and waits for the robot state to be initialized:
 ```
-roslaunch val_dynacore semantic_frame_controller.launch sim:=true
+roslaunch val_dynacore semantic_frame_controller.launch use_ihmc_controllers:=false sim:=true
 ```
 At this point, the controllers are initialized and ready, but the node will wait until the robot state has been initialized in the next step.  Use arguments `waypoints:=false` and/or `stances:=false` to control what services the node will wait for.  The arguments used here should match those used when launching RViz above.
 

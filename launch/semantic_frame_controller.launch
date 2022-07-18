@@ -19,6 +19,9 @@
 	<arg name="waypoints" default="true"/>
 	<arg name="stances" default="true"/>
 
+	<!-- flag for using IHMC controllers (instead of PotentialFieldControllers) -->
+	<arg name="use_ihmc_controllers" default="true"/>
+
 	<arg name="sim" default="false"/>
 	<!-- if not testing in sim, robot pose and joint states will come from IHMC -->
 	<arg unless="$(arg sim)" name="robot_pose_topic" value="/ihmc_ros/valkyrie/output/robot_pose"/>
@@ -44,6 +47,7 @@
 		<param name="robot_pose_init" value="$(arg robot_pose_init)"/>
 		<param name="waypoints" value="$(arg waypoints)"/>
 		<param name="stances" value="$(arg stances)"/>
+		<param name="use_ihmc_controllers" value="$(arg use_ihmc_controllers)"/>
 		<!--<param name="" type="" value=""/> -->
 	</node>
 </launch>

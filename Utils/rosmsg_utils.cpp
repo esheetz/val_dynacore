@@ -141,6 +141,15 @@ namespace ROSMsgUtils {
         dynacore::Quaternion quat;
         dynacore::convert(tf, pos, quat);
 
+        // set transform
+        makeTransformMessage(pos, quat, tf_msg);
+
+        return;
+    }
+
+    void makeTransformMessage(dynacore::Vect3 pos,
+                              dynacore::Quaternion quat,
+                              geometry_msgs::Transform& tf_msg) {
         // set translation
         makeVector3Message(pos, tf_msg.translation);
 
@@ -160,6 +169,24 @@ namespace ROSMsgUtils {
 
         // set child frame id
         tf_msg.child_frame_id = tf.child_frame_id_;
+
+        return;
+    }
+
+    void makeTransformStampedMessage(dynacore::Vect3 pos,
+                                     dynacore::Quaternion quat,
+                                     std::string frame,
+                                     std::string child_frame,
+                                     ros::Time stamp_time,
+                                     geometry_msgs::TransformStamped& tf_msg) {
+        // set transform
+        makeTransformMessage(pos, quat, tf_msg.transform);
+
+        // set header
+        makeHeaderMessage(frame, stamp_time, tf_msg.header);
+
+        // set child frame id
+        tf_msg.child_frame_id = child_frame;
 
         return;
     }

@@ -19,15 +19,22 @@ This launch file calls the `nstgro20_val_sfcontroller_viz.launch` file and launc
 - `SemanticFrameWaypointNode` that allows users to interactively set waypoints for the robot to navigate to later.  To change the names of the users whose desk Valkyrie may want to navigate to, add the optional argument `user_names:=[<name1>,<name2>,...]`.
 - If argument `launch_footstep_services:=true`, launches the `ValkyrieFootstepPlannerExecutorServerNode` that provides services for planning and executing to waypoints or stances.  Use arguments `waypoints:=false` and/or `stances:=false` to control what destination types the node will support.
 
-3. Launch the controller reference publisher, which publishes reference messages of the appropriate type for the different controllers and listens for different target poses based on the spoken command:
+3. (Optional) If using the `val_dynacore` PotentialFieldControllers, launch the controller reference publisher, which publishes reference messages of the appropriate type for the different controllers and listens for different target poses based on the spoken command:
 ```
 roslaunch val_dynacore controller_reference_publisher.launch recv_ref:=true
 ```
 
-4. Launch the semantic frame controller node, which starts the `ControllerManager` and waits for the robot state to be initialized:
-```
-roslaunch val_dynacore semantic_frame_controller.launch stances:=false
-```
+4. Launch the semantic frame controller node, which starts the `ControllerManager` and waits for the robot state to be initialized.
+    1. If using IHMC's controllers, launch the node:
+    ```
+    roslaunch val_dynacore semantic_frame_controller.launch stances:=false
+    ```
+
+    2. If using the `val_dynacore` PotentialFieldControllers, launch the node:
+    ```
+    roslaunch val_dynacore semantic_frame_controller.launch use_ihmc_controllers:=false stances:=false
+    ```
+
 At this point, the node will wait for a spoken command.  Use arguments `waypoints:=false` and/or `stances:=false` to control what services the node will wait for.  The arguments used here should match those used when launching the `valkyrie_gui` above.
 
 5. Launch the semantic frame node to give Valkyrie a verbal command.  (Note that however you start the node, there will be some output to the terminal as the speech recognizer and parser are started.)  Launching the node will tell it to listen for commands on a ROS topic:

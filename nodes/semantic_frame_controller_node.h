@@ -15,6 +15,7 @@
 #include <tf/tf.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/TransformStamped.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/String.h>
 #include <nav_msgs/Odometry.h>
 #include <sensor_msgs/JointState.h>
@@ -49,9 +50,13 @@ public:
 
     // GETTERS/SETTERS
     double getLoopRate();
+    bool getUseIHMCControllersMessagePublishedFlag();
+    void updateUseIHMCControllersMessagePublishedFlag();
+    void decrementUseIHMCControllersMessageCounter();
     bool getRobotStateInitializedFlag();
     bool getCommandReceivedFlag();
     bool getControllerCommandReceivedFlag();
+    bool getCartesianHandCommandReceivedFlag();
     bool getHomingCommandReceivedFlag();
     bool getWaypointCommandReceivedFlag();
     bool getPlanningCommandReceivedFlag();
@@ -73,8 +78,15 @@ public:
     void publishPelvisTransformForBroadcaster();
     bool checkControllerConvergedPeriod();
 
+    // HELPER FUNCTIONS FOR CARTESIAN HAND GOALS
+    void pulblishUseCartesianHandGoalsMessage();
+    void publishCartesianHandMessages();
+
     // HELPER FUNCTIONS FOR TARGET POSE AND WAYPOINTS
+    void publishTarget(std::string hand);
     void publishTargetPose();
+    void setLeftHandTargetTransform();
+    void setRightHandTargetTransform();
     bool setCurrentWaypointFromStoredWaypoints();
 
     // HELPER FUNCTIONS FOR GO HOME MESSAGES
@@ -124,6 +136,9 @@ private:
 
     ros::Subscriber waypoint_sub_; // subscriber for waypoints
 
+    ros::Publisher cartesian_hand_goal_pub_; // publisher for Cartesian hand goals
+    ros::Publisher use_cartesian_hand_goals_pub_; // publisher for indicating whether Cartesian hand goals or joint commands are used
+
     // service clients
     ros::ServiceClient plan_to_waypoint_client_;
     ros::ServiceClient execute_to_waypoint_client_;
@@ -138,12 +153,17 @@ private:
 
     bool robot_pose_initialized_; // flag indicating if Valkyrie has been initialized
 
+    bool use_ihmc_controllers_; // flag indicating whether to use PotentialFieldControllers or IHMC controllers
+    bool use_ihmc_controllers_msg_published_; // flag indicating whether flag has been published
+    int use_ihmc_controllers_msg_counter_; // counter for how many times flag has been published
+
     std::string controller_type_; // type of controller being run
 
     std::shared_ptr<controllers::PotentialFieldController> run_controller_; // controller being run
     
     bool command_received_; // flag indicating if command has been received
     bool controller_command_received_; // flag indicating if command involves running controllers
+    bool cartesian_hand_command_received_; // flag indicating if command involves sending Cartesian hand targets
     bool homing_command_received_; // flag indicating if command involves sending homing message(s)
     bool waypoint_command_received_; // flag indicating if command involves setting a waypoint
     bool planning_command_received_; // flag indicating if command involves requesting a plan
@@ -154,6 +174,7 @@ private:
     // targets
     dynacore::Vect3 target_pos_;
     dynacore::Quaternion target_quat_;
+    geometry_msgs::TransformStamped cartesian_hand_goal_;
     geometry_msgs::Pose current_waypoint_;
     std::map<std::string, geometry_msgs::Pose> waypoints_;
 
