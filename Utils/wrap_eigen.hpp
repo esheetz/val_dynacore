@@ -49,6 +49,7 @@ namespace dynacore {
   // tf::Quaternion to Quaternion
   void convert(tf::Quaternion const & from, dynacore::Quaternion & to);
   void convert(tf::Transform const & from, dynacore::Vect3 & to_pos, dynacore::Quaternion & to_quat);
+  void convert(dynacore::Vect3 const & from_pos, dynacore::Quaternion const & from_quat, tf::Transform & to);
 
   // Note: when QuatMultiply is used to rotate a vector, set bound_pi to false.
   Quaternion QuatMultiply(const Quaternion & q1, const Quaternion & q2, bool bound_pi = true);
