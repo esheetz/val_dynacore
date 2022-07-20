@@ -1,6 +1,6 @@
 /**
  * Semantic Frame Controller Node
- * Emily Sheetz, Fall 2021
+ * Emily Sheetz, Fall 2021, Summer 2022
  **/
 
 #ifndef _SEMANTIC_FRAME_CONTROLLER_NODE_H_
@@ -46,7 +46,7 @@ public:
     void statusCallback(const std_msgs::String& msg);
     void semanticFrameCallback(const std_msgs::String& msg);
     void waypointCallback(const geometry_msgs::TransformStamped& msg);
-    void targetPoseCallback(const geometry_msgs::PoseStamped& msg);
+    void targetPoseCallback(const geometry_msgs::TransformStamped& msg);
 
     // GETTERS/SETTERS
     double getLoopRate();
@@ -81,6 +81,7 @@ public:
     // HELPER FUNCTIONS FOR CARTESIAN HAND GOALS
     void pulblishUseCartesianHandGoalsMessage();
     void publishCartesianHandMessages();
+    bool setTargetPoseFromStoredObjectPoses();
 
     // HELPER FUNCTIONS FOR TARGET POSE AND WAYPOINTS
     void publishTarget(std::string hand);
@@ -177,6 +178,7 @@ private:
     geometry_msgs::TransformStamped cartesian_hand_goal_;
     geometry_msgs::Pose current_waypoint_;
     std::map<std::string, geometry_msgs::Pose> waypoints_;
+    std::map<std::string, geometry_msgs::Pose> object_poses_;
 
 }; // end class SemanticFrameControllerNode
 

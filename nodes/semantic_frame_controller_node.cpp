@@ -234,7 +234,7 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
         }
     }
 
-    if( (msg.data == std::string("move to target pose")) ) {
+    if( (msg.data.find(std::string("move to target pose for ")) != std::string::npos) ) {
         // set frame command
         if( use_ihmc_controllers_ ) {
             // using IHMC controllers, send Cartesian target
@@ -245,21 +245,26 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
             setFrameCommand(msg.data, controller_command_received_);
         }
 
-        if( !use_ihmc_controllers_ ) {
-            // assume right arm; add controller
-            cm_.addControllerForGroup(valkyrie_link::rightPalm, run_controller_);
-        }
+        // try setting target pose from poses
+        bool success = setTargetPoseFromStoredObjectPoses();
 
-        // target pose is already set; publish target
-        publishTarget(std::string("right"));
+        if( success ) {
+            if( !use_ihmc_controllers_ ) {
+                // assume right arm; add controller
+                cm_.addControllerForGroup(valkyrie_link::rightPalm, run_controller_);
+            }
 
-        // store time command received
-        storeTimeCommandReceived(frame_command_);
+            // target pose is already set; publish target
+            publishTarget(std::string("right"));
 
-        if( !use_ihmc_controllers_ ) {
-            // start controller
-            startController();
-            ROS_INFO("[Semantic Frame Controller Node] Started controller!");
+            // store time command received
+            storeTimeCommandReceived(frame_command_);
+
+            if( !use_ihmc_controllers_ ) {
+                // start controller
+                startController();
+                ROS_INFO("[Semantic Frame Controller Node] Started controller!");
+            }
         }
     }
 
@@ -372,7 +377,7 @@ void SemanticFrameControllerNode::waypointCallback(const geometry_msgs::Transfor
     return;
 }
 
-void SemanticFrameControllerNode::targetPoseCallback(const geometry_msgs::PoseStamped& msg) {
+void SemanticFrameControllerNode::targetPoseCallback(const geometry_msgs::TransformStamped& msg) {
     // check frame of pose message
     if( (msg.header.frame_id.find(std::string("pelvis")) == std::string::npos) ) {
         // not in pelvis frame
@@ -380,17 +385,22 @@ void SemanticFrameControllerNode::targetPoseCallback(const geometry_msgs::PoseSt
         return;
     }
 
-    // set pose from received target
-    target_pos_ << msg.pose.position.x, msg.pose.position.y, msg.pose.position.z;
-    target_quat_.x() = msg.pose.orientation.x;
-    target_quat_.y() = msg.pose.orientation.y;
-    target_quat_.z() = msg.pose.orientation.z;
-    target_quat_.w() = msg.pose.orientation.w;
-    // DEBUGGING
-    std::cout << "***** DEBUG frame id: " << msg.header.frame_id << std::endl;
-    dynacore::pretty_print(target_pos_, std::cout, "Target position in pelvis frame:");
-    dynacore::pretty_print(target_quat_, std::cout, "Target quaternion in pelvis frame:");
-    ROS_INFO("[Semantic Frame Controller Node] Received target pose for controller");
+    // create pose message from transform message
+    geometry_msgs::Pose object_pose;
+    object_pose.position.x = msg.transform.translation.x;
+    object_pose.position.y = msg.transform.translation.y;
+    object_pose.position.z = msg.transform.translation.z;
+    object_pose.orientation.x = msg.transform.rotation.x;
+    object_pose.orientation.y = msg.transform.rotation.y;
+    object_pose.orientation.z = msg.transform.rotation.z;
+    object_pose.orientation.w = msg.transform.rotation.w;
+
+    // get object name
+    std::string object_name = msg.child_frame_id;
+
+    // add pose to map or update stored pose
+    object_poses_[object_name] = object_pose;
+    ROS_INFO("[Semantic Frame Controller Node] Received target pose for %s", object_name.c_str());
 
     return;
 }
@@ -654,6 +664,32 @@ void SemanticFrameControllerNode::publishCartesianHandMessages() {
     cartesian_hand_goal_pub_.publish(cartesian_hand_goal_);
 
     return;
+}
+
+bool SemanticFrameControllerNode::setTargetPoseFromStoredObjectPoses() {
+    // get object name; object name is everything after command name
+    std::string command_name("move to target pose for ");
+    std::size_t index_found = frame_command_.find(command_name);
+    std::string object_name = frame_command_.substr(index_found + command_name.size());
+
+    // check if object name exists in map
+    std::map<std::string, geometry_msgs::Pose>::iterator it;
+    it = object_poses_.find(object_name);
+    if( it != object_poses_.end() ) {
+        ROS_INFO("[Semantic Frame Controller Node] Setting %s as current target object", object_name.c_str());
+        geometry_msgs::Pose object_pose = it->second;
+        target_pos_ << object_pose.position.x, object_pose.position.y, object_pose.position.z;
+        target_quat_.x() = object_pose.orientation.x;
+        target_quat_.y() = object_pose.orientation.y;
+        target_quat_.z() = object_pose.orientation.z;
+        target_quat_.w() = object_pose.orientation.w;
+        return true;
+    }
+    else { // it == object_poses_.end()
+        ROS_WARN("[Semantic Frame Controller Node] Target pose for %s does not exist; ignoring command", object_name.c_str());
+        resetCommandReceivedFlag();
+        return false;
+    }
 }
 
 // HELPER FUNCTIONS FOR TARGET POSE AND WAYPOINTS
