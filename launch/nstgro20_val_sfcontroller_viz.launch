@@ -5,6 +5,7 @@
 	<arg name="vis" default="true"/>
 
 	<rosparam param="user_names" subst_value="True">$(arg user_names)</rosparam>
+	<arg name="sim" default="false"/>
 
 	<arg name="waypoints" default="true"/>
 	<arg name="stances" default="true"/>
@@ -30,7 +31,9 @@
 		<node name="rviz_ik" pkg="rviz" type="rviz" args="-d $(find val_dynacore)/launch/sf-controllers.viz.rviz" required="true" /> <!-- controller visualization with visualizations of 6d task pose(s); when launched this way, robot model WILL NOT show up correctly until tf broadcaster is started between world and pelvis -->
 	</group>
 
-	<include file="$(find semantic_frame_pipeline)/launch/sf_waypoint_node.launch"/>
+	<include file="$(find semantic_frame_pipeline)/launch/sf_waypoint_node.launch">
+		<arg name="sim" value="$(arg sim)"/>
+	</include>
 
 	<group if="$(arg launch_footstep_services)">
 		<include file="$(find val_footstep_planner_executor)/launch/footstep_planner_executor_server_node.launch">

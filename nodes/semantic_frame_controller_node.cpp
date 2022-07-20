@@ -157,12 +157,20 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
 
         // set target pose based on command
         if( msg.data == std::string("raise left hand") ) {
+            // high five pose; further forward to try to smooth out trajectory, but still very choppy with PotentialFieldControllers
+            target_pos_ << 0.45, 0.6, 0.4;
+            target_quat_.x() = 0.592105;
+            target_quat_.y() = 0.017506;
+            target_quat_.z() = -0.016812;
+            target_quat_.w() = 0.805495;
+            /*
             // high five pose; far enough away from robot, but may not converge
             target_pos_ << 0.25, 0.7, 0.4;
             target_quat_.x() = 0.592105;
             target_quat_.y() = 0.017506;
             target_quat_.z() = -0.016812;
             target_quat_.w() = 0.805495;
+            */
             /*
             // high five pose; too close to robot
             target_pos_ << 0.4, 0.4, 0.28;
@@ -177,7 +185,7 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
             hand = std::string("left");
         }
         else { // msg.data == std::string("raise right hand")
-            // high five pose; further forward to try to smooth out trajectory, but still very choppy
+            // high five pose; further forward to try to smooth out trajectory, but still very choppy with PotentialFieldControllers
             target_pos_ << 0.45, -0.6, 0.4;
             target_quat_.x() = -0.592105;
             target_quat_.y() = 0.017506;
