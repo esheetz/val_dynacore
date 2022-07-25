@@ -44,6 +44,22 @@ roslaunch semantic_frame_pipeline sf_feedback_node.launch
 roslaunch semantic_frame_pipeline sf_status_node.launch
 ```
 
-8. Start VR.
+8. Start stance generation services in the stance generation docker.
+	1. Start the docker and source the workspace.
+	```
+	docker exec -it val_stance_generation bash
+	cd ../val_stance_generation_ws/
+	source devel/setup.bash
+	```
 
-9. Provide a command to Valkyrie.  Be sure to check if Valkyrie is listening for commands or not by saying `report listening status`.
+	2. Start the following nodes:
+	```
+	roslaunch reachability_server reachability_utilities.launch vis:=false move:=true
+	rosrun val_moveit_planning_server InverseKinematicsServer
+	rosrun reachability_server stance_server.py
+	rosrun reachability_server vr_interface_node.py
+	```
+
+9. Start VR.
+
+10. Provide a command to Valkyrie.  Be sure to check if Valkyrie is listening for commands or not by saying `report listening status`.
