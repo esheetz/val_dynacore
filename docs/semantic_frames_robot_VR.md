@@ -18,9 +18,9 @@ roslaunch val_vr_ros val_vr_ros.launch
 
 3. Launch the [`valkyrie_gui`](https://js-er-code.jsc.nasa.gov/vs/valkyrie_gui/-/tree/feature/semantic_frames) to visualize the robot state and stance generation planning scene.
 ```
-roslaunch valkyrie_gui at_reg_stance_gen_demo.launch vr_running:=true
+roslaunch valkyrie_gui at_reg_stance_gen_demo.launch vr_running:=true semantic_frame_support:=true
 ```
-This launch file calls the `nstgro20_val_sfcontroller_viz.launch` file and by default launches `ValkyrieFootstepPlannerExecutorServerNode` that provides services for planning and executing to waypoints or stances.  Use arguments `waypoints:=false` and/or `stances:=false` to control what destination types the node will support.
+When `semantic_frame_support:=true`, this launch file calls the `nstgro20_val_sfcontroller_viz.launch` file and by default launches `ValkyrieFootstepPlannerExecutorServerNode` that provides services for planning and executing to waypoints or stances.  Use arguments `waypoints:=false` and/or `stances:=false` to control what destination types the node will support.
 
 4. Launch the semantic frame controller node, which starts the `ControllerManager` and waits for the robot state to be initialized.
 ```
