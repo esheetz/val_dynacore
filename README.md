@@ -13,6 +13,7 @@ Library for performing kinematics and dynamics on NASA's Valkyrie robot.
 - [Verbal Commands for Valkyrie](docs/semantic_frames.md)
     - [Testing in RViz](docs/semantic_frames_RViz.md)
     - [Testing on Robot](docs/semantic_frames_robot.md)
+    - [Testing on Robot with VR](docs/semantic_frames_robot_VR.md)
 
 
 

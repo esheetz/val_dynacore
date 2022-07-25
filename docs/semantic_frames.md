@@ -28,12 +28,27 @@ When the semantic frame node was implemented, there were separate installations 
 
 ## Supported Commands
 Supported commands are:
+- `start listening`, `stop listening`, `report listening status`
 - `raise left hand` or equivalently `lift left hand`
 - `raise right hand` or equivalently `lift right hand`
 - `give me a high five` or equivalently `give me five`
 - `give <name> a high five`
 - `go to <name>s desk`
 - `give <name> the <object>` (object must be supported by AT registration)
+- `plan to waypoint`, `execute to waypoint`, `plan to stance`, `execute to stance`
+- `plan and execute to waypoint`, `plan and execute to stance`
+- `home all`
+
+
+
+## Supported Commands in VR
+Supported commands in VR are:
+- `start listening`, `stop listening`, `report listening status`
+- `give me a high five`
+- `set waypoint`
+- `plan to waypoint`, `execute to waypoint`, `plan to stance`, `execute to stance`
+- `plan and execute to waypoint`, `plan and execute to stance`
+- `home all`
 
 
 
@@ -49,8 +64,9 @@ git clone https://github.com/esheetz/val_footstep_planner_executor.git
 There are several other internal NASA packages that may be required to execute or visualize certain commands.  These packages include:
 - `valkyrie_gui`: visualization
 - `valkyrie_navigation`: planning and executing footsteps
-- `val_vr_ros`: AT registration
+- `val_vr_ros`: AT registration, VR support
 - `useit_core`, `useit_server`, `useit_shell`, `useit_msgs`, `useit_model_examples`: AT registration
+- `reachability_server`: stance generation
 
 
 
@@ -58,3 +74,4 @@ There are several other internal NASA packages that may be required to execute o
 See the following pages for more information on using semantic frames to command Valkyrie:
 - [Testing in RViz](semantic_frames_RViz.md)
 - [Testing on Robot](semantic_frames_robot.md)
+- [Testing on Robot with VR](docs/semantic_frames_robot_VR.md)
