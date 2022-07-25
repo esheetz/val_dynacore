@@ -47,6 +47,7 @@ public:
     void semanticFrameCallback(const std_msgs::String& msg);
     void waypointCallback(const geometry_msgs::TransformStamped& msg);
     void targetPoseCallback(const geometry_msgs::TransformStamped& msg);
+    void vrWaypointCallback(const geometry_msgs::Pose& msg);
 
     // GETTERS/SETTERS
     double getLoopRate();
@@ -136,6 +137,7 @@ private:
     ros::Publisher home_robot_pub_; // publisher for homing robot
 
     ros::Subscriber waypoint_sub_; // subscriber for waypoints
+    ros::Subscriber vr_waypoint_sub_; // subscriber for waypoints from VR
 
     ros::Publisher cartesian_hand_goal_pub_; // publisher for Cartesian hand goals
     ros::Publisher use_cartesian_hand_goals_pub_; // publisher for indicating whether Cartesian hand goals or joint commands are used

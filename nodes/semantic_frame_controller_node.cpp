@@ -90,6 +90,9 @@ bool SemanticFrameControllerNode::initializeConnections() {
     // publish Cartesian hand goals and status of Cartesian hand goals
     cartesian_hand_goal_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("controllers/output/ihmc/cartesian_hand_targets", 1);
     use_cartesian_hand_goals_pub_ = nh_.advertise<std_msgs::Bool>("controllers/output/ihmc/receive_cartesian_goals", 1);
+
+    // subscribe to VR waypoints
+    vr_waypoint_sub_ = nh_.subscribe("/valkyrie/semantic_frame/vr/waypoint", 1, &SemanticFrameControllerNode::vrWaypointCallback, this);
     
     return true;
 }
@@ -401,6 +404,14 @@ void SemanticFrameControllerNode::targetPoseCallback(const geometry_msgs::Transf
     // add pose to map or update stored pose
     object_poses_[object_name] = object_pose;
     ROS_INFO("[Semantic Frame Controller Node] Received target pose for %s", object_name.c_str());
+
+    return;
+}
+
+void SemanticFrameControllerNode::vrWaypointCallback(const geometry_msgs::Pose& msg) {
+    // store received waypoint as current waypoint
+    current_waypoint_ = msg;
+    ROS_INFO("[Semantic Frame Controller Node] Received waypoint from VR");
 
     return;
 }
