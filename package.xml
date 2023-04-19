@@ -18,5 +18,6 @@
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
   <depend>val_footstep_planner_executor</depend>
+  <depend>val_moveit_planner_executor</depend>
 	  <!-- <depend>cmake_modules</depend> -->
 </package>

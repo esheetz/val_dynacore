@@ -66,6 +66,23 @@ namespace ROSMsgUtils {
         return;
     }
 
+    void makePoseMessage(geometry_msgs::Transform tf_msg,
+                         geometry_msgs::Pose& pose_msg) {
+        // get position and quaternion
+        dynacore::Vect3 pos;
+        dynacore::Quaternion quat;
+        pos << tf_msg.translation.x, tf_msg.translation.y, tf_msg.translation.z;
+        quat.x() = tf_msg.rotation.x;
+        quat.y() = tf_msg.rotation.y;
+        quat.z() = tf_msg.rotation.z;
+        quat.w() = tf_msg.rotation.w;
+
+        // make pose message
+        makePoseMessage(pos, quat, pose_msg);
+
+        return;
+    }
+
     void makeZeroPoseMessage(geometry_msgs::Pose& pose_msg) {
         // set position as zero
         makeZeroPointMessage(pose_msg.position);
@@ -86,6 +103,17 @@ namespace ROSMsgUtils {
 
         // set header
         makeHeaderMessage(frame, stamp_time, pose_msg.header);
+
+        return;
+    }
+
+    void makePoseStampedMessage(geometry_msgs::TransformStamped tf_msg,
+                                geometry_msgs::PoseStamped& pose_msg) {
+        // set pose
+        makePoseMessage(tf_msg.transform, pose_msg.pose);
+
+        // set header
+        pose_msg.header = tf_msg.header;
 
         return;
     }

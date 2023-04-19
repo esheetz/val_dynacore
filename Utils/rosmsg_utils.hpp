@@ -83,6 +83,16 @@ namespace ROSMsgUtils {
                          geometry_msgs::Pose& pose_msg);
 
     /*
+     * makes a Pose message from the given transform
+     * @param tf, the desired transform
+     * @param pose_msg, the message to be populated
+     * @return none
+     * @post pose_msg populated based on the given transform pose
+     */
+    void makePoseMessage(geometry_msgs::Transform tf_msg,
+                         geometry_msgs::Pose& pose_msg);
+
+    /*
      * makes a Pose message with all zeros
      * @return none
      * @post pose_msg populated with all zeros
@@ -103,6 +113,16 @@ namespace ROSMsgUtils {
                                 dynacore::Quaternion quat,
                                 std::string frame,
                                 ros::Time stamp_time,
+                                geometry_msgs::PoseStamped& pose_msg);
+
+    /*
+     * makes a PoseStamped message from the given transform
+     * @param tf_msg, the desired transform message
+     * @param pose_msg, the message to be populated
+     * @return none
+     * @post pose_msg updated based on the given transform
+     */
+    void makePoseStampedMessage(geometry_msgs::TransformStamped tf_msg,
                                 geometry_msgs::PoseStamped& pose_msg);
 
     /*

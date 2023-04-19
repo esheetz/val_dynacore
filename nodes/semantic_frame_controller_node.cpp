@@ -29,6 +29,12 @@ SemanticFrameControllerNode::SemanticFrameControllerNode(const ros::NodeHandle& 
     planning_command_received_ = false;
     execute_plan_command_received_ = false;
     hand_command_received_ = false;
+    abort_walking_command_received_ = false;
+    pause_walking_command_received_ = false;
+    resume_walking_command_received_ = false;
+    stop_all_traj_command_received_ = false;
+    moveit_planning_command_received_ = false;
+    moveit_execute_plan_command_received_ = false;
     frame_command_ = std::string("");
 
     std::string controller_name;
@@ -78,8 +84,8 @@ bool SemanticFrameControllerNode::initializeConnections() {
     // publish target pose based on semantic frame command
     target_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("target_pose", 1);
 
-    // publish status messages about homing robot body parts
-    home_robot_pub_ = nh_.advertise<std_msgs::String>("controllers/output/ihmc/controller_status", 20);
+    // publish status messages for IHMCMsgInterface node (homing robot body parts, opening/closing hands, abort/pause/resume walking, stop trajectories)
+    robot_pub_ = nh_.advertise<std_msgs::String>("controllers/output/ihmc/controller_status", 20);
 
     // subscribe to waypoints
     waypoint_sub_ = nh_.subscribe("/valkyrie/semantic_frame/waypoints", 1, &SemanticFrameControllerNode::waypointCallback, this);
@@ -126,6 +132,17 @@ bool SemanticFrameControllerNode::initializeClients() {
         execute_to_stance_client_.waitForExistence(); // blocks until service exists
         ROS_INFO("[Semantic Frame Controller Node] Service execute_to_stance is ready!");
     }
+
+    // MoveIt services
+    ROS_INFO("[Semantic Frame Controller Node] Waiting for service plan_to_arm_goal...");
+    plan_to_arm_goal_client_ = nh_.serviceClient<val_moveit_planner_executor::PlanToArmGoal>("/ValkyrieMoveItPlannerExecutorServerNode/plan_to_arm_goal");
+    plan_to_arm_goal_client_.waitForExistence(); // blocks until service exists
+    ROS_INFO("[Semantic Frame Controller Node] Service plan_to_arm_goal is ready!");
+
+    ROS_INFO("[Semantic Frame Controller Node] Waiting for service execute_to_arm_goal...");
+    execute_to_arm_goal_client_ = nh_.serviceClient<val_moveit_planner_executor::ExecuteToArmGoal>("/ValkyrieMoveItPlannerExecutorServerNode/execute_to_arm_goal");
+    execute_to_arm_goal_client_.waitForExistence(); // blocks until service exists
+    ROS_INFO("[Semantic Frame Controller Node] Service execute_to_arm_goal is ready!");
 
     return true;
 }
@@ -356,6 +373,79 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
         }
     }
 
+    if( msg.data == std::string("abort walking") ) {
+        // set frame command
+        setFrameCommand(msg.data, abort_walking_command_received_);
+
+        // store time command received
+        storeTimeCommandReceived(frame_command_);
+    }
+
+    if( msg.data == std::string("pause walking") ) {
+        // set frame command
+        setFrameCommand(msg.data, pause_walking_command_received_);
+
+        // store time command received
+        storeTimeCommandReceived(frame_command_);
+    }
+
+    if( msg.data == std::string("resume walking") ) {
+        // set frame command
+        setFrameCommand(msg.data, resume_walking_command_received_);
+
+        // store time command received
+        storeTimeCommandReceived(frame_command_);
+    }
+
+    if( msg.data == std::string("stop all trajectories") ) {
+        // set frame command
+        setFrameCommand(msg.data, stop_all_traj_command_received_);
+
+        // store time command received
+        storeTimeCommandReceived(frame_command_);
+    }
+
+    if( (msg.data.find(std::string("plan left move to target pose for ")) != std::string::npos) ||
+        (msg.data.find(std::string("plan right move to target pose for ")) != std::string::npos) ||
+        (msg.data.find(std::string("plan closest move to target pose for ")) != std::string::npos) ) {
+
+        // set frame command
+        //     NOTE: all MoveIt requests are handled through val_moveit_planner_executor
+        //     which defaults to IHMC controllers; so no need to check controller type
+        setFrameCommand(msg.data, moveit_planning_command_received_);
+
+        // try setting target pose from poses
+        bool success = setTargetPoseFromStoredObjectPoses();
+
+        // get requested arm
+        std::string requested_arm;
+        if( msg.data.find(std::string("left")) != std::string::npos ) {
+            requested_arm = std::string("left");
+        }
+        else if( msg.data.find(std::string("right")) != std::string::npos ) {
+            requested_arm = std::string("right");
+        }
+        else { // msg.data.find(std::string("closest")) != std::string::npos
+            requested_arm = std::string("closest");
+        }
+
+        if( success ) {
+            // target pose is already set; set MoveIt target pose
+            setMoveItArmGoal(requested_arm);
+
+            // store time command received
+            storeTimeCommandReceived(frame_command_);
+        }
+    }
+
+    if( (msg.data.find(std::string("execute planned move")) != std::string::npos) ) {
+        // set frame command
+        setFrameCommand(msg.data, moveit_execute_plan_command_received_);
+
+        // store time command received
+        storeTimeCommandReceived(frame_command_);
+    }
+
     return;
 }
 
@@ -474,6 +564,30 @@ bool SemanticFrameControllerNode::getHandCommandReceivedFlag() {
     return hand_command_received_;
 }
 
+bool SemanticFrameControllerNode::getAbortWalkingCommandReceivedFlag() {
+    return abort_walking_command_received_;
+}
+
+bool SemanticFrameControllerNode::getPauseWalkingCommandReceivedFlag() {
+    return pause_walking_command_received_;
+}
+
+bool SemanticFrameControllerNode::getResumeWalkingCommandReceivedFlag() {
+    return resume_walking_command_received_;
+}
+
+bool SemanticFrameControllerNode::getStopAllTrajectoryCommandReceivedFlag() {
+    return stop_all_traj_command_received_;
+}
+
+bool SemanticFrameControllerNode::getMoveItPlanningCommandReceivedFlag() {
+    return moveit_planning_command_received_;
+}
+
+bool SemanticFrameControllerNode::getMoveItExecutePlanCommandReceivedFlag() {
+    return moveit_execute_plan_command_received_;
+}
+
 void SemanticFrameControllerNode::resetCommandReceivedFlag() {
     command_received_ = false;
     controller_command_received_ = false;
@@ -483,6 +597,12 @@ void SemanticFrameControllerNode::resetCommandReceivedFlag() {
     planning_command_received_ = false;
     execute_plan_command_received_ = false;
     hand_command_received_ = false;
+    abort_walking_command_received_ = false;
+    pause_walking_command_received_ = false;
+    resume_walking_command_received_ = false;
+    stop_all_traj_command_received_ = false;
+    moveit_planning_command_received_ = false;
+    moveit_execute_plan_command_received_ = false;
     frame_command_ = std::string("");
     return;
 }
@@ -774,6 +894,15 @@ bool SemanticFrameControllerNode::setCurrentWaypointFromStoredWaypoints() {
     }
 }
 
+void SemanticFrameControllerNode::setMoveItArmGoal(std::string requested_arm) {
+    // create transform message
+    ROSMsgUtils::makeTransformStampedMessage(target_pos_, target_quat_,
+                                             std::string("pelvis"), requested_arm,
+                                             ros::Time::now(), moveit_arm_goal_);
+
+    return;
+}
+
 // HELPER FUNCTIONS FOR GO HOME MESSAGES
 bool SemanticFrameControllerNode::checkHomingGroups(bool& home_left_arm_flag,
                                                     bool& home_right_arm_flag,
@@ -858,7 +987,7 @@ void SemanticFrameControllerNode::publishLeftArmHomingMessage() {
     str_msg.data = std::string("HOME-LEFTARM");
 
     // publish status message
-    home_robot_pub_.publish(str_msg);
+    robot_pub_.publish(str_msg);
     ROS_INFO("[Semantic Frame Controller Node] Commanded to home left arm");
 
     ros::spinOnce(); // spin once to make sure all homing messages go through
@@ -874,7 +1003,7 @@ void SemanticFrameControllerNode::publishRightArmHomingMessage() {
     str_msg.data = std::string("HOME-RIGHTARM");
 
     // publish status message
-    home_robot_pub_.publish(str_msg);
+    robot_pub_.publish(str_msg);
     ROS_INFO("[Semantic Frame Controller Node] Commanded to home right arm");
 
     ros::spinOnce(); // spin once to make sure all homing messages go through
@@ -890,7 +1019,7 @@ void SemanticFrameControllerNode::publishChestHomingMessage() {
     str_msg.data = std::string("HOME-CHEST");
 
     // publish status message
-    home_robot_pub_.publish(str_msg);
+    robot_pub_.publish(str_msg);
     ROS_INFO("[Semantic Frame Controller Node] Commanded to home chest");
 
     ros::spinOnce(); // spin once to make sure all homing messages go through
@@ -906,7 +1035,7 @@ void SemanticFrameControllerNode::publishPelvisHomingMessage() {
     str_msg.data = std::string("HOME-PELVIS");
 
     // publish status message
-    home_robot_pub_.publish(str_msg);
+    robot_pub_.publish(str_msg);
     ROS_INFO("[Semantic Frame Controller Node] Commanded to home pelvis");
 
     ros::spinOnce(); // spin once to make sure all homing messages go through
@@ -914,7 +1043,7 @@ void SemanticFrameControllerNode::publishPelvisHomingMessage() {
     return;
 }
 
-// HELPER FUNCTIONS FOR PLANNING/EXECUTING
+// HELPER FUNCTIONS FOR PLANNING/EXECUTING FOOTSTEP LISTS
 void SemanticFrameControllerNode::requestFootstepPlan() {
     // check if planning for waypoint
     if( (frame_command_.find(std::string("waypoint")) != std::string::npos) ) {
@@ -1055,6 +1184,75 @@ void SemanticFrameControllerNode::requestFootstepExecutionToStance() {
     return;
 }
 
+// HELPER FUNCTIONS FOR PLANNING/EXECUTING MOVEIT ROBOT TRAJECTORIES
+void SemanticFrameControllerNode::requestArmGoalPlan() {
+    // create request and response
+    val_moveit_planner_executor::PlanToArmGoal::Request req;
+    val_moveit_planner_executor::PlanToArmGoal::Response res;
+
+    // set requested pose
+    ROSMsgUtils::makePoseStampedMessage(moveit_arm_goal_, req.arm_goal_pose);
+    // set requested arm
+    if( (moveit_arm_goal_.child_frame_id.compare(std::string("left")) == 0) ) {
+        req.planning_group_arm = req.LEFT_ARM;
+    }
+    else if( (moveit_arm_goal_.child_frame_id.compare(std::string("right")) == 0) ) {
+        req.planning_group_arm = req.RIGHT_ARM;
+    }
+    else { // (moveit_arm_goal_.child_frame_id.compare(std::string("closest")) == 0)
+        req.planning_group_arm = req.ASSIGN_CLOSEST_ARM;
+    }
+    // set requested collision-aware planning; default to true
+    req.collision_aware_planning = true;
+
+    // call service
+    //     NOTE: will block until response received
+    //     (only an issue when testing without robot up)
+    if( plan_to_arm_goal_client_.call(req, res) ) {
+        // call successful! check result
+        if( res.success ) {
+            // successfully planned
+            ROS_INFO("[Semantic Frame Controller Node] Successfully planned to arm goal!");
+        }
+        else { // !res.success
+            ROS_WARN("[Semantic Frame Controller Node] Could not plan to arm goal");
+        }
+    }
+    else {
+        ROS_ERROR("[Semantic Frame Controller Node] Failed to call service plan_to_arm_goal");
+    }
+
+    return;
+}
+
+void SemanticFrameControllerNode::requestArmGoalExecution() {
+    // create request and response
+    val_moveit_planner_executor::ExecuteToArmGoal::Request req;
+    val_moveit_planner_executor::ExecuteToArmGoal::Response res;
+
+    // set request
+    req.use_stored_robot_trajectory = true;
+
+    // call service
+    //     NOTE: will block until response received
+    //     (only an issue when testing without robot up)
+    if( execute_to_arm_goal_client_.call(req, res) ) {
+        // call successful! check result
+        if( res.success ) {
+            // successfully executed
+            ROS_INFO("[Semantic Frame Controller Node] Successfully executed to arm goal!");
+        }
+        else { // !res.success
+            ROS_WARN("[Semantic Frame Controller Node] Could not execute to arm goal");
+        }
+    }
+    else {
+        ROS_ERROR("[Semantic Frame Controller Node] Failed to call service execute_to_arm_goal");
+    }
+
+    return;
+}
+
 // HELPER FUNCTIONS FOR HAND MESSAGES
 void SemanticFrameControllerNode::publishHandMessages() {
     // check for open left hand
@@ -1090,10 +1288,10 @@ void SemanticFrameControllerNode::publishOpenLeftHandMessage() {
     str_msg.data = std::string("OPEN-LEFT-HAND");
 
     // publish status message
-    home_robot_pub_.publish(str_msg);
+    robot_pub_.publish(str_msg);
     ROS_INFO("[Semantic Frame Controller Node] Commanded to open left hand");
 
-    ros::spinOnce(); // spin once to make sure all homing messages go through
+    ros::spinOnce(); // spin once to make sure all hand messages go through
 
     return;
 }
@@ -1106,10 +1304,10 @@ void SemanticFrameControllerNode::publishCloseLeftHandMessage() {
     str_msg.data = std::string("CLOSE-LEFT-HAND");
 
     // publish status message
-    home_robot_pub_.publish(str_msg);
+    robot_pub_.publish(str_msg);
     ROS_INFO("[Semantic Frame Controller Node] Commanded to close left hand");
 
-    ros::spinOnce(); // spin once to make sure all homing messages go through
+    ros::spinOnce(); // spin once to make sure all hand messages go through
 
     return;
 }
@@ -1122,10 +1320,10 @@ void SemanticFrameControllerNode::publishOpenRightHandMessage() {
     str_msg.data = std::string("OPEN-RIGHT-HAND");
 
     // publish status message
-    home_robot_pub_.publish(str_msg);
+    robot_pub_.publish(str_msg);
     ROS_INFO("[Semantic Frame Controller Node] Commanded to open right hand");
 
-    ros::spinOnce(); // spin once to make sure all homing messages go through
+    ros::spinOnce(); // spin once to make sure all hand messages go through
 
     return;
 }
@@ -1138,10 +1336,75 @@ void SemanticFrameControllerNode::publishCloseRightHandMessage() {
     str_msg.data = std::string("CLOSE-RIGHT-HAND");
 
     // publish status message
-    home_robot_pub_.publish(str_msg);
+    robot_pub_.publish(str_msg);
     ROS_INFO("[Semantic Frame Controller Node] Commanded to close right hand");
 
-    ros::spinOnce(); // spin once to make sure all homing messages go through
+    ros::spinOnce(); // spin once to make sure all hand messages go through
+
+    return;
+}
+
+// HELPER FUNCTIONS FOR ABORT/PAUSE/RESUME/STOP MESSAGES
+void SemanticFrameControllerNode::publishAbortWalkingMessage() {
+    // initialize string message
+    std_msgs::String str_msg;
+
+    // set status message
+    str_msg.data = std::string("ABORT-WALKING");
+
+    // publish status message
+    robot_pub_.publish(str_msg);
+    ROS_INFO("[Semantic Frame Controller Node] Commanded to abort walking");
+
+    ros::spinOnce(); // spin once to make sure all messages go through
+
+    return;
+}
+
+void SemanticFrameControllerNode::publishPauseWalkingMessage() {
+    // initialize string message
+    std_msgs::String str_msg;
+
+    // set status message
+    str_msg.data = std::string("PAUSE-WALKING");
+
+    // publish status message
+    robot_pub_.publish(str_msg);
+    ROS_INFO("[Semantic Frame Controller Node] Commanded to pause walking");
+
+    ros::spinOnce(); // spin once to make sure all messages go through
+
+    return;
+}
+
+void SemanticFrameControllerNode::publishResumeWalkingMessage() {
+    // initialize string message
+    std_msgs::String str_msg;
+
+    // set status message
+    str_msg.data = std::string("RESUME-WALKING");
+
+    // publish status message
+    robot_pub_.publish(str_msg);
+    ROS_INFO("[Semantic Frame Controller Node] Commanded to resume walking");
+
+    ros::spinOnce(); // spin once to make sure all messages go through
+
+    return;
+}
+
+void SemanticFrameControllerNode::publishStopAllTrajectoryMessage() {
+    // initialize string message
+    std_msgs::String str_msg;
+
+    // set status message
+    str_msg.data = std::string("STOP-ALL-TRAJECTORY");
+
+    // publish status message
+    robot_pub_.publish(str_msg);
+    ROS_INFO("[Semantic Frame Controller Node] Commanded to stop all trajectories");
+
+    ros::spinOnce(); // spin once to make sure all messages go through
 
     return;
 }
@@ -1248,7 +1511,61 @@ int main(int argc, char **argv) {
                 sfnode.publishHandMessages();
                 // reset flags
                 sfnode.resetCommandReceivedFlag();
-                ROS_INFO("[Semantic Frame Controller Node] Commanded Action complete!");
+                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+            }
+
+            // check if received command is abort walking command
+            if( sfnode.getAbortWalkingCommandReceivedFlag() ) {
+                // publish abort walking message
+                sfnode.publishAbortWalkingMessage();
+                // reset flags
+                sfnode.resetCommandReceivedFlag();
+                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+            }
+
+            // check if received command is pause walking command
+            if( sfnode.getPauseWalkingCommandReceivedFlag() ) {
+                // publish pause walking message
+                sfnode.publishPauseWalkingMessage();
+                // reset flags
+                sfnode.resetCommandReceivedFlag();
+                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+            }
+
+            // check if received command is resume walking command
+            if( sfnode.getResumeWalkingCommandReceivedFlag() ) {
+                // publish resume walking message
+                sfnode.publishResumeWalkingMessage();
+                // reset flags
+                sfnode.resetCommandReceivedFlag();
+                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+            }
+
+            // check if received command is stop all trajectory command
+            if( sfnode.getStopAllTrajectoryCommandReceivedFlag() ) {
+                // publish stop all trajectory message
+                sfnode.publishStopAllTrajectoryMessage();
+                // reset flags
+                sfnode.resetCommandReceivedFlag();
+                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+            }
+
+            // check if received command is MoveIt planning command
+            if( sfnode.getMoveItPlanningCommandReceivedFlag() ) {
+                // request plan
+                sfnode.requestArmGoalPlan();
+                // reset flags
+                sfnode.resetCommandReceivedFlag();
+                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+            }
+
+            // check if received command is MoveIt trajectory execute command
+            if( sfnode.getMoveItExecutePlanCommandReceivedFlag() ) {
+                // request execution
+                sfnode.requestArmGoalExecution();
+                // reset flags
+                sfnode.resetCommandReceivedFlag();
+                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
             }
         }
 

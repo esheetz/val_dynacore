@@ -30,6 +30,8 @@
 #include <val_footstep_planner_executor/ExecuteToWaypoint.h>
 #include <val_footstep_planner_executor/PlanToStance.h>
 #include <val_footstep_planner_executor/ExecuteToStance.h>
+#include <val_moveit_planner_executor/PlanToArmGoal.h>
+#include <val_moveit_planner_executor/ExecuteToArmGoal.h>
 
 class SemanticFrameControllerNode
 {
@@ -63,6 +65,12 @@ public:
     bool getPlanningCommandReceivedFlag();
     bool getExecutePlanCommandReceivedFlag();
     bool getHandCommandReceivedFlag();
+    bool getAbortWalkingCommandReceivedFlag();
+    bool getPauseWalkingCommandReceivedFlag();
+    bool getResumeWalkingCommandReceivedFlag();
+    bool getStopAllTrajectoryCommandReceivedFlag();
+    bool getMoveItPlanningCommandReceivedFlag();
+    bool getMoveItExecutePlanCommandReceivedFlag();
     void resetCommandReceivedFlag();
 
     // HELPER FUNCTIONS
@@ -90,6 +98,7 @@ public:
     void setLeftHandTargetTransform();
     void setRightHandTargetTransform();
     bool setCurrentWaypointFromStoredWaypoints();
+    void setMoveItArmGoal(std::string requested_arm);
 
     // HELPER FUNCTIONS FOR GO HOME MESSAGES
     bool checkHomingGroups(bool& home_left_arm_flag,
@@ -102,7 +111,7 @@ public:
     void publishChestHomingMessage();
     void publishPelvisHomingMessage();
 
-    // HELPER FUNCTIONS FOR PLANNING/EXECUTING
+    // HELPER FUNCTIONS FOR PLANNING/EXECUTING FOOTSTEP LISTS
     void requestFootstepPlan();
     void requestFootstepPlanToWaypoint();
     void requestFootstepPlanToStance();
@@ -110,12 +119,22 @@ public:
     void requestFootstepExecutionToWaypoint();
     void requestFootstepExecutionToStance();
 
+    // HELPER FUNCTIONS FOR PLANNING/EXECUTING MOVEIT ROBOT TRAJECTORIES
+    void requestArmGoalPlan();
+    void requestArmGoalExecution();
+
     // HELPER FUNCTIONS FOR HAND MESSAGES
     void publishHandMessages();
     void publishOpenLeftHandMessage();
     void publishCloseLeftHandMessage();
     void publishOpenRightHandMessage();
     void publishCloseRightHandMessage();
+
+    // HELPER FUNCTIONS FOR ABORT/PAUSE/RESUME/STOP MESSAGES
+    void publishAbortWalkingMessage();
+    void publishPauseWalkingMessage();
+    void publishResumeWalkingMessage();
+    void publishStopAllTrajectoryMessage();
 
 private:
     ros::NodeHandle nh_; // node handler
@@ -134,7 +153,7 @@ private:
     ros::Publisher target_pose_pub_; // publisher for target pose
     ros::Subscriber target_pose_sub_; // subscriber for target pose
 
-    ros::Publisher home_robot_pub_; // publisher for homing robot
+    ros::Publisher robot_pub_; // publisher for robot status messages for IHMCMsgInterface
 
     ros::Subscriber waypoint_sub_; // subscriber for waypoints
     ros::Subscriber vr_waypoint_sub_; // subscriber for waypoints from VR
@@ -147,6 +166,8 @@ private:
     ros::ServiceClient execute_to_waypoint_client_;
     ros::ServiceClient plan_to_stance_client_;
     ros::ServiceClient execute_to_stance_client_;
+    ros::ServiceClient plan_to_arm_goal_client_;
+    ros::ServiceClient execute_to_arm_goal_client_;
 
     std::string tf_prefix_; // tf prefix
 
@@ -172,6 +193,12 @@ private:
     bool planning_command_received_; // flag indicating if command involves requesting a plan
     bool execute_plan_command_received_; // flag indicating if command involves executing a planned footstep list
     bool hand_command_received_; // flag indicating if command involves opening/closing hand
+    bool abort_walking_command_received_; // flag indicating if command is to abort walking
+    bool pause_walking_command_received_; // flag indicating if command is to pause walking
+    bool resume_walking_command_received_; // flag indicating if command is to resume walking
+    bool stop_all_traj_command_received_; // flag indicating if command is to stop all trajectories
+    bool moveit_planning_command_received_; // flag indicating if command involves requested a MoveIt plan
+    bool moveit_execute_plan_command_received_; // flag indicating if command involves executing a planned MoveIt trajectory
     std::string frame_command_; // semantic frame command
 
     // targets
@@ -179,6 +206,7 @@ private:
     dynacore::Quaternion target_quat_;
     geometry_msgs::TransformStamped cartesian_hand_goal_;
     geometry_msgs::Pose current_waypoint_;
+    geometry_msgs::TransformStamped moveit_arm_goal_;
     std::map<std::string, geometry_msgs::Pose> waypoints_;
     std::map<std::string, geometry_msgs::Pose> object_poses_;
 
