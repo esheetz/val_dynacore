@@ -18,6 +18,9 @@ SemanticFrameControllerNode::SemanticFrameControllerNode(const ros::NodeHandle& 
 
     use_ihmc_controllers_msg_published_ = false;
     use_ihmc_controllers_msg_counter_ = 5;
+    ihmc_stop_trajectory_msg_counter_ = 0;
+    ihmc_abort_walking_msg_counter_ = 0;
+    ihmc_pause_walking_msg_counter_ = 0;
 
     loop_rate_ = 10.0; // Hz
 
@@ -85,7 +88,7 @@ bool SemanticFrameControllerNode::initializeConnections() {
     target_pose_pub_ = nh_.advertise<geometry_msgs::PoseStamped>("target_pose", 1);
 
     // publish status messages for IHMCMsgInterface node (homing robot body parts, opening/closing hands, abort/pause/resume walking, stop trajectories)
-    robot_pub_ = nh_.advertise<std_msgs::String>("controllers/output/ihmc/controller_status", 20);
+    robot_pub_ = nh_.advertise<std_msgs::String>("/IHMCInterfaceNode/controllers/output/ihmc/controller_status", 100);
 
     // subscribe to waypoints
     waypoint_sub_ = nh_.subscribe("/valkyrie/semantic_frame/waypoints", 1, &SemanticFrameControllerNode::waypointCallback, this);
@@ -94,11 +97,14 @@ bool SemanticFrameControllerNode::initializeConnections() {
     target_pose_sub_ = nh_.subscribe("/affordance_template_waypoint_target", 1, &SemanticFrameControllerNode::targetPoseCallback, this);
 
     // publish Cartesian hand goals and status of Cartesian hand goals
-    cartesian_hand_goal_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("controllers/output/ihmc/cartesian_hand_targets", 1);
-    use_cartesian_hand_goals_pub_ = nh_.advertise<std_msgs::Bool>("controllers/output/ihmc/receive_cartesian_goals", 1);
+    cartesian_hand_goal_pub_ = nh_.advertise<geometry_msgs::TransformStamped>("/IHMCInterfaceNode/controllers/output/ihmc/cartesian_hand_targets", 1);
+    use_cartesian_hand_goals_pub_ = nh_.advertise<std_msgs::Bool>("/IHMCInterfaceNode/controllers/output/ihmc/receive_cartesian_goals", 1);
 
     // subscribe to VR waypoints
     vr_waypoint_sub_ = nh_.subscribe("/valkyrie/semantic_frame/vr/waypoint", 1, &SemanticFrameControllerNode::vrWaypointCallback, this);
+
+    // safety reporter
+    safety_reporter_pub_ = nh_.advertise<val_safety_exception_reporter::NotActionable>("/valkyrie_safety_reporter/not_actionable", 10);
     
     return true;
 }
@@ -377,6 +383,8 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
         // set frame command
         setFrameCommand(msg.data, abort_walking_command_received_);
 
+        ihmc_abort_walking_msg_counter_ = 5;
+
         // store time command received
         storeTimeCommandReceived(frame_command_);
     }
@@ -384,6 +392,8 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
     if( msg.data == std::string("pause walking") ) {
         // set frame command
         setFrameCommand(msg.data, pause_walking_command_received_);
+
+        ihmc_pause_walking_msg_counter_ = 5;
 
         // store time command received
         storeTimeCommandReceived(frame_command_);
@@ -400,6 +410,8 @@ void SemanticFrameControllerNode::semanticFrameCallback(const std_msgs::String& 
     if( msg.data == std::string("stop all trajectories") ) {
         // set frame command
         setFrameCommand(msg.data, stop_all_traj_command_received_);
+
+        ihmc_stop_trajectory_msg_counter_ = 5;
 
         // store time command received
         storeTimeCommandReceived(frame_command_);
@@ -568,8 +580,36 @@ bool SemanticFrameControllerNode::getAbortWalkingCommandReceivedFlag() {
     return abort_walking_command_received_;
 }
 
+void SemanticFrameControllerNode::updateAbortWalkingCommandReceivedFlag() {
+    abort_walking_command_received_ = (ihmc_abort_walking_msg_counter_ != 0);
+
+    return;
+}
+
+void SemanticFrameControllerNode::decrementAbortWalkingMessageCounter() {
+    if( ihmc_abort_walking_msg_counter_ > 0 ) {
+        ihmc_abort_walking_msg_counter_--;
+    }
+
+    return;
+}
+
 bool SemanticFrameControllerNode::getPauseWalkingCommandReceivedFlag() {
     return pause_walking_command_received_;
+}
+
+void SemanticFrameControllerNode::updatePauseWalkingCommandReceivedFlag() {
+    pause_walking_command_received_ = (ihmc_pause_walking_msg_counter_ != 0);
+
+    return;
+}
+
+void SemanticFrameControllerNode::decrementPauseWalkingMessageCounter() {
+    if( ihmc_pause_walking_msg_counter_ > 0 ) {
+        ihmc_pause_walking_msg_counter_--;
+    }
+
+    return;
 }
 
 bool SemanticFrameControllerNode::getResumeWalkingCommandReceivedFlag() {
@@ -578,6 +618,20 @@ bool SemanticFrameControllerNode::getResumeWalkingCommandReceivedFlag() {
 
 bool SemanticFrameControllerNode::getStopAllTrajectoryCommandReceivedFlag() {
     return stop_all_traj_command_received_;
+}
+
+void SemanticFrameControllerNode::updateStopAllTrajectoryCommandReceivedFlag() {
+    stop_all_traj_command_received_ = (ihmc_stop_trajectory_msg_counter_ != 0);
+
+    return;
+}
+
+void SemanticFrameControllerNode::decrementStopAllTrajectoryMessageCounter() {
+    if( ihmc_stop_trajectory_msg_counter_ > 0 ) {
+        ihmc_stop_trajectory_msg_counter_--;
+    }
+
+    return;
 }
 
 bool SemanticFrameControllerNode::getMoveItPlanningCommandReceivedFlag() {
@@ -818,6 +872,8 @@ bool SemanticFrameControllerNode::setTargetPoseFromStoredObjectPoses() {
     }
     else { // it == object_poses_.end()
         ROS_WARN("[Semantic Frame Controller Node] Target pose for %s does not exist; ignoring command", object_name.c_str());
+        // publish message for safety reporter
+        publishSafetyReportNotActionableTargetPose(object_name);
         resetCommandReceivedFlag();
         return false;
     }
@@ -889,6 +945,8 @@ bool SemanticFrameControllerNode::setCurrentWaypointFromStoredWaypoints() {
     }
     else { // it == waypoints_.end()
         ROS_WARN("[Semantic Frame Controller Node] Waypoint for %s does not exist; ignoring command", waypoint_name.c_str());
+        // publish message for safety reporter
+        publishSafetyReportNotActionableWaypointPose(waypoint_name);
         resetCommandReceivedFlag();
         return false;
     }
@@ -1409,6 +1467,48 @@ void SemanticFrameControllerNode::publishStopAllTrajectoryMessage() {
     return;
 }
 
+// HELPER FUNCTIONS FOR SAFETY REPORTER
+void SemanticFrameControllerNode::publishSafetyReportNotActionableTargetPose(std::string object_name) {
+    // create action string
+    std::string action = std::string("move to target pose for " + object_name);
+
+    // create unmet pre-condition string
+    std::string unmet_precondition = std::string("target pose set for the " + object_name);
+
+    // publish message
+    publishSafetyReportNotActionable(action, unmet_precondition);
+
+    return;
+}
+
+void SemanticFrameControllerNode::publishSafetyReportNotActionableWaypointPose(std::string waypoint_name) {
+    // create action string
+    std::string action = std::string("set waypoint at " + waypoint_name);
+
+    // create unmet pre-condition string
+    std::string unmet_precondition = std::string("waypoint exists for " + waypoint_name);
+
+    // publish message
+    publishSafetyReportNotActionable(action, unmet_precondition);
+
+    return;
+}
+
+void SemanticFrameControllerNode::publishSafetyReportNotActionable(std::string action, std::string unmet_precondition) {
+    // create message
+    val_safety_exception_reporter::NotActionable action_msg;
+
+    // set message fields
+    action_msg.action = action;
+    action_msg.unmet_precondition = unmet_precondition;
+    action_msg.commanded_task = action_msg.TASK_UNKNOWN; // this node does not have task info
+
+    // publish message
+    safety_reporter_pub_.publish(action_msg);
+
+    return;
+}
+
 int main(int argc, char **argv) {
     // initialize node
     ros::init(argc, argv, "SemanticFrameControllerNode");
@@ -1521,15 +1621,35 @@ int main(int argc, char **argv) {
                 // reset flags
                 sfnode.resetCommandReceivedFlag();
                 ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+                // can publish abort walking message several times for safety, but better to only publish once
+                /*
+                // decrement counter for how many times message gets published
+                sfnode.decrementAbortWalkingMessageCounter();
+                // update flag for publishing message
+                sfnode.updateAbortWalkingCommandReceivedFlag();
+                // check if command has been published
+                if( !sfnode.getAbortWalkingCommandReceivedFlag() ) {
+                    // command published, reset flags
+                    sfnode.resetCommandReceivedFlag();
+                    ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+                }
+                */
             }
 
             // check if received command is pause walking command
             if( sfnode.getPauseWalkingCommandReceivedFlag() ) {
                 // publish pause walking message
                 sfnode.publishPauseWalkingMessage();
-                // reset flags
-                sfnode.resetCommandReceivedFlag();
-                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+                // decrement counter for how many times message gets published
+                sfnode.decrementPauseWalkingMessageCounter();
+                // update flag for publishing message
+                sfnode.updatePauseWalkingCommandReceivedFlag();
+                // check if command has been published
+                if( !sfnode.getPauseWalkingCommandReceivedFlag() ) {
+                    // command published, reset flags
+                    sfnode.resetCommandReceivedFlag();
+                    ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+                }
             }
 
             // check if received command is resume walking command
@@ -1545,9 +1665,16 @@ int main(int argc, char **argv) {
             if( sfnode.getStopAllTrajectoryCommandReceivedFlag() ) {
                 // publish stop all trajectory message
                 sfnode.publishStopAllTrajectoryMessage();
-                // reset flags
-                sfnode.resetCommandReceivedFlag();
-                ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+                // decrement counter for how many times message gets published
+                sfnode.decrementStopAllTrajectoryMessageCounter();
+                // update flag for publishing message
+                sfnode.updateStopAllTrajectoryCommandReceivedFlag();
+                // check if command has been published
+                if( !sfnode.getStopAllTrajectoryCommandReceivedFlag() ) {
+                    // command published, reset flags
+                    sfnode.resetCommandReceivedFlag();
+                    ROS_INFO("[Semantic Frame Controller Node] Commanded action complete!");
+                }
             }
 
             // check if received command is MoveIt planning command

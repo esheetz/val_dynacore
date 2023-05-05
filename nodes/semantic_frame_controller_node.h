@@ -32,6 +32,7 @@
 #include <val_footstep_planner_executor/ExecuteToStance.h>
 #include <val_moveit_planner_executor/PlanToArmGoal.h>
 #include <val_moveit_planner_executor/ExecuteToArmGoal.h>
+#include <val_safety_exception_reporter/NotActionable.h>
 
 class SemanticFrameControllerNode
 {
@@ -66,9 +67,15 @@ public:
     bool getExecutePlanCommandReceivedFlag();
     bool getHandCommandReceivedFlag();
     bool getAbortWalkingCommandReceivedFlag();
+    void updateAbortWalkingCommandReceivedFlag();
+    void decrementAbortWalkingMessageCounter();
     bool getPauseWalkingCommandReceivedFlag();
+    void updatePauseWalkingCommandReceivedFlag();
+    void decrementPauseWalkingMessageCounter();
     bool getResumeWalkingCommandReceivedFlag();
     bool getStopAllTrajectoryCommandReceivedFlag();
+    void updateStopAllTrajectoryCommandReceivedFlag();
+    void decrementStopAllTrajectoryMessageCounter();
     bool getMoveItPlanningCommandReceivedFlag();
     bool getMoveItExecutePlanCommandReceivedFlag();
     void resetCommandReceivedFlag();
@@ -136,6 +143,11 @@ public:
     void publishResumeWalkingMessage();
     void publishStopAllTrajectoryMessage();
 
+    // HELPER FUNCTIONS FOR SAFETY REPORTER
+    void publishSafetyReportNotActionableTargetPose(std::string object_name);
+    void publishSafetyReportNotActionableWaypointPose(std::string waypoint_name);
+    void publishSafetyReportNotActionable(std::string action, std::string unmet_precondition);
+
 private:
     ros::NodeHandle nh_; // node handler
     controllers_core::ControllerManager cm_; // controller manager
@@ -161,6 +173,8 @@ private:
     ros::Publisher cartesian_hand_goal_pub_; // publisher for Cartesian hand goals
     ros::Publisher use_cartesian_hand_goals_pub_; // publisher for indicating whether Cartesian hand goals or joint commands are used
 
+    ros::Publisher safety_reporter_pub_; // publisher for safety reporter
+
     // service clients
     ros::ServiceClient plan_to_waypoint_client_;
     ros::ServiceClient execute_to_waypoint_client_;
@@ -180,6 +194,9 @@ private:
     bool use_ihmc_controllers_; // flag indicating whether to use PotentialFieldControllers or IHMC controllers
     bool use_ihmc_controllers_msg_published_; // flag indicating whether flag has been published
     int use_ihmc_controllers_msg_counter_; // counter for how many times flag has been published
+    int ihmc_stop_trajectory_msg_counter_;
+    int ihmc_abort_walking_msg_counter_;
+    int ihmc_pause_walking_msg_counter_;
 
     std::string controller_type_; // type of controller being run
 

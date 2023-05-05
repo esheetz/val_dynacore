@@ -25,10 +25,11 @@ find_package(catkin REQUIRED COMPONENTS
 	std_msgs
 	val_footstep_planner_executor
 	val_moveit_planner_executor
+	val_safety_exception_reporter
 )
 find_package(Eigen3 REQUIRED)
 catkin_package(
-	CATKIN_DEPENDS roscpp rospy tf geometry_msgs nav_msgs sensor_msgs std_msgs val_footstep_planner_executor val_moveit_planner_executor
+	CATKIN_DEPENDS roscpp rospy tf geometry_msgs nav_msgs sensor_msgs std_msgs val_footstep_planner_executor val_moveit_planner_executor val_safety_exception_reporter
 	DEPENDS EIGEN3
 	INCLUDE_DIRS . RobotSystems ExternalSource
 	LIBRARIES dynacore_utils Valkyrie_model
