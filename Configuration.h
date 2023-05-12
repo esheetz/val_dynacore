@@ -1,7 +1,7 @@
 #ifndef CTRL_CONFIG_H
 #define CTRL_CONFIG_H
 
-#define THIS_COM "/home/val/nstgro20_ws/src/val_dynacore/"
+#define THIS_COM "/home/esheetz/test_ws/src/val_dynacore/"
 
 #define PORT_EXT_CTRL         61123
 #define PORT_DATA_SETUP        61124
