@@ -22,13 +22,12 @@ find_package(catkin REQUIRED COMPONENTS
 	nav_msgs
 	sensor_msgs
 	std_msgs
+	val_dynacore_utils
 )
 find_package(Eigen3 REQUIRED)
 catkin_package(
-	CATKIN_DEPENDS roscpp tf geometry_msgs nav_msgs sensor_msgs std_msgs 
+	CATKIN_DEPENDS roscpp tf geometry_msgs nav_msgs sensor_msgs std_msgs val_dynacore_utils
 	DEPENDS EIGEN3
-	INCLUDE_DIRS . RobotSystems ExternalSource
-	LIBRARIES dynacore_utils Valkyrie_model
 )
 include_directories(${catkin_INCLUDE_DIRS})
 
@@ -40,12 +39,9 @@ message(${EIGEN3_INCLUDE_DIRS})
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
 include_directories ("/usr/local/include")
+include_directories ("${PROJECT_SOURCE_DIR}/..")
 include_directories ("${PROJECT_SOURCE_DIR}/")
 
-include_directories ("${PROJECT_SOURCE_DIR}/RobotSystems")
-include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource")
-include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource/QuadProgpp")
-include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource/ParamHandler/include")
 include_directories ("${PROJECT_SOURCE_DIR}/Tasks")
 include_directories ("${PROJECT_SOURCE_DIR}/IKModule")
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers")
@@ -53,6 +49,8 @@ include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/PotentialF
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/Controllers")
 include_directories ("${PROJECT_SOURCE_DIR}/PotentialFieldControllers/ControllersCore")
 include_directories ("${PROJECT_SOURCE_DIR}/nodes")
+include_directories (${catkin_INCLUDE_DIRS})
+link_directories (${catkin_LIBRARY_DIRS})
 
 
 #set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -60,9 +58,6 @@ include_directories ("${PROJECT_SOURCE_DIR}/nodes")
 #------------------------------------------------------------------------
 #    Directory Selection
 #------------------------------------------------------------------------
-add_subdirectory (ExternalSource)
-add_subdirectory (RobotSystems)
-add_subdirectory (Utils)
 add_subdirectory (Tasks)
 add_subdirectory (IKModule)
 add_subdirectory (PotentialFieldControllers)
