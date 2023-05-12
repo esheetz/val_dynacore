@@ -31,7 +31,7 @@
 #include <val_footstep_planner_executor/PlanToStance.h>
 #include <val_footstep_planner_executor/ExecuteToStance.h>
 #include <val_moveit_planner_executor/PlanToArmGoal.h>
-#include <val_moveit_planner_executor/ExecuteToArmGoal.h>
+#include <val_moveit_planner_executor/ExecuteTrajectory.h>
 #include <val_safety_exception_reporter/NotActionable.h>
 
 class SemanticFrameControllerNode

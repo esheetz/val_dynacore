@@ -146,7 +146,7 @@ bool SemanticFrameControllerNode::initializeClients() {
     ROS_INFO("[Semantic Frame Controller Node] Service plan_to_arm_goal is ready!");
 
     ROS_INFO("[Semantic Frame Controller Node] Waiting for service execute_to_arm_goal...");
-    execute_to_arm_goal_client_ = nh_.serviceClient<val_moveit_planner_executor::ExecuteToArmGoal>("/ValkyrieMoveItPlannerExecutorServerNode/execute_to_arm_goal");
+    execute_to_arm_goal_client_ = nh_.serviceClient<val_moveit_planner_executor::ExecuteTrajectory>("/ValkyrieMoveItPlannerExecutorServerNode/execute_trajectory");
     execute_to_arm_goal_client_.waitForExistence(); // blocks until service exists
     ROS_INFO("[Semantic Frame Controller Node] Service execute_to_arm_goal is ready!");
 
@@ -1285,8 +1285,8 @@ void SemanticFrameControllerNode::requestArmGoalPlan() {
 
 void SemanticFrameControllerNode::requestArmGoalExecution() {
     // create request and response
-    val_moveit_planner_executor::ExecuteToArmGoal::Request req;
-    val_moveit_planner_executor::ExecuteToArmGoal::Response res;
+    val_moveit_planner_executor::ExecuteTrajectory::Request req;
+    val_moveit_planner_executor::ExecuteTrajectory::Response res;
 
     // set request
     req.use_stored_robot_trajectory = true;
