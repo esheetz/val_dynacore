@@ -1,5 +1,3 @@
-#include_directories ("${PROJECT_SOURCE_DIR}/ExternalSource")
-
 if (WIN32)
   add_library(dynacore_tasks SHARED
     task.h task.cpp

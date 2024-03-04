@@ -3,13 +3,14 @@
 # for testing IK Module on pre-defined tasks
 #-----------------------------------------------------------------------
 add_executable(ik_module_test_node ik_module_test_node.cpp)
-target_link_libraries(ik_module_test_node dynacore_rbdl
-                                          dynacore_urdf
+target_link_libraries(ik_module_test_node dynacore_tasks
+                                          dynacore_ik
                                           dynacore_utils
                                           dynacore_robot
                                           Valkyrie_model
-                                          dynacore_tasks
-                                          dynacore_ik
+                                          dynacore_rbdl
+                                          dynacore_urdf
+                                          quadprog
                                           ${catkin_LIBRARIES})
 
 #-----------------------------------------------------------------------
@@ -17,16 +18,16 @@ target_link_libraries(ik_module_test_node dynacore_rbdl
 # for testing potential field controllers
 #-----------------------------------------------------------------------
 add_executable(controller_test_node controller_test_node.cpp)
-target_link_libraries(controller_test_node dynacore_rbdl
-                                           dynacore_urdf
-                                           dynacore_utils
-                                           dynacore_robot
-                                           Valkyrie_model
-                                           dynacore_tasks
+target_link_libraries(controller_test_node dynacore_tasks
                                            dynacore_ik
                                            potential_fields
                                            controllers
                                            controllers_core
+                                           dynacore_utils
+                                           dynacore_robot
+                                           Valkyrie_model
+                                           dynacore_rbdl
+                                           dynacore_urdf
                                            ${catkin_LIBRARIES})
 
 #-----------------------------------------------------------------------
@@ -35,15 +36,15 @@ target_link_libraries(controller_test_node dynacore_rbdl
 # TODO: NOT USED RIGHT NOW
 #-----------------------------------------------------------------------
 #add_executable(controller_manager_node controller_manager_node.cpp)
-#target_link_libraries(controller_manager_node dynacore_rbdl
-#                                              dynacore_urdf
-#                                              dynacore_utils
-#                                              dynacore_robot
-#                                              Valkyrie_model
-#                                              dynacore_tasks
+#target_link_libraries(controller_manager_node dynacore_tasks
 #                                              dynacore_ik
 #                                              potential_fields
 #                                              controllers
+#                                              dynacore_utils
+#                                              dynacore_robot
+#                                              Valkyrie_model
+#                                              dynacore_rbdl
+#                                              dynacore_urdf
 #                                              ${catkin_LIBRARIES})
 
 #-----------------------------------------------------------------------
@@ -59,11 +60,11 @@ target_link_libraries(controller_reference_publisher_node dynacore_utils
 # for setting Valkyrie to a standing pose; for RViz testing only
 #-----------------------------------------------------------------------
 add_executable(set_valkyrie_standing_node set_valkyrie_standing_node.cpp)
-target_link_libraries(set_valkyrie_standing_node dynacore_rbdl
-                                                 dynacore_urdf
-                                                 dynacore_utils
+target_link_libraries(set_valkyrie_standing_node dynacore_utils
                                                  dynacore_robot
                                                  Valkyrie_model
+                                                 dynacore_rbdl
+                                                 dynacore_urdf
                                                  ${catkin_LIBRARIES})
 
 #-----------------------------------------------------------------------

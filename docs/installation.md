@@ -8,6 +8,7 @@ Install, compile, and test the `val_dynacore` package.
 - cmake
 - eigen3 (in ubuntu: sudo apt install libeigen3-dev)
 - openGL (in ubuntu: sudo apt-get install freeglut3-dev)
+- [`val_dynacore_utils` package](https://github.com/esheetz/val_dynacore_utils) for robot model and some utilities; follow [`val_dynacore_utils` installation instructions](https://github.com/esheetz/val_dynacore_utils#installation)
 
 
 

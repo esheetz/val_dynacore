@@ -1,5 +1,3 @@
-include_directories ("${PROJECT_SOURCE_DIR}/Utils")
-
 if (WIN32)
   add_library(potential_fields SHARED
     potential_field.h potential_field.cpp

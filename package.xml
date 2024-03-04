@@ -17,6 +17,7 @@
   <depend>nav_msgs</depend>
   <depend>sensor_msgs</depend>
   <depend>std_msgs</depend>
+  <depend>val_dynacore_utils</depend>
   <depend>val_footstep_planner_executor</depend>
   <depend>val_moveit_planner_executor</depend>
   <depend>val_safety_exception_reporter</depend>
